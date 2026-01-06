@@ -18,7 +18,7 @@ import {
 
 const NAV_ITEMS = [
   { name: 'Dashboard', page: 'Dashboard', icon: LayoutDashboard },
-  { name: 'Lenders', page: 'Lenders', icon: Building },
+  { name: 'Lender Dashboard', page: 'LenderDashboard', icon: Building },
   { name: 'Settings', page: 'Settings', icon: Settings }
 ];
 
