@@ -118,6 +118,23 @@ export default function LenderChecks({ checks = [] }) {
             </CardHeader>
 
             <CardContent className="space-y-4">
+              {/* Recommended Products */}
+              {check.recommended_products && check.recommended_products.length > 0 && (
+                <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    <span className="text-sm font-medium text-emerald-900">Recommended Products</span>
+                  </div>
+                  <ul className="space-y-1">
+                    {check.recommended_products.map((product, i) => (
+                      <li key={i} className="text-sm text-emerald-800 font-medium pl-6">
+                        • {product}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Passes */}
               {check.passes && check.passes.length > 0 && (
                 <div>

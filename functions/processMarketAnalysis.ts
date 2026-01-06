@@ -131,48 +131,73 @@ Respond with ONLY the JSON object, no other text.
                     });
 
                     if (lendersToCheck.length > 0) {
+                        // Get products for these lenders
+                        const lenderIds = lendersToCheck.map(l => l.id);
+                        const lenderProducts = await base44.asServiceRole.entities.LenderProduct.filter({
+                            lender_id: { $in: lenderIds },
+                            is_available: true,
+                            category: mortgageCase.category
+                        });
+
                         const eligibilityContext = `
-LENDER ELIGIBILITY CHECK
+LENDER & PRODUCT ELIGIBILITY CHECK
 
 Case Details:
 - Category: ${mortgageCase.category}
+- Purpose: ${mortgageCase.purpose}
 - LTV: ${mortgageCase.ltv}%
 - Income Type: ${mortgageCase.income_type}
 - Annual Income: ${mortgageCase.annual_income ? `£${mortgageCase.annual_income}` : 'Not provided'}
 - Loan Amount: £${mortgageCase.loan_amount}
+- Property Value: £${mortgageCase.property_value}
 
 Lenders to Check:
-${lendersToCheck.map(l => `
+${lendersToCheck.map(l => {
+    const products = lenderProducts.filter(p => p.lender_id === l.id);
+    return `
 ${l.name}:
+LENDER CRITERIA:
 - Max LTV ${mortgageCase.category === 'buy_to_let' ? 'BTL' : 'Residential'}: ${mortgageCase.category === 'buy_to_let' ? l.max_ltv_btl : l.max_ltv_residential}%
-- Accepts ${mortgageCase.income_type}: ${
-  mortgageCase.income_type === 'self_employed' ? l.accepts_self_employed :
-  mortgageCase.income_type === 'contractor' ? l.accepts_contractors :
-  mortgageCase.income_type === 'ltd_company' ? l.accepts_ltd_company :
-  'Yes (standard)'
-}
-- Min Income: ${l.min_income ? `£${l.min_income}` : 'None specified'}
+- Min Income: ${l.min_income ? `£${l.min_income}` : 'None'}
 - Max Age: ${l.max_age || 'Not specified'}
+- Min Credit Score: ${l.min_credit_score || 'Not specified'}
+- Max Loan Term: ${l.max_loan_term_years || 'Not specified'} years
 - Credit Stance: ${l.credit_stance}
-- Products: ${l.products_offered?.join(', ')}
-${l.notes ? `- Notes: ${l.notes}` : ''}
-`).join('\n')}
+- Property Types: ${l.property_type_restrictions ? JSON.stringify(l.property_type_restrictions) : 'All accepted'}
+- Income Acceptance: SE=${l.accepts_self_employed}, Contractor=${l.accepts_contractors}, Ltd=${l.accepts_ltd_company}
 
-For EACH lender, check eligibility and return a JSON array with this structure:
+AVAILABLE PRODUCTS (${products.length}):
+${products.length > 0 ? products.map(p => `
+  • ${p.product_name} (${p.rate_type})
+    - Rate: ${p.initial_rate}% for ${p.initial_period_months} months
+    - LTV: ${p.min_ltv || 0}-${p.max_ltv}%
+    - Loan: £${p.min_loan_amount || 0}-£${p.max_loan_amount || 'unlimited'}
+    - Property Value: £${p.min_property_value || 0}-£${p.max_property_value || 'unlimited'}
+    - Fees: Arrangement £${p.arrangement_fee || 0}
+    - Income: ${p.income_requirements ? JSON.stringify(p.income_requirements) : 'Standard'}
+    - Credit: ${p.credit_requirements ? JSON.stringify(p.credit_requirements) : 'Standard'}
+    - Property: ${p.property_criteria ? JSON.stringify(p.property_criteria) : 'Standard'}
+`).join('') : '  No products available for this category'}
+${l.notes ? `- Lender Notes: ${l.notes}` : ''}
+`;
+}).join('\n')}
+
+For EACH lender, check eligibility against BOTH lender-level AND product-level criteria. Return a JSON array:
 [
   {
     "lender_name": string,
     "lender_id": string,
     "overall_status": "eligible" | "review_required" | "likely_decline",
     "confidence": "high" | "medium" | "low",
-    "passes": [list of criteria that pass],
-    "warnings": [list of criteria requiring attention],
-    "blockers": [list of criteria that fail],
-    "notes": "brief summary"
+    "recommended_products": [list of suitable product names from above],
+    "passes": [specific criteria that pass - mention lender AND product level],
+    "warnings": [criteria requiring attention],
+    "blockers": [criteria that fail],
+    "notes": "brief summary with product recommendations"
   }
 ]
 
-Be thorough and specific. Respond with ONLY the JSON array.
+Be thorough. Check product-level criteria carefully. Recommend best 1-2 products if eligible. Respond with ONLY the JSON array.
 `;
 
                         const eligibilityResponse = await base44.asServiceRole.agents.chat({
