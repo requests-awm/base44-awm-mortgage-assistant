@@ -270,6 +270,41 @@ export default function CaseDetail() {
           </div>
         </div>
 
+        {/* Processing Banner */}
+        {caseData.stage === 'market_analysis' && (
+          <Card className="border-0 shadow-lg bg-blue-50 border-blue-200 mb-6">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                  <div className="absolute inset-0 rounded-full border-2 border-blue-200" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-900 flex items-center gap-2">
+                    Generating Indicative Report
+                    <span className="inline-flex items-center gap-1 text-xs font-normal text-blue-700">
+                      <Clock className="w-3 h-3" />
+                      30-60 seconds
+                    </span>
+                  </h3>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Analyzing market position, checking lender eligibility, and preparing report...
+                  </p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => queryClient.invalidateQueries(['mortgageCase', caseId])}
+                    className="mt-2 text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Refresh Status
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
