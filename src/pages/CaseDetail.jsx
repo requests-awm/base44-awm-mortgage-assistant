@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import IndicativeReport from '@/components/case/IndicativeReport';
 import CaseTimeline from '@/components/case/CaseTimeline';
 import FeeAcknowledgement from '@/components/case/FeeAcknowledgement';
+import LenderChecks from '@/components/case/LenderChecks';
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700' },
@@ -230,6 +231,7 @@ export default function CaseDetail() {
               <TabsList className="bg-white/80 mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="report">Indicative Report</TabsTrigger>
+                <TabsTrigger value="checks">Lender Checks</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
 
@@ -372,6 +374,10 @@ export default function CaseDetail() {
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              <TabsContent value="checks">
+                <LenderChecks checks={caseData.lender_checks} />
               </TabsContent>
 
               <TabsContent value="activity">

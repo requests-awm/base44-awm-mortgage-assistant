@@ -118,9 +118,93 @@ Respond with ONLY the JSON object, no other text.
                 // Add generation timestamp
                 report.generated_at = new Date().toISOString();
 
-                // Update case with report
+                console.log('Running lender eligibility checks...');
+
+                // Run lender eligibility checks
+                let lenderChecks = [];
+                try {
+                    // Get top 2-3 lenders from report
+                    const topLenders = report.lender_directions?.slice(0, 3).map(ld => ld.lender_name) || [];
+                    const lendersToCheck = await base44.asServiceRole.entities.Lender.filter({
+                        name: { $in: topLenders },
+                        is_active: true
+                    });
+
+                    if (lendersToCheck.length > 0) {
+                        const eligibilityContext = `
+LENDER ELIGIBILITY CHECK
+
+Case Details:
+- Category: ${mortgageCase.category}
+- LTV: ${mortgageCase.ltv}%
+- Income Type: ${mortgageCase.income_type}
+- Annual Income: ${mortgageCase.annual_income ? `£${mortgageCase.annual_income}` : 'Not provided'}
+- Loan Amount: £${mortgageCase.loan_amount}
+
+Lenders to Check:
+${lendersToCheck.map(l => `
+${l.name}:
+- Max LTV ${mortgageCase.category === 'buy_to_let' ? 'BTL' : 'Residential'}: ${mortgageCase.category === 'buy_to_let' ? l.max_ltv_btl : l.max_ltv_residential}%
+- Accepts ${mortgageCase.income_type}: ${
+  mortgageCase.income_type === 'self_employed' ? l.accepts_self_employed :
+  mortgageCase.income_type === 'contractor' ? l.accepts_contractors :
+  mortgageCase.income_type === 'ltd_company' ? l.accepts_ltd_company :
+  'Yes (standard)'
+}
+- Min Income: ${l.min_income ? `£${l.min_income}` : 'None specified'}
+- Max Age: ${l.max_age || 'Not specified'}
+- Credit Stance: ${l.credit_stance}
+- Products: ${l.products_offered?.join(', ')}
+${l.notes ? `- Notes: ${l.notes}` : ''}
+`).join('\n')}
+
+For EACH lender, check eligibility and return a JSON array with this structure:
+[
+  {
+    "lender_name": string,
+    "lender_id": string,
+    "overall_status": "eligible" | "review_required" | "likely_decline",
+    "confidence": "high" | "medium" | "low",
+    "passes": [list of criteria that pass],
+    "warnings": [list of criteria requiring attention],
+    "blockers": [list of criteria that fail],
+    "notes": "brief summary"
+  }
+]
+
+Be thorough and specific. Respond with ONLY the JSON array.
+`;
+
+                        const eligibilityResponse = await base44.asServiceRole.agents.chat({
+                            agent_name: 'lender_eligibility',
+                            messages: [{ role: 'user', content: eligibilityContext }]
+                        });
+
+                        const eligibilityContent = eligibilityResponse.messages[eligibilityResponse.messages.length - 1]?.content || '';
+                        const eligibilityJsonMatch = eligibilityContent.match(/```json\s*([\s\S]*?)\s*```/) || 
+                                                     eligibilityContent.match(/```\s*([\s\S]*?)\s*```/) ||
+                                                     [null, eligibilityContent];
+                        
+                        lenderChecks = JSON.parse((eligibilityJsonMatch[1] || eligibilityContent).trim());
+                        
+                        // Add timestamps and lender IDs
+                        lenderChecks = lenderChecks.map(check => ({
+                            ...check,
+                            lender_id: lendersToCheck.find(l => l.name === check.lender_name)?.id,
+                            checked_at: new Date().toISOString()
+                        }));
+
+                        console.log(`✓ Completed eligibility checks for ${lenderChecks.length} lenders`);
+                    }
+                } catch (eligibilityError) {
+                    console.error('Failed to run eligibility checks:', eligibilityError);
+                    // Don't fail the whole process if eligibility checks fail
+                }
+
+                // Update case with report and lender checks
                 await base44.asServiceRole.entities.MortgageCase.update(mortgageCase.id, {
                     indicative_report: report,
+                    lender_checks: lenderChecks,
                     stage: 'human_review',
                     stage_entered_at: new Date().toISOString()
                 });
