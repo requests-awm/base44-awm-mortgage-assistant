@@ -120,6 +120,28 @@ export default function CaseDetail() {
     });
   };
 
+  const runAnalysisMutation = useMutation({
+    mutationFn: async () => {
+      // Move to market_analysis stage to trigger automated processing
+      await updateMutation.mutateAsync({
+        stage: 'market_analysis',
+        stage_entered_at: new Date().toISOString()
+      });
+      
+      // Call the backend function to process immediately
+      await base44.functions.invoke('processMarketAnalysis', {});
+    },
+    onSuccess: () => {
+      toast.success('Report generation started - refresh in 30-60 seconds');
+      setTimeout(() => {
+        queryClient.invalidateQueries(['mortgageCase', caseId]);
+      }, 2000);
+    },
+    onError: (error) => {
+      toast.error('Failed to start analysis: ' + error.message);
+    }
+  });
+
   const handleApproveReport = async () => {
     const user = await base44.auth.me();
     await updateMutation.mutateAsync({
@@ -202,6 +224,30 @@ export default function CaseDetail() {
               <Badge className={`${stage.color} text-sm py-1.5 px-3`}>
                 {stage.label}
               </Badge>
+              
+              {/* Run Analysis Button - show if no report yet */}
+              {!caseData.indicative_report && !['market_analysis', 'human_review'].includes(caseData.stage) && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => runAnalysisMutation.mutate()}
+                  disabled={runAnalysisMutation.isPending || caseData.agent_paused}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {runAnalysisMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      Running...
+                    </>
+                  ) : (
+                    <>
+                      <Building className="w-4 h-4 mr-1" />
+                      Run Analysis
+                    </>
+                  )}
+                </Button>
+              )}
+              
               <Button 
                 variant="outline" 
                 size="sm"
