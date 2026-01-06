@@ -1,0 +1,499 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, CheckCircle, AlertTriangle, ArrowRight, User, Building, Banknote, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const CATEGORIES = [
+  { value: 'residential', label: 'Residential' },
+  { value: 'buy_to_let', label: 'Buy-to-Let' },
+  { value: 'later_life', label: 'Later Life' },
+  { value: 'ltd_company', label: 'Ltd Company' }
+];
+
+const PURPOSES = [
+  { value: 'purchase', label: 'Purchase' },
+  { value: 'remortgage', label: 'Remortgage' },
+  { value: 'rate_expiry', label: 'Rate Expiry' }
+];
+
+const INCOME_TYPES = [
+  { value: 'employed', label: 'Employed' },
+  { value: 'self_employed', label: 'Self Employed' },
+  { value: 'contractor', label: 'Contractor' },
+  { value: 'retired', label: 'Retired' },
+  { value: 'mixed', label: 'Mixed Income' }
+];
+
+const SENSITIVITIES = [
+  { value: 'urgent', label: 'Urgent (< 2 weeks)' },
+  { value: 'standard', label: 'Standard (2-8 weeks)' },
+  { value: 'flexible', label: 'Flexible (no pressure)' }
+];
+
+export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} }) {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    is_existing_client: initialData.is_existing_client ?? true,
+    insightly_id: initialData.insightly_id || '',
+    client_name: initialData.client_name || '',
+    client_email: initialData.client_email || '',
+    client_phone: initialData.client_phone || '',
+    category: initialData.category || '',
+    purpose: initialData.purpose || '',
+    property_value: initialData.property_value || '',
+    loan_amount: initialData.loan_amount || '',
+    income_type: initialData.income_type || '',
+    annual_income: initialData.annual_income || '',
+    time_sensitivity: initialData.time_sensitivity || 'standard',
+    rate_expiry_date: initialData.rate_expiry_date || '',
+    intake_type: initialData.intake_type || 'identification',
+    notes: initialData.notes || ''
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const updateField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: null }));
+    }
+  };
+
+  const validateStep = (stepNum) => {
+    const newErrors = {};
+    
+    if (stepNum === 1) {
+      if (!formData.client_name) newErrors.client_name = 'Required';
+      if (formData.is_existing_client && !formData.insightly_id) {
+        newErrors.insightly_id = 'Required for existing clients';
+      }
+    }
+    
+    if (stepNum === 2) {
+      if (!formData.category) newErrors.category = 'Required';
+      if (!formData.purpose) newErrors.purpose = 'Required';
+    }
+    
+    if (stepNum === 3) {
+      if (!formData.property_value) newErrors.property_value = 'Required';
+      if (!formData.loan_amount) newErrors.loan_amount = 'Required';
+      if (formData.loan_amount && formData.property_value) {
+        const ltv = (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100;
+        if (ltv > 100) newErrors.loan_amount = 'Loan exceeds property value';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const nextStep = () => {
+    if (validateStep(step)) {
+      setStep(prev => Math.min(prev + 1, 4));
+    }
+  };
+
+  const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
+
+  const handleSubmit = () => {
+    if (validateStep(step)) {
+      const ltv = formData.property_value && formData.loan_amount 
+        ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
+        : null;
+
+      onSubmit({
+        ...formData,
+        property_value: parseFloat(formData.property_value) || null,
+        loan_amount: parseFloat(formData.loan_amount) || null,
+        annual_income: parseFloat(formData.annual_income) || null,
+        ltv: ltv ? Math.round(ltv * 10) / 10 : null
+      });
+    }
+  };
+
+  const calculateLTV = () => {
+    if (formData.property_value && formData.loan_amount) {
+      const ltv = (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100;
+      return Math.round(ltv * 10) / 10;
+    }
+    return null;
+  };
+
+  const ltv = calculateLTV();
+
+  const stepConfig = [
+    { num: 1, label: 'Client', icon: User },
+    { num: 2, label: 'Mortgage', icon: Building },
+    { num: 3, label: 'Financials', icon: Banknote },
+    { num: 4, label: 'Timing', icon: Clock }
+  ];
+
+  return (
+    <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl font-semibold text-slate-900">Mortgage Intake</CardTitle>
+        <CardDescription className="text-slate-500">
+          Capture opportunity details for agent processing
+        </CardDescription>
+        
+        {/* Progress Steps */}
+        <div className="flex items-center justify-between mt-6 px-2">
+          {stepConfig.map((s, idx) => (
+            <React.Fragment key={s.num}>
+              <button
+                onClick={() => s.num < step && setStep(s.num)}
+                className={`flex flex-col items-center transition-all ${
+                  step === s.num 
+                    ? 'opacity-100' 
+                    : step > s.num 
+                      ? 'opacity-70 cursor-pointer hover:opacity-100' 
+                      : 'opacity-40'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  step === s.num 
+                    ? 'bg-slate-900 text-white' 
+                    : step > s.num 
+                      ? 'bg-emerald-100 text-emerald-600' 
+                      : 'bg-slate-100 text-slate-400'
+                }`}>
+                  {step > s.num ? <CheckCircle className="w-5 h-5" /> : <s.icon className="w-5 h-5" />}
+                </div>
+                <span className="text-xs mt-1.5 font-medium text-slate-600">{s.label}</span>
+              </button>
+              {idx < stepConfig.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-2 transition-all ${
+                  step > s.num ? 'bg-emerald-200' : 'bg-slate-200'
+                }`} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        <AnimatePresence mode="wait">
+          {/* Step 1: Client Details */}
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-5"
+            >
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                <div>
+                  <Label className="text-sm font-medium">Existing AWM Client?</Label>
+                  <p className="text-xs text-slate-500 mt-0.5">Link to Insightly if yes</p>
+                </div>
+                <Switch
+                  checked={formData.is_existing_client}
+                  onCheckedChange={(v) => updateField('is_existing_client', v)}
+                />
+              </div>
+
+              {formData.is_existing_client && (
+                <div className="space-y-2">
+                  <Label htmlFor="insightly_id">Insightly ID</Label>
+                  <Input
+                    id="insightly_id"
+                    value={formData.insightly_id}
+                    onChange={(e) => updateField('insightly_id', e.target.value)}
+                    placeholder="e.g., INS-12345"
+                    className={errors.insightly_id ? 'border-red-300' : ''}
+                  />
+                  {errors.insightly_id && (
+                    <p className="text-xs text-red-500">{errors.insightly_id}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="client_name">Client Name</Label>
+                <Input
+                  id="client_name"
+                  value={formData.client_name}
+                  onChange={(e) => updateField('client_name', e.target.value)}
+                  placeholder="Full name"
+                  className={errors.client_name ? 'border-red-300' : ''}
+                />
+                {errors.client_name && (
+                  <p className="text-xs text-red-500">{errors.client_name}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="client_email">Email</Label>
+                  <Input
+                    id="client_email"
+                    type="email"
+                    value={formData.client_email}
+                    onChange={(e) => updateField('client_email', e.target.value)}
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client_phone">Phone</Label>
+                  <Input
+                    id="client_phone"
+                    value={formData.client_phone}
+                    onChange={(e) => updateField('client_phone', e.target.value)}
+                    placeholder="+44 ..."
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 2: Mortgage Type */}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-5"
+            >
+              <div className="space-y-2">
+                <Label>Mortgage Category</Label>
+                <Select value={formData.category} onValueChange={(v) => updateField('category', v)}>
+                  <SelectTrigger className={errors.category ? 'border-red-300' : ''}>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map(c => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.category && <p className="text-xs text-red-500">{errors.category}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Purpose</Label>
+                <Select value={formData.purpose} onValueChange={(v) => updateField('purpose', v)}>
+                  <SelectTrigger className={errors.purpose ? 'border-red-300' : ''}>
+                    <SelectValue placeholder="Select purpose" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PURPOSES.map(p => (
+                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.purpose && <p className="text-xs text-red-500">{errors.purpose}</p>}
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                <div>
+                  <Label className="text-sm font-medium">Intake Type</Label>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {formData.intake_type === 'referral' 
+                      ? 'Mortgage team will complete details' 
+                      : 'You are completing full intake'}
+                  </p>
+                </div>
+                <Select value={formData.intake_type} onValueChange={(v) => updateField('intake_type', v)}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="identification">Full Intake</SelectItem>
+                    <SelectItem value="referral">Referral Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: Financials */}
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-5"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="property_value">Property Value (£)</Label>
+                  <Input
+                    id="property_value"
+                    type="number"
+                    value={formData.property_value}
+                    onChange={(e) => updateField('property_value', e.target.value)}
+                    placeholder="e.g., 500000"
+                    className={errors.property_value ? 'border-red-300' : ''}
+                  />
+                  {errors.property_value && (
+                    <p className="text-xs text-red-500">{errors.property_value}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="loan_amount">Loan Amount (£)</Label>
+                  <Input
+                    id="loan_amount"
+                    type="number"
+                    value={formData.loan_amount}
+                    onChange={(e) => updateField('loan_amount', e.target.value)}
+                    placeholder="e.g., 375000"
+                    className={errors.loan_amount ? 'border-red-300' : ''}
+                  />
+                  {errors.loan_amount && (
+                    <p className="text-xs text-red-500">{errors.loan_amount}</p>
+                  )}
+                </div>
+              </div>
+
+              {ltv && (
+                <div className={`p-4 rounded-xl border ${
+                  ltv <= 75 ? 'bg-emerald-50 border-emerald-200' :
+                  ltv <= 85 ? 'bg-amber-50 border-amber-200' :
+                  ltv <= 95 ? 'bg-orange-50 border-orange-200' :
+                  'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700">Loan-to-Value</span>
+                    <span className={`text-lg font-bold ${
+                      ltv <= 75 ? 'text-emerald-600' :
+                      ltv <= 85 ? 'text-amber-600' :
+                      ltv <= 95 ? 'text-orange-600' :
+                      'text-red-600'
+                    }`}>{ltv}%</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Income Type</Label>
+                <Select value={formData.income_type} onValueChange={(v) => updateField('income_type', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select income type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INCOME_TYPES.map(t => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="annual_income">Annual Income (£) - Optional</Label>
+                <Input
+                  id="annual_income"
+                  type="number"
+                  value={formData.annual_income}
+                  onChange={(e) => updateField('annual_income', e.target.value)}
+                  placeholder="Gross annual"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 4: Timing & Notes */}
+          {step === 4 && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-5"
+            >
+              <div className="space-y-2">
+                <Label>Time Sensitivity</Label>
+                <Select value={formData.time_sensitivity} onValueChange={(v) => updateField('time_sensitivity', v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SENSITIVITIES.map(s => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.purpose === 'rate_expiry' && (
+                <div className="space-y-2">
+                  <Label htmlFor="rate_expiry_date">Rate Expiry Date</Label>
+                  <Input
+                    id="rate_expiry_date"
+                    type="date"
+                    value={formData.rate_expiry_date}
+                    onChange={(e) => updateField('rate_expiry_date', e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes (optional)</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => updateField('notes', e.target.value)}
+                  placeholder="Any relevant context, special circumstances..."
+                  rows={4}
+                />
+              </div>
+
+              <Alert className="bg-slate-50 border-slate-200">
+                <AlertTriangle className="h-4 w-4 text-slate-600" />
+                <AlertDescription className="text-slate-600 text-sm">
+                  This will create a case for agent processing. The agent will validate data, 
+                  analyse the market, and prepare indicative options before human review.
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between mt-8 pt-6 border-t">
+          {step > 1 ? (
+            <Button variant="ghost" onClick={prevStep} disabled={isSubmitting}>
+              Back
+            </Button>
+          ) : (
+            <div />
+          )}
+          
+          {step < 4 ? (
+            <Button onClick={nextStep} className="bg-slate-900 hover:bg-slate-800">
+              Continue
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating Case...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Create Case
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
