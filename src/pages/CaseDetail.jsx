@@ -11,7 +11,7 @@ import {
   ArrowLeft, User, Building, Banknote, Clock, 
   FileText, Play, Pause, CheckCircle, AlertTriangle,
   MessageSquare, Send, RefreshCw, Loader2, Eye,
-  Calendar, Mail, Phone
+  Calendar, Mail, Phone, ExternalLink, ShieldCheck
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ import IndicativeReport from '@/components/case/IndicativeReport';
 import CaseTimeline from '@/components/case/CaseTimeline';
 import FeeAcknowledgement from '@/components/case/FeeAcknowledgement';
 import LenderChecks from '@/components/case/LenderChecks';
+import UnderwritingAnalysis from '@/components/case/UnderwritingAnalysis';
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700' },
@@ -177,6 +178,19 @@ export default function CaseDetail() {
     }
   });
 
+  const runUnderwritingMutation = useMutation({
+    mutationFn: async () => {
+      return await base44.functions.invoke('runUnderwritingAnalysis', { caseId });
+    },
+    onSuccess: () => {
+      toast.success('Underwriting analysis completed');
+      queryClient.invalidateQueries(['mortgageCase', caseId]);
+    },
+    onError: (error) => {
+      toast.error('Analysis failed: ' + error.message);
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -327,6 +341,7 @@ export default function CaseDetail() {
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="report">Indicative Report</TabsTrigger>
                 <TabsTrigger value="checks">Lender Checks</TabsTrigger>
+                <TabsTrigger value="underwriting">Underwriting</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
 
@@ -535,6 +550,29 @@ export default function CaseDetail() {
 
               <TabsContent value="checks">
                 <LenderChecks checks={caseData.lender_checks} />
+              </TabsContent>
+
+              <TabsContent value="underwriting">
+                <div className="mb-4">
+                  <Button
+                    onClick={() => runUnderwritingMutation.mutate()}
+                    disabled={runUnderwritingMutation.isPending || caseData.agent_paused}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    {runUnderwritingMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        Run Underwriting Analysis
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <UnderwritingAnalysis analysis={caseData.underwriting_analysis} />
               </TabsContent>
 
               <TabsContent value="activity">
