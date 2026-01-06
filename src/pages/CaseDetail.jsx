@@ -163,6 +163,20 @@ export default function CaseDetail() {
     });
   };
 
+  const sendReportMutation = useMutation({
+    mutationFn: async () => {
+      return await base44.functions.invoke('sendReportEmail', { caseId });
+    },
+    onSuccess: () => {
+      toast.success('Report sent to client successfully');
+      queryClient.invalidateQueries(['mortgageCase', caseId]);
+      queryClient.invalidateQueries(['auditLogs', caseId]);
+    },
+    onError: (error) => {
+      toast.error('Failed to send report: ' + error.message);
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -439,6 +453,68 @@ export default function CaseDetail() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Pending Delivery Actions */}
+                {caseData.stage === 'pending_delivery' && caseData.indicative_report && (
+                  <Card className="border-0 shadow-sm bg-blue-50/50 border-blue-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-blue-100 rounded-xl">
+                          <Send className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-blue-900">Ready to Send to Client</h3>
+                          <p className="text-sm text-blue-700 mt-1">
+                            Report approved. Send to {caseData.client_email}
+                          </p>
+                          <Button 
+                            onClick={() => sendReportMutation.mutate()}
+                            disabled={sendReportMutation.isPending || !caseData.client_email}
+                            className="mt-4 bg-blue-600 hover:bg-blue-700"
+                          >
+                            {sendReportMutation.isPending ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4 mr-2" />
+                                Send Report to Client
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Awaiting Decision Status */}
+                {['awaiting_decision', 'decision_chase'].includes(caseData.stage) && (
+                  <Card className="border-0 shadow-sm bg-amber-50/50 border-amber-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-amber-100 rounded-xl">
+                          <MessageSquare className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-amber-900">
+                            {caseData.stage === 'decision_chase' ? 'Following Up with Client' : 'Awaiting Client Decision'}
+                          </h3>
+                          <p className="text-sm text-amber-700 mt-1">
+                            Report delivered {caseData.delivered_at && formatDistanceToNow(new Date(caseData.delivered_at), { addSuffix: true })}
+                          </p>
+                          {caseData.chase_count > 0 && (
+                            <p className="text-xs text-amber-600 mt-2">
+                              Follow-up attempts: {caseData.chase_count}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="report">
@@ -476,6 +552,39 @@ export default function CaseDetail() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Client Portal Link */}
+            {caseData.client_email && (
+              <Card className="border-0 shadow-sm bg-gradient-to-br from-indigo-50 to-blue-50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ExternalLink className="w-4 h-4 text-indigo-600" />
+                    Client Portal
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-slate-600 mb-3">
+                    Share this link with the client to view their report and respond
+                  </p>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={`${window.location.origin}/portal/${caseData.reference}`}
+                      readOnly
+                      className="text-xs bg-white/80"
+                    />
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/portal/${caseData.reference}`);
+                        toast.success('Link copied');
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             {/* Key Dates */}
             <Card className="border-0 shadow-sm">
               <CardHeader className="pb-3">
