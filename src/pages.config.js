@@ -4,6 +4,7 @@ import LenderDashboard from './pages/LenderDashboard';
 import Lenders from './pages/Lenders';
 import NewCase from './pages/NewCase';
 import Settings from './pages/Settings';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -14,6 +15,7 @@ export const PAGES = {
     "Lenders": Lenders,
     "NewCase": NewCase,
     "Settings": Settings,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {

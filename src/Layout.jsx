@@ -19,6 +19,7 @@ import {
 const NAV_ITEMS = [
   { name: 'Dashboard', page: 'Dashboard', icon: LayoutDashboard },
   { name: 'Lender Dashboard', page: 'LenderDashboard', icon: Building },
+  { name: 'Reports', page: 'Reports', icon: FileText },
   { name: 'Settings', page: 'Settings', icon: Settings }
 ];
 
