@@ -21,6 +21,9 @@ import CaseTimeline from '@/components/case/CaseTimeline';
 import FeeAcknowledgement from '@/components/case/FeeAcknowledgement';
 import LenderChecks from '@/components/case/LenderChecks';
 import UnderwritingAnalysis from '@/components/case/UnderwritingAnalysis';
+import ReportDraftEditor from '@/components/case/ReportDraftEditor';
+import DeliveryScheduler from '@/components/case/DeliveryScheduler';
+import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge';
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700' },
@@ -124,29 +127,57 @@ export default function CaseDetail() {
 
   const runAnalysisMutation = useMutation({
     mutationFn: async () => {
-      // Move to market_analysis stage to trigger automated processing
-      await updateMutation.mutateAsync({
+      const user = await base44.auth.me();
+      // Update analysis status
+      await base44.entities.MortgageCase.update(caseId, {
+        analysis_status: 'queued',
         stage: 'market_analysis',
         stage_entered_at: new Date().toISOString()
       });
       
       // Call the backend function to process immediately
-      await base44.functions.invoke('processMarketAnalysis', {});
+      const result = await base44.functions.invoke('generateIndicativeReport', { caseId });
+      return result;
     },
     onSuccess: () => {
-      toast.success('Report generation started - refresh in 30-60 seconds');
-      setTimeout(() => {
-        queryClient.invalidateQueries(['mortgageCase', caseId]);
-      }, 2000);
+      toast.success('Analysis complete - reviewing report');
+      queryClient.invalidateQueries(['mortgageCase', caseId]);
     },
     onError: (error) => {
-      toast.error('Failed to start analysis: ' + error.message);
+      toast.error('Analysis failed: ' + error.message);
+      base44.entities.MortgageCase.update(caseId, {
+        analysis_status: 'failed',
+        analysis_error: error.message
+      });
+      queryClient.invalidateQueries(['mortgageCase', caseId]);
     }
   });
 
-  const handleApproveReport = async () => {
+  const saveDraftMutation = useMutation({
+    mutationFn: async (draftData) => {
+      const user = await base44.auth.me();
+      return await base44.entities.MortgageCase.update(caseId, {
+        report_draft: {
+          ...draftData,
+          last_edited_by: user?.email,
+          last_edited_at: new Date().toISOString()
+        }
+      });
+    },
+    onSuccess: () => {
+      toast.success('Draft saved');
+      queryClient.invalidateQueries(['mortgageCase', caseId]);
+    }
+  });
+
+  const handleApproveAndSchedule = async (scheduleData) => {
     const user = await base44.auth.me();
     await updateMutation.mutateAsync({
+      delivery_status: 'approved',
+      delivery_scheduled_at: scheduleData.delivery_scheduled_at,
+      fast_track: scheduleData.fast_track,
+      delivery_approved_by: user?.email,
+      delivery_approved_at: new Date().toISOString(),
       report_reviewed: true,
       report_reviewer: user?.email,
       stage: 'pending_delivery',
@@ -155,7 +186,7 @@ export default function CaseDetail() {
     
     await base44.entities.AuditLog.create({
       case_id: caseId,
-      action: 'Report approved for delivery',
+      action: `Report approved for delivery ${scheduleData.fast_track ? '(fast-track)' : ''}`,
       action_category: 'delivery',
       actor: 'user',
       actor_email: user?.email,
@@ -163,6 +194,11 @@ export default function CaseDetail() {
       stage_to: 'pending_delivery',
       timestamp: new Date().toISOString()
     });
+    
+    // If fast-track, trigger immediate send
+    if (scheduleData.fast_track) {
+      await base44.functions.invoke('sendReportEmail', { caseId });
+    }
   };
 
   const sendReportMutation = useMutation({
@@ -239,6 +275,10 @@ export default function CaseDetail() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-slate-900">{caseData.client_name}</h1>
+                <TriageBadge 
+                  rating={(caseData.triage_rating || calculateTriageRating(caseData).rating)}
+                  factors={(caseData.triage_factors || calculateTriageRating(caseData).factors)}
+                />
                 {caseData.agent_paused && (
                   <Badge variant="outline" className="text-amber-600 border-amber-300">
                     <Pause className="w-3 h-3 mr-1" />
@@ -341,6 +381,7 @@ export default function CaseDetail() {
               <TabsList className="bg-white/80 mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="report">Indicative Report</TabsTrigger>
+                <TabsTrigger value="draft">Draft & Schedule</TabsTrigger>
                 <TabsTrigger value="checks">Lender Checks</TabsTrigger>
                 <TabsTrigger value="underwriting">Underwriting</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
@@ -454,16 +495,8 @@ export default function CaseDetail() {
                         <div className="flex-1">
                           <h3 className="font-semibold text-purple-900">Report Ready for Review</h3>
                           <p className="text-sm text-purple-700 mt-1">
-                            Review the indicative report and approve for client delivery
+                            Go to "Draft & Schedule" tab to review, edit, and approve for client delivery
                           </p>
-                          <Button 
-                            onClick={handleApproveReport}
-                            disabled={updateMutation.isPending}
-                            className="mt-4 bg-purple-600 hover:bg-purple-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Approve & Schedule Delivery
-                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -546,6 +579,22 @@ export default function CaseDetail() {
                       </p>
                     </CardContent>
                   </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="draft" className="space-y-6">
+                <ReportDraftEditor
+                  caseData={caseData}
+                  onSaveDraft={(draft) => saveDraftMutation.mutate(draft)}
+                  isSaving={saveDraftMutation.isPending}
+                />
+                
+                {caseData.stage === 'human_review' && (
+                  <DeliveryScheduler
+                    caseData={caseData}
+                    onApproveAndSchedule={handleApproveAndSchedule}
+                    isSubmitting={updateMutation.isPending}
+                  />
                 )}
               </TabsContent>
 
