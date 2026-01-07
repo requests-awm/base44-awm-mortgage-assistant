@@ -22,13 +22,25 @@ export default function NewCase() {
       // Generate reference
       const reference = `AWM-${Date.now().toString(36).toUpperCase()}`;
       
+      // Calculate triage rating
+      const triageResponse = await base44.functions.invoke('calculateTriage', {
+        ltv: data.ltv,
+        annual_income: data.annual_income,
+        time_sensitivity: data.time_sensitivity,
+        category: data.category,
+      });
+      const { rating, factors, timestamp } = triageResponse.data;
+      
       const caseData = {
         ...data,
         reference,
         stage: data.intake_type === 'referral' ? 'data_completion' : 'intake_received',
         referred_by: user?.email,
         data_complete: data.intake_type !== 'referral',
-        stage_entered_at: new Date().toISOString()
+        stage_entered_at: new Date().toISOString(),
+        triage_rating: rating,
+        triage_factors: factors,
+        triage_last_calculated: timestamp,
       };
 
       const newCase = await base44.entities.MortgageCase.create(caseData);
