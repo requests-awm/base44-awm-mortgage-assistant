@@ -23,7 +23,7 @@ import LenderChecks from '@/components/case/LenderChecks';
 import UnderwritingAnalysis from '@/components/case/UnderwritingAnalysis';
 import ReportDraftEditor from '@/components/case/ReportDraftEditor';
 import DeliveryScheduler from '@/components/case/DeliveryScheduler';
-import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge';
+import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700' },

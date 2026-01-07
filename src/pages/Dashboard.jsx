@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { calculateTriageRating } from '@/components/dashboard/TriageBadge';
+import { calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
 import { 
   Plus, Search, Filter, LayoutGrid, List, 
   FileText, Clock, CheckCircle, MessageSquare,
