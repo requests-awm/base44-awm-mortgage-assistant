@@ -1,19 +1,19 @@
-import Dashboard from './pages/Dashboard';
-import NewCase from './pages/NewCase';
 import CaseDetail from './pages/CaseDetail';
-import Lenders from './pages/Lenders';
-import Settings from './pages/Settings';
+import Dashboard from './pages/Dashboard';
 import LenderDashboard from './pages/LenderDashboard';
+import Lenders from './pages/Lenders';
+import NewCase from './pages/NewCase';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "NewCase": NewCase,
     "CaseDetail": CaseDetail,
-    "Lenders": Lenders,
-    "Settings": Settings,
+    "Dashboard": Dashboard,
     "LenderDashboard": LenderDashboard,
+    "Lenders": Lenders,
+    "NewCase": NewCase,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {

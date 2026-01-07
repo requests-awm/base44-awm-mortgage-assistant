@@ -13,6 +13,7 @@ import {
   MessageSquare, Send, RefreshCw, Loader2, Eye,
   Calendar, Mail, Phone, ExternalLink, ShieldCheck
 } from 'lucide-react';
+import { Input } from "@/components/ui/input";
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import IndicativeReport from '@/components/case/IndicativeReport';
