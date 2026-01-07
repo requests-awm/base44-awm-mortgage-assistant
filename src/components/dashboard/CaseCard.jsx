@@ -94,6 +94,12 @@ export default function CaseCard({ mortgageCase, compact = false }) {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-lg text-slate-900">{mortgageCase.client_name}</h3>
+                <TriageBadge 
+                  rating={triageData.rating} 
+                  factors={triageData.factors}
+                  showLabel={false}
+                  size="sm"
+                />
                 {mortgageCase.agent_paused && (
                   <Badge variant="outline" className="text-amber-600 border-amber-300 text-xs">
                     <Pause className="w-3 h-3 mr-1" />
