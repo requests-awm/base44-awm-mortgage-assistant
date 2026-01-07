@@ -1,43 +1,41 @@
 import React from 'react';
-import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
 const TRIAGE_CONFIG = {
   red: {
-    label: 'Red',
-    color: 'bg-red-500 text-white hover:bg-red-600',
-    dotColor: 'bg-red-500',
-    icon: AlertTriangle,
+    label: 'Urgent',
+    dotColor: '#EF4444',
     description: 'Urgent attention required'
   },
   yellow: {
-    label: 'Yellow',
-    color: 'bg-amber-400 text-amber-900 hover:bg-amber-500',
-    dotColor: 'bg-amber-400',
-    icon: AlertCircle,
+    label: 'Review',
+    dotColor: '#F59E0B',
     description: 'Watch / Missing data'
   },
   green: {
-    label: 'Green',
-    color: 'bg-emerald-500 text-white hover:bg-emerald-600',
-    dotColor: 'bg-emerald-500',
-    icon: CheckCircle,
+    label: 'Strong',
+    dotColor: '#10B981',
     description: 'On track'
   }
 };
 
 export function TriageBadge({ rating, factors = [], showLabel = true, size = 'default' }) {
   const config = TRIAGE_CONFIG[rating] || TRIAGE_CONFIG.green;
-  const Icon = config.icon;
+  const dotSize = size === 'sm' ? 'w-2 h-2' : 'w-2.5 h-2.5';
+  const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
 
   const badge = (
-    <Badge 
-      className={`${config.color} ${size === 'sm' ? 'text-xs px-1.5 py-0' : ''}`}
-    >
-      <Icon className={`${size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} ${showLabel ? 'mr-1' : ''}`} />
-      {showLabel && config.label}
-    </Badge>
+    <div className="flex items-center gap-1.5">
+      <span 
+        className={`${dotSize} rounded-full flex-shrink-0`}
+        style={{ backgroundColor: config.dotColor }}
+      />
+      {showLabel && (
+        <span className={`${textSize} text-slate-500 font-medium`}>
+          {config.label}
+        </span>
+      )}
+    </div>
   );
 
   if (factors && factors.length > 0) {
@@ -45,7 +43,9 @@ export function TriageBadge({ rating, factors = [], showLabel = true, size = 'de
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            {badge}
+            <button className="inline-flex items-center cursor-default hover:opacity-80 transition-opacity">
+              {badge}
+            </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">
             <p className="font-medium mb-1">{config.description}</p>
@@ -68,10 +68,13 @@ export function TriageBadge({ rating, factors = [], showLabel = true, size = 'de
 
 export function TriageDot({ rating, size = 'default' }) {
   const config = TRIAGE_CONFIG[rating] || TRIAGE_CONFIG.green;
-  const sizeClasses = size === 'sm' ? 'w-2 h-2' : 'w-3 h-3';
+  const sizeClasses = size === 'sm' ? 'w-2 h-2' : 'w-2.5 h-2.5';
   
   return (
-    <span className={`${sizeClasses} rounded-full ${config.dotColor} inline-block`} />
+    <span 
+      className={`${sizeClasses} rounded-full inline-block flex-shrink-0`}
+      style={{ backgroundColor: config.dotColor }}
+    />
   );
 }
 
