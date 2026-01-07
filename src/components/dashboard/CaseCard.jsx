@@ -10,6 +10,7 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700', icon: FileText },
