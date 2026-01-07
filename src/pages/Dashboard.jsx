@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { calculateTriageRating } from '@/components/dashboard/TriageBadge';
 import { 
   Plus, Search, Filter, LayoutGrid, List, 
   FileText, Clock, CheckCircle, MessageSquare,
@@ -28,6 +29,7 @@ export default function Dashboard() {
   const [view, setView] = useState('kanban');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [triageFilter, setTriageFilter] = useState('all');
 
   const { data: cases = [], isLoading } = useQuery({
     queryKey: ['mortgageCases'],
@@ -40,10 +42,18 @@ export default function Dashboard() {
       c.client_name?.toLowerCase().includes(search.toLowerCase()) ||
       c.reference?.toLowerCase().includes(search.toLowerCase());
     
-    if (filter === 'all') return matchesSearch;
-    if (filter === 'paused') return matchesSearch && c.agent_paused;
-    if (filter === 'active') return matchesSearch && !['completed', 'withdrawn', 'unsuitable'].includes(c.stage);
-    return matchesSearch;
+    let matchesFilter = true;
+    if (filter === 'paused') matchesFilter = c.agent_paused;
+    else if (filter === 'active') matchesFilter = !['completed', 'withdrawn', 'unsuitable'].includes(c.stage);
+    
+    // Triage filter
+    let matchesTriage = true;
+    if (triageFilter !== 'all') {
+      const triage = c.triage_rating || calculateTriageRating(c).rating;
+      matchesTriage = triage === triageFilter;
+    }
+    
+    return matchesSearch && matchesFilter && matchesTriage;
   });
 
   // Calculate metrics
@@ -137,6 +147,15 @@ export default function Dashboard() {
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="active">Active</TabsTrigger>
                 <TabsTrigger value="paused">Paused</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <Tabs value={triageFilter} onValueChange={setTriageFilter}>
+              <TabsList className="bg-white/80">
+                <TabsTrigger value="all">All Priority</TabsTrigger>
+                <TabsTrigger value="red" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">🔴 Red</TabsTrigger>
+                <TabsTrigger value="yellow" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-700">🟡 Yellow</TabsTrigger>
+                <TabsTrigger value="green" className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700">🟢 Green</TabsTrigger>
               </TabsList>
             </Tabs>
 

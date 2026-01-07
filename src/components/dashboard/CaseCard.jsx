@@ -54,6 +54,11 @@ export default function CaseCard({ mortgageCase, compact = false }) {
     }).format(value);
   };
 
+  // Calculate triage if not already set
+  const triageData = mortgageCase.triage_rating 
+    ? { rating: mortgageCase.triage_rating, factors: mortgageCase.triage_factors || [] }
+    : calculateTriageRating(mortgageCase);
+
   if (compact) {
     return (
       <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
