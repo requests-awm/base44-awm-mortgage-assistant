@@ -9,89 +9,65 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { caseId } = await req.json();
-    
-    if (!caseId) {
-      return Response.json({ error: 'caseId is required' }, { status: 400 });
-    }
-
-    // Fetch case data
-    const cases = await base44.asServiceRole.entities.MortgageCase.filter({ id: caseId });
-    const mortgageCase = cases[0];
-    
-    if (!mortgageCase) {
-      return Response.json({ error: 'Case not found' }, { status: 404 });
-    }
+    const { ltv, category, annual_income, income_type } = await req.json();
 
     // Fetch all active lenders
-    const allLenders = await base44.asServiceRole.entities.Lender.filter({ is_active: true });
+    const allLenders = await base44.entities.Lender.filter({ is_active: true });
 
-    // Filter lenders based on rules
-    const matchedLenders = allLenders.filter(lender => {
-      const ltv = mortgageCase.ltv || 0;
-      const income = mortgageCase.annual_income || 0;
-      const category = mortgageCase.category;
+    const matchedLenders = [];
 
-      // High Street rules
+    for (const lender of allLenders) {
+      let isMatch = false;
+
+      // Apply matching rules based on lender category
       if (lender.category === 'high_street') {
-        if (ltv > 90) return false;
-        if (category === 'ltd_company') return false;
-        if (income < 25000) return false;
+        // HIGH STREET rules
+        if (ltv <= 90 && category !== 'ltd_company' && annual_income >= 25000) {
+          isMatch = true;
+        }
+      } else if (lender.category === 'specialist') {
+        // SPECIALIST rules
+        if (ltv <= 95) {
+          isMatch = true;
+        }
+      } else if (lender.category === 'building_society') {
+        // BUILDING SOCIETY rules
+        if (ltv <= 85 && category !== 'later_life') {
+          isMatch = true;
+        }
       }
 
-      // Specialist rules
-      if (lender.category === 'specialist') {
-        if (ltv > 95) return false;
+      // If matched, calculate confidence score
+      if (isMatch) {
+        let confidence = 50; // Baseline
+
+        // Add bonuses
+        if (ltv < 75) confidence += 20;
+        if (annual_income > 50000) confidence += 15;
+        if (category === 'residential') confidence += 15;
+
+        // Cap at 100
+        confidence = Math.min(confidence, 100);
+
+        matchedLenders.push({
+          name: lender.name,
+          type: lender.category,
+          confidence: confidence
+        });
       }
-
-      // Building Society rules
-      if (lender.category === 'building_society') {
-        if (ltv > 85) return false;
-        if (category === 'later_life') return false;
-      }
-
-      return true;
-    });
-
-    // Calculate confidence scores
-    const lendersWithConfidence = matchedLenders.map(lender => {
-      let confidence = 50; // Baseline
-
-      if (mortgageCase.ltv && mortgageCase.ltv < 75) {
-        confidence += 20;
-      }
-
-      if (mortgageCase.annual_income && mortgageCase.annual_income > 50000) {
-        confidence += 15;
-      }
-
-      if (mortgageCase.category === 'residential') {
-        confidence += 15;
-      }
-
-      // Cap at 100%
-      confidence = Math.min(confidence, 100);
-
-      return {
-        name: lender.name,
-        type: lender.category,
-        confidence: confidence
-      };
-    });
+    }
 
     // Sort alphabetically by name
-    lendersWithConfidence.sort((a, b) => a.name.localeCompare(b.name));
+    matchedLenders.sort((a, b) => a.name.localeCompare(b.name));
 
     return Response.json({
-      success: true,
-      total_matches: lendersWithConfidence.length,
-      lenders: lendersWithConfidence
+      total_matches: matchedLenders.length,
+      lenders: matchedLenders,
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
     console.error('Lender matching error:', error);
-    return Response.json({ 
-      error: error.message || 'Lender matching failed'
-    }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
