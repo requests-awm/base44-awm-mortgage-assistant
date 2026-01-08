@@ -137,6 +137,12 @@ export default function CaseCard({ mortgageCase, compact = false }) {
                 <span className="text-slate-700">{mortgageCase.ltv}%</span>
               </div>
             )}
+            {mortgageCase.total_lender_matches > 0 && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                <Building className="w-3 h-3" />
+                <span>{mortgageCase.total_lender_matches} lenders matched</span>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
