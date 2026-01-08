@@ -63,22 +63,19 @@ export default function CaseCard({ mortgageCase, compact = false }) {
   if (compact) {
     return (
       <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
-        <Card className="hover:shadow-md transition-all cursor-pointer border-0 bg-white/60 backdrop-blur-sm">
+        <Card 
+          className="hover:shadow-md transition-all cursor-pointer border-0 bg-white/60 backdrop-blur-sm"
+          style={{ borderLeft: `4px solid ${triageData.rating === 'red' ? '#EF4444' : triageData.rating === 'yellow' ? '#F59E0B' : '#10B981'}` }}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${
-                  mortgageCase.agent_paused ? 'bg-amber-400' :
-                  ['client_proceeding', 'broker_validation', 'offer_received', 'completed'].includes(mortgageCase.stage) 
-                    ? 'bg-emerald-400' 
-                    : 'bg-blue-400'
-                }`} />
                 <div>
                   <p className="font-medium text-slate-900">{mortgageCase.client_name}</p>
                   <p className="text-xs text-slate-500">{mortgageCase.reference}</p>
                 </div>
               </div>
-              <Badge className={`${stage.color} text-xs`}>{stage.label}</Badge>
+              <span className="text-xs text-slate-500">{stage.label}</span>
             </div>
           </CardContent>
         </Card>
@@ -86,100 +83,60 @@ export default function CaseCard({ mortgageCase, compact = false }) {
     );
   }
 
+  const triageColor = triageData.rating === 'red' ? '#EF4444' : triageData.rating === 'yellow' ? '#F59E0B' : '#10B981';
+
   return (
     <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
-      <Card className="hover:shadow-lg transition-all cursor-pointer border-0 bg-white/80 backdrop-blur-sm group">
-        <CardContent className="p-5">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg text-slate-900">{mortgageCase.client_name}</h3>
-                <TriageBadge 
-                  rating={triageData.rating} 
-                  factors={triageData.factors}
-                  showLabel={false}
-                  size="sm"
-                />
-                {mortgageCase.agent_paused && (
-                  <Badge variant="outline" className="text-amber-600 border-amber-300 text-xs">
-                    <Pause className="w-3 h-3 mr-1" />
-                    Paused
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm text-slate-500 mt-0.5">{mortgageCase.reference}</p>
-            </div>
-            <Badge className={`${stage.color} flex items-center gap-1`}>
-              <StageIcon className="w-3 h-3" />
-              {stage.label}
-            </Badge>
+      <Card 
+        className="hover:shadow-lg transition-all cursor-pointer border-0 bg-white/80 backdrop-blur-sm group"
+        style={{ borderLeft: `4px solid ${triageColor}` }}
+      >
+        <CardContent className="p-6">
+          {/* Triage at top */}
+          <div className="mb-5">
+            <TriageBadge 
+              rating={triageData.rating} 
+              factors={triageData.factors}
+              showLabel={true}
+              size="sm"
+            />
+          </div>
+
+          {/* Client Name & Reference */}
+          <div className="mb-4">
+            <h3 className="font-semibold text-lg text-slate-900 mb-1">{mortgageCase.client_name}</h3>
+            <p className="text-sm text-slate-500">{mortgageCase.reference}</p>
+          </div>
+
+          {/* Status */}
+          <div className="mb-5">
+            <p className="text-sm text-slate-500">{stage.label}</p>
           </div>
 
           {/* Details Grid */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <Building className="w-4 h-4 text-slate-400" />
-              <span>{CATEGORY_LABELS[mortgageCase.category] || mortgageCase.category}</span>
+          <div className="space-y-2.5 mb-5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-500">{CATEGORY_LABELS[mortgageCase.category] || mortgageCase.category}</span>
+              <span className="text-slate-700">{PURPOSE_LABELS[mortgageCase.purpose] || mortgageCase.purpose}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <FileText className="w-4 h-4 text-slate-400" />
-              <span>{PURPOSE_LABELS[mortgageCase.purpose] || mortgageCase.purpose}</span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-500">Loan</span>
+              <span className="text-slate-900 font-medium">{formatCurrency(mortgageCase.loan_amount)}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <Banknote className="w-4 h-4 text-slate-400" />
-              <span>{formatCurrency(mortgageCase.loan_amount)}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <Clock className="w-4 h-4 text-slate-400" />
-              <span>{formatDistanceToNow(new Date(mortgageCase.created_date), { addSuffix: true })}</span>
-            </div>
-          </div>
-
-          {/* LTV Indicator */}
-          {mortgageCase.ltv && (
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-xs mb-1">
+            {mortgageCase.ltv && (
+              <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-500">LTV</span>
-                <span className={`font-medium ${
-                  mortgageCase.ltv <= 75 ? 'text-emerald-600' :
-                  mortgageCase.ltv <= 85 ? 'text-amber-600' :
-                  'text-orange-600'
-                }`}>{mortgageCase.ltv}%</span>
-              </div>
-              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all ${
-                    mortgageCase.ltv <= 75 ? 'bg-emerald-400' :
-                    mortgageCase.ltv <= 85 ? 'bg-amber-400' :
-                    'bg-orange-400'
-                  }`}
-                  style={{ width: `${Math.min(mortgageCase.ltv, 100)}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Flags */}
-          {mortgageCase.flags && mortgageCase.flags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {mortgageCase.flags.map((flag, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs text-slate-600">
-                  {flag}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-            {mortgageCase.referred_by && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <User className="w-3 h-3" />
-                <span>{mortgageCase.referred_by.split('@')[0]}</span>
+                <span className="text-slate-700">{mortgageCase.ltv}%</span>
               </div>
             )}
-            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+            <span className="text-xs text-slate-400">
+              {formatDistanceToNow(new Date(mortgageCase.created_date), { addSuffix: true })}
+            </span>
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-all" />
           </div>
         </CardContent>
       </Card>
