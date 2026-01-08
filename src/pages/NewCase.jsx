@@ -26,10 +26,20 @@ export default function NewCase() {
       const triageResponse = await base44.functions.invoke('calculateTriage', {
         ltv: data.ltv,
         annual_income: data.annual_income,
-        time_sensitivity: data.time_sensitivity,
         category: data.category,
+        income_type: data.income_type,
+        purpose: data.purpose
       });
       const { rating, factors, timestamp } = triageResponse.data;
+      
+      // Calculate timeline urgency if deadline provided
+      let timelineData = { urgency: 'standard', days_left: null };
+      if (data.client_deadline) {
+        const timelineResponse = await base44.functions.invoke('calculateTimelineUrgency', {
+          client_deadline: data.client_deadline
+        });
+        timelineData = timelineResponse.data;
+      }
       
       const caseData = {
         ...data,
@@ -41,6 +51,8 @@ export default function NewCase() {
         triage_rating: rating,
         triage_factors: factors,
         triage_last_calculated: timestamp,
+        timeline_urgency: timelineData.urgency,
+        days_until_deadline: timelineData.days_left
       };
 
       const newCase = await base44.entities.MortgageCase.create(caseData);
