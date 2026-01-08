@@ -93,8 +93,11 @@ Deno.serve(async (req) => {
 
         matchedLenders.push({
           name: lender.name,
-          category: lender.category,
-          confidence: confidence
+          short_name: lender.short_name || lender.name,
+          category: lender.category || null,
+          confidence: confidence,
+          max_ltv: relevantMaxLtv,
+          notes: lender.notes || null
         });
       }
     }
