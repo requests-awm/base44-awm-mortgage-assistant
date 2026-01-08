@@ -32,11 +32,7 @@ const INCOME_TYPES = [
   { value: 'mixed', label: 'Mixed Income' }
 ];
 
-const SENSITIVITIES = [
-  { value: 'urgent', label: 'Urgent (< 2 weeks)' },
-  { value: 'standard', label: 'Standard (2-8 weeks)' },
-  { value: 'flexible', label: 'Flexible (no pressure)' }
-];
+
 
 export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} }) {
   const [step, setStep] = useState(1);
@@ -52,7 +48,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     loan_amount: initialData.loan_amount || '',
     income_type: initialData.income_type || '',
     annual_income: initialData.annual_income || '',
-    time_sensitivity: initialData.time_sensitivity || 'standard',
+    client_deadline: initialData.client_deadline || '',
     rate_expiry_date: initialData.rate_expiry_date || '',
     intake_type: initialData.intake_type || 'identification',
     notes: initialData.notes || ''
@@ -91,7 +87,6 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
           const response = await base44.functions.invoke('calculateTriage', {
             ltv: Math.round(ltv * 10) / 10,
             annual_income: annualIncome,
-            time_sensitivity: formData.time_sensitivity,
             category: formData.category,
             income_type: formData.income_type,
             purpose: formData.purpose
@@ -113,7 +108,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
         clearTimeout(triageTimeoutRef.current);
       }
     };
-  }, [formData.property_value, formData.loan_amount, formData.annual_income, formData.time_sensitivity, formData.category, formData.income_type, formData.purpose]);
+  }, [formData.property_value, formData.loan_amount, formData.annual_income, formData.category, formData.income_type, formData.purpose]);
 
   const validateStep = (stepNum) => {
     const newErrors = {};
@@ -499,17 +494,17 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               className="space-y-5"
             >
               <div className="space-y-2">
-                <Label>Time Sensitivity</Label>
-                <Select value={formData.time_sensitivity} onValueChange={(v) => updateField('time_sensitivity', v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SENSITIVITIES.map(s => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="client_deadline">Client Deadline (Optional)</Label>
+                <Input
+                  id="client_deadline"
+                  type="date"
+                  value={formData.client_deadline}
+                  onChange={(e) => updateField('client_deadline', e.target.value)}
+                  placeholder="Select date if time-sensitive"
+                />
+                <p className="text-xs text-slate-500">
+                  e.g., Rate expiry date, offer deadline, completion date
+                </p>
               </div>
 
               {formData.purpose === 'rate_expiry' && (

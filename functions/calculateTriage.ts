@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { ltv, annual_income, time_sensitivity, category, income_type, purpose } = await req.json();
+    const { ltv, annual_income, category, income_type, purpose } = await req.json();
 
     let score = 0;
     const factors = [];
@@ -52,13 +52,7 @@ Deno.serve(async (req) => {
       factors.push('Contractor income');
     }
 
-    // Time sensitivity
-    if (time_sensitivity === 'urgent') {
-      score += 10;
-      factors.push('Urgent timeline');
-    } else if (time_sensitivity === 'flexible') {
-      score -= 5;
-    }
+
 
     // Category complexity
     if (category === 'later_life') {
