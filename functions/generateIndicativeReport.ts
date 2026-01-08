@@ -58,33 +58,65 @@ TASK:
 
 Provide your analysis in a professional, concise manner suitable for client communication.`;
 
-    // Call LLM for analysis
-    const analysis = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: analysisPrompt,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          is_placeable: { type: "boolean" },
-          confidence: { type: "string", enum: ["high", "medium", "low"] },
-          rate_range_low: { type: "number" },
-          rate_range_high: { type: "number" },
-          product_category: { type: "string" },
-          lender_directions: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                lender_name: { type: "string" },
-                suitability: { type: "string" },
-                notes: { type: "string" }
-              }
-            }
-          },
-          risks_assumptions: { type: "array", items: { type: "string" } },
-          next_steps: { type: "string" }
+    // Call Gemini API for analysis
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY not configured");
+    }
+
+    const promptWithSchema = `${analysisPrompt}
+
+IMPORTANT: You must respond with a valid JSON object matching this exact schema:
+{
+  "is_placeable": boolean,
+  "confidence": "high" | "medium" | "low",
+  "rate_range_low": number,
+  "rate_range_high": number,
+  "product_category": string,
+  "lender_directions": [
+    {
+      "lender_name": string,
+      "suitability": string,
+      "notes": string
+    }
+  ],
+  "risks_assumptions": [string],
+  "next_steps": string
+}
+
+Respond ONLY with the JSON object, no additional text.`;
+
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: promptWithSchema }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048
         }
-      }
+      })
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+    }
+
+    const geminiResponse = await response.json();
+    const generatedText = geminiResponse.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!generatedText) {
+      throw new Error('No response from Gemini API');
+    }
+
+    // Parse JSON from response (remove markdown code blocks if present)
+    const cleanedText = generatedText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const analysis = JSON.parse(cleanedText);
 
     // Create lender checks (mock data based on analysis)
     const lenderChecks = analysis.lender_directions?.map(dir => ({
