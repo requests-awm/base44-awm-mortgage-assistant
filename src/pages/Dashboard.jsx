@@ -56,6 +56,13 @@ export default function Dashboard() {
     return matchesSearch && matchesFilter && matchesTriage;
   });
 
+  // Calculate triage counts
+  const triageCounts = cases.reduce((acc, c) => {
+    const triage = c.triage_rating || calculateTriageRating(c).rating;
+    acc[triage] = (acc[triage] || 0) + 1;
+    return acc;
+  }, { red: 0, yellow: 0, green: 0 });
+
   // Calculate metrics
   const activeCases = cases.filter(c => !['completed', 'withdrawn', 'unsuitable'].includes(c.stage));
   const awaitingDecision = cases.filter(c => ['awaiting_decision', 'decision_chase'].includes(c.stage));
@@ -153,9 +160,24 @@ export default function Dashboard() {
             <Tabs value={triageFilter} onValueChange={setTriageFilter}>
               <TabsList className="bg-white/80">
                 <TabsTrigger value="all">All Priority</TabsTrigger>
-                <TabsTrigger value="red" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">🔴 Red</TabsTrigger>
-                <TabsTrigger value="yellow" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-700">🟡 Yellow</TabsTrigger>
-                <TabsTrigger value="green" className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700">🟢 Green</TabsTrigger>
+                <TabsTrigger 
+                  value="red" 
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700"
+                >
+                  Urgent ({triageCounts.red})
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="yellow" 
+                  className="data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700"
+                >
+                  Review ({triageCounts.yellow})
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="green" 
+                  className="data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
+                >
+                  Strong ({triageCounts.green})
+                </TabsTrigger>
               </TabsList>
             </Tabs>
 
