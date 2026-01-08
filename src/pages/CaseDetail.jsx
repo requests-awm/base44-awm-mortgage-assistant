@@ -11,7 +11,8 @@ import {
   ArrowLeft, User, Building, Banknote, Clock, 
   FileText, Play, Pause, CheckCircle, AlertTriangle,
   MessageSquare, Send, RefreshCw, Loader2, Eye,
-  Calendar, Mail, Phone, ExternalLink, ShieldCheck
+  Calendar, Mail, Phone, ExternalLink, ShieldCheck,
+  Edit, Trash2
 } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { format, formatDistanceToNow } from 'date-fns';
@@ -24,6 +25,18 @@ import UnderwritingAnalysis from '@/components/case/UnderwritingAnalysis';
 import ReportDraftEditor from '@/components/case/ReportDraftEditor';
 import DeliveryScheduler from '@/components/case/DeliveryScheduler';
 import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
+import EditCaseDialog from '@/components/case/EditCaseDialog';
+import { useNavigate } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700' },
@@ -59,6 +72,9 @@ export default function CaseDetail() {
   const params = new URLSearchParams(window.location.search);
   const caseId = params.get('id');
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { data: caseData, isLoading } = useQuery({
     queryKey: ['mortgageCase', caseId],
@@ -228,6 +244,55 @@ export default function CaseDetail() {
     }
   });
 
+  const editMutation = useMutation({
+    mutationFn: async (updates) => {
+      const user = await base44.auth.me();
+      
+      // Recalculate timeline urgency if deadline changed
+      if (updates.client_deadline !== caseData.client_deadline) {
+        const timelineResponse = await base44.functions.invoke('calculateTimelineUrgency', {
+          client_deadline: updates.client_deadline
+        });
+        updates.timeline_urgency = timelineResponse.data.urgency;
+        updates.days_until_deadline = timelineResponse.data.days_left;
+      }
+      
+      await base44.entities.MortgageCase.update(caseId, updates);
+      
+      await base44.entities.AuditLog.create({
+        case_id: caseId,
+        action: 'Case details updated',
+        action_category: 'manual_override',
+        actor: 'user',
+        actor_email: user?.email,
+        timestamp: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['mortgageCase', caseId]);
+      queryClient.invalidateQueries(['auditLogs', caseId]);
+      setIsEditDialogOpen(false);
+      toast.success('Case updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update case: ' + error.message);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.MortgageCase.delete(caseId);
+      await base44.entities.AuditLog.delete({ case_id: caseId });
+    },
+    onSuccess: () => {
+      toast.success('Case deleted successfully');
+      navigate(createPageUrl('Dashboard'));
+    },
+    onError: (error) => {
+      toast.error('Failed to delete case: ' + error.message);
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -290,6 +355,25 @@ export default function CaseDetail() {
             </div>
             
             <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Edit
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete
+              </Button>
+              
               <Badge className={`${stage.color} text-sm py-1.5 px-3`}>
                 {stage.label}
               </Badge>
@@ -763,6 +847,45 @@ export default function CaseDetail() {
           </div>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      <EditCaseDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        caseData={caseData}
+        onSave={(updates) => editMutation.mutate(updates)}
+        isSaving={editMutation.isPending}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Case?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this case? This action cannot be undone.
+              All associated data including reports, audit logs, and communications will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate()}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Case'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
