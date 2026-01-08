@@ -146,20 +146,19 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
-  const handleSubmit = () => {
-    if (validateStep(step)) {
-      const ltv = formData.property_value && formData.loan_amount 
-        ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
-        : null;
+  const handleSubmit = (e) => {
+    e?.preventDefault();
+    const ltv = formData.property_value && formData.loan_amount 
+      ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
+      : null;
 
-      onSubmit({
-        ...formData,
-        property_value: parseFloat(formData.property_value) || null,
-        loan_amount: parseFloat(formData.loan_amount) || null,
-        annual_income: parseFloat(formData.annual_income) || null,
-        ltv: ltv ? Math.round(ltv * 10) / 10 : null
-      });
-    }
+    onSubmit({
+      ...formData,
+      property_value: parseFloat(formData.property_value) || null,
+      loan_amount: parseFloat(formData.loan_amount) || null,
+      annual_income: parseFloat(formData.annual_income) || null,
+      ltv: ltv ? Math.round(ltv * 10) / 10 : null
+    });
   };
 
   const calculateLTV = () => {
