@@ -3,6 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Table,
   TableBody,
   TableCell,
@@ -18,7 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { 
   CheckCircle, AlertTriangle, XCircle, Clock,
-  ShieldCheck, ShieldAlert, ShieldX, RefreshCw, Info
+  ShieldCheck, ShieldAlert, ShieldX, RefreshCw, Info, ChevronDown
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -156,8 +161,79 @@ export default function LenderChecks({ checks = [], caseData, onRecalculate, isR
           </Card>
         ) : (
           <>
+            {/* Match Reasoning Cards */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                Match Reasoning
+              </h4>
+              {sortedMatches.map((lender, idx) => (
+                <Collapsible key={idx}>
+                  <Card className="border-0 shadow-sm">
+                    <CollapsibleTrigger className="w-full">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-slate-900">{lender.name}</span>
+                            <Badge className={`${getConfidenceColor(lender.confidence)} border font-semibold`}>
+                              {lender.confidence}%
+                            </Badge>
+                          </div>
+                          <ChevronDown className="w-4 h-4 text-slate-400 transition-transform group-data-[state=open]:rotate-180" />
+                        </div>
+                      </CardHeader>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <CardContent className="space-y-4 pt-0">
+                        {/* Why Matched */}
+                        {lender.match_reasons && lender.match_reasons.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <CheckCircle className="w-4 h-4 text-emerald-600" />
+                              <span className="text-sm font-medium text-emerald-900">Why this lender matched</span>
+                            </div>
+                            <ul className="space-y-1 ml-6">
+                              {lender.match_reasons.map((reason, i) => (
+                                <li key={i} className="text-sm text-slate-600">
+                                  • {reason}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Confidence Breakdown */}
+                        {lender.confidence_breakdown && lender.confidence_breakdown.length > 0 && (
+                          <div className="p-3 bg-slate-50 rounded-lg">
+                            <p className="text-sm font-medium text-slate-700 mb-2">Confidence breakdown:</p>
+                            <div className="space-y-1">
+                              {lender.confidence_breakdown.map((item, i) => (
+                                <div key={i} className="flex justify-between text-sm">
+                                  <span className="text-slate-600">{item.reason}</span>
+                                  <span className={`font-medium ${item.points > 0 ? 'text-emerald-600' : item.points < 0 ? 'text-red-600' : 'text-slate-700'}`}>
+                                    {item.points > 0 ? '+' : ''}{item.points}%
+                                  </span>
+                                </div>
+                              ))}
+                              <div className="pt-2 mt-2 border-t border-slate-200 flex justify-between text-sm font-semibold">
+                                <span className="text-slate-900">Total</span>
+                                <span className="text-slate-900">{lender.confidence}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+              ))}
+            </div>
+
             {/* Desktop Table View */}
             <Card className="border-0 shadow-sm hidden md:block">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Quick Reference Table</CardTitle>
+              </CardHeader>
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50">
@@ -242,6 +318,45 @@ export default function LenderChecks({ checks = [], caseData, onRecalculate, isR
                 </TableBody>
               </Table>
             </Card>
+
+            {/* Rejected Lenders Section */}
+            {(caseData?.rejected_lenders || []).length > 0 && (
+              <div className="space-y-3 pt-4">
+                <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-red-600" />
+                  Lenders Not Matched
+                </h4>
+                <div className="space-y-2">
+                  {(caseData?.rejected_lenders || []).slice(0, 10).map((lender, idx) => (
+                    <Card key={idx} className="border-0 shadow-sm bg-red-50/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-slate-900">{lender.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {CATEGORY_LABELS[lender.category] || lender.category || 'Unknown'}
+                              </Badge>
+                            </div>
+                            <p className="text-sm font-medium text-red-900 mb-1">Rejected</p>
+                            {lender.rejection_reasons && lender.rejection_reasons.length > 0 && (
+                              <ul className="space-y-0.5">
+                                {lender.rejection_reasons.map((reason, i) => (
+                                  <li key={i} className="text-sm text-red-800">
+                                    • {reason}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Mobile Card View */}
             <div className="md:hidden space-y-3">

@@ -476,53 +476,81 @@ export default function CaseDetail() {
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Category</p>
-                        <p className="font-medium text-slate-900">
-                          {CATEGORY_LABELS[caseData.category] || caseData.category}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Purpose</p>
-                        <p className="font-medium text-slate-900">
-                          {PURPOSE_LABELS[caseData.purpose] || caseData.purpose}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Property Value</p>
-                        <p className="font-medium text-slate-900">
-                          {formatCurrency(caseData.property_value)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-1">Loan Amount</p>
-                        <p className="font-medium text-slate-900">
-                          {formatCurrency(caseData.loan_amount)}
-                        </p>
-                      </div>
-                    </div>
+              ...
+                    )}
+                  </CardContent>
+                </Card>
 
-                    {caseData.ltv && (
-                      <div className="mt-6 pt-6 border-t">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-slate-500">Loan-to-Value</span>
-                          <span className={`font-semibold ${
-                            caseData.ltv <= 75 ? 'text-emerald-600' :
-                            caseData.ltv <= 85 ? 'text-amber-600' :
-                            'text-orange-600'
-                          }`}>{caseData.ltv}%</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              caseData.ltv <= 75 ? 'bg-emerald-400' :
-                              caseData.ltv <= 85 ? 'bg-amber-400' :
-                              'bg-orange-400'
-                            }`}
-                            style={{ width: `${Math.min(caseData.ltv, 100)}%` }}
-                          />
-                        </div>
+                {/* Matched Lenders */}
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Building className="w-4 h-4 text-slate-500" />
+                      Matched Lenders
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(caseData.total_lender_matches || 0) === 0 ? (
+                      <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                        <span>No lenders matched - review criteria in Lender Checks tab</span>
                       </div>
+                    ) : (
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="border-b border-slate-200">
+                              <tr>
+                                <th className="text-left py-2 font-semibold text-slate-700">Lender Name</th>
+                                <th className="text-left py-2 font-semibold text-slate-700">Type</th>
+                                <th className="text-left py-2 font-semibold text-slate-700">Confidence</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(caseData.matched_lenders || []).slice(0, 5).map((lender, idx) => (
+                                <tr key={idx} className="border-b border-slate-100 last:border-0">
+                                  <td className="py-2.5 font-medium text-slate-900">{lender.name}</td>
+                                  <td className="py-2.5">
+                                    <Badge variant="outline" className="text-xs">
+                                      {lender.category === 'high_street' ? 'High Street' :
+                                       lender.category === 'building_society' ? 'Building Society' :
+                                       lender.category === 'specialist' ? 'Specialist' :
+                                       lender.category === 'challenger' ? 'Challenger' :
+                                       lender.category || 'Unknown'}
+                                    </Badge>
+                                  </td>
+                                  <td className="py-2.5">
+                                    <Badge className={`${
+                                      (lender.confidence || 0) >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                      (lender.confidence || 0) >= 60 ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                      'bg-orange-50 text-orange-700 border-orange-200'
+                                    } border font-semibold`}>
+                                      {lender.confidence}%
+                                    </Badge>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
+                          <button
+                            onClick={() => {
+                              document.querySelector('[value="checks"]')?.click();
+                            }}
+                            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span>📋 View detailed match analysis</span>
+                          </button>
+                          {caseData.lender_match_calculated_at && (
+                            <span className="text-xs text-slate-500">
+                              Last calculated: {formatDistanceToNow(new Date(caseData.lender_match_calculated_at), { addSuffix: true })}
+                            </span>
+                          )}
+                        </div>
+                      </>
                     )}
                   </CardContent>
                 </Card>
@@ -697,7 +725,9 @@ export default function CaseDetail() {
 
                       await updateMutation.mutateAsync({
                         matched_lenders: result.data.lenders,
+                        rejected_lenders: result.data.rejected_lenders || [],
                         total_lender_matches: result.data.total_matches,
+                        total_rejected_lenders: result.data.total_rejected || 0,
                         lender_match_calculated_at: result.data.timestamp
                       });
 

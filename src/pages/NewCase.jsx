@@ -58,7 +58,9 @@ export default function NewCase() {
         
         lenderMatchData = {
           matched_lenders: matchResponse.data.lenders,
+          rejected_lenders: matchResponse.data.rejected_lenders || [],
           total_lender_matches: matchResponse.data.total_matches,
+          total_rejected_lenders: matchResponse.data.total_rejected || 0,
           lender_match_calculated_at: matchResponse.data.timestamp
         };
       } catch (error) {
