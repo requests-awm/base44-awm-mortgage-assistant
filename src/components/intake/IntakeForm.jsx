@@ -92,7 +92,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
             ltv: Math.round(ltv * 10) / 10,
             annual_income: annualIncome,
             time_sensitivity: formData.time_sensitivity,
-            category: formData.category
+            category: formData.category,
+            income_type: formData.income_type,
+            purpose: formData.purpose
           });
 
           setTriageFeedback(response.data);
@@ -111,7 +113,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
         clearTimeout(triageTimeoutRef.current);
       }
     };
-  }, [formData.property_value, formData.loan_amount, formData.annual_income, formData.time_sensitivity, formData.category]);
+  }, [formData.property_value, formData.loan_amount, formData.annual_income, formData.time_sensitivity, formData.category, formData.income_type, formData.purpose]);
 
   const validateStep = (stepNum) => {
     const newErrors = {};
@@ -462,8 +464,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     />
                     <div className="flex-1">
                       <p className="font-semibold text-slate-900 mb-2" style={{ fontWeight: 600 }}>
-                        {triageFeedback.rating === 'red' ? 'Urgent' : 
-                         triageFeedback.rating === 'yellow' ? 'Review' : 'Strong'}
+                        {triageFeedback.label || 'Strong'}
                       </p>
                       {triageFeedback.factors && triageFeedback.factors.length > 0 && (
                         <ul className="space-y-1">
