@@ -41,6 +41,31 @@ export default function NewCase() {
         timelineData = timelineResponse.data;
       }
       
+      // Match lenders
+      let lenderMatchData = {
+        matched_lenders: [],
+        total_lender_matches: 0,
+        lender_match_calculated_at: null
+      };
+      
+      try {
+        const matchResponse = await base44.functions.invoke('matchLenders', {
+          ltv: data.ltv,
+          category: data.category,
+          annual_income: data.annual_income,
+          income_type: data.income_type
+        });
+        
+        lenderMatchData = {
+          matched_lenders: matchResponse.data.lenders,
+          total_lender_matches: matchResponse.data.total_matches,
+          lender_match_calculated_at: matchResponse.data.timestamp
+        };
+      } catch (error) {
+        console.error('Lender matching failed:', error);
+        // Continue with case creation even if matching fails
+      }
+      
       const caseData = {
         ...data,
         reference,
@@ -52,7 +77,8 @@ export default function NewCase() {
         triage_factors: factors,
         triage_last_calculated: timestamp,
         timeline_urgency: timelineData.urgency,
-        days_until_deadline: timelineData.days_left
+        days_until_deadline: timelineData.days_left,
+        ...lenderMatchData
       };
 
       const newCase = await base44.entities.MortgageCase.create(caseData);
