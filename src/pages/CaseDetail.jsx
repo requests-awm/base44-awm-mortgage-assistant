@@ -519,7 +519,6 @@ export default function CaseDetail() {
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="report">Indicative Report</TabsTrigger>
                 <TabsTrigger value="draft">Draft & Schedule</TabsTrigger>
-                <TabsTrigger value="checks">Lender Checks</TabsTrigger>
                 <TabsTrigger value="underwriting">Underwriting</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
@@ -692,22 +691,11 @@ export default function CaseDetail() {
                           </Table>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
-                          <button
-                            onClick={() => {
-                              document.querySelector('[value="checks"]')?.click();
-                            }}
-                            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span>📋 View detailed match analysis</span>
-                          </button>
-                          {caseData.lender_match_calculated_at && (
-                            <span className="text-xs text-slate-500">
-                              Last calculated: {formatDistanceToNow(new Date(caseData.lender_match_calculated_at), { addSuffix: true })}
-                            </span>
-                          )}
-                        </div>
+                        {caseData.lender_match_calculated_at && (
+                          <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 text-right">
+                            Last calculated: {formatDistanceToNow(new Date(caseData.lender_match_calculated_at), { addSuffix: true })}
+                          </div>
+                        )}
                       </>
                     )}
                   </CardContent>
@@ -866,36 +854,6 @@ export default function CaseDetail() {
                     isSubmitting={updateMutation.isPending}
                   />
                 )}
-              </TabsContent>
-
-              <TabsContent value="checks">
-                <LenderChecks 
-                  checks={caseData.lender_checks} 
-                  caseData={caseData}
-                  onRecalculate={async () => {
-                    try {
-                      const result = await base44.functions.invoke('matchLenders', {
-                        ltv: caseData.ltv,
-                        category: caseData.category,
-                        annual_income: caseData.annual_income,
-                        income_type: caseData.income_type
-                      });
-
-                      await updateMutation.mutateAsync({
-                        matched_lenders: result.data.lenders,
-                        rejected_lenders: result.data.rejected_lenders || [],
-                        total_lender_matches: result.data.total_matches,
-                        total_rejected_lenders: result.data.total_rejected || 0,
-                        lender_match_calculated_at: result.data.timestamp
-                      });
-
-                      toast.success('Lender matches recalculated');
-                    } catch (error) {
-                      toast.error('Failed to recalculate: ' + error.message);
-                    }
-                  }}
-                  isRecalculating={updateMutation.isPending}
-                />
               </TabsContent>
 
               <TabsContent value="underwriting">
