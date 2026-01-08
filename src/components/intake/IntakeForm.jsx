@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, AlertTriangle, ArrowRight, User, Building, Banknote, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { base44 } from '@/api/base44Client';
 
 const CATEGORIES = [
   { value: 'residential', label: 'Residential' },
@@ -58,6 +59,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   });
 
   const [errors, setErrors] = useState({});
+  const [triageFeedback, setTriageFeedback] = useState(null);
+  const [isCalculatingTriage, setIsCalculatingTriage] = useState(false);
+  const triageTimeoutRef = useRef(null);
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -65,6 +69,49 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
       setErrors(prev => ({ ...prev, [field]: null }));
     }
   };
+
+  // Calculate triage when financial data changes
+  useEffect(() => {
+    const propertyValue = parseFloat(formData.property_value);
+    const loanAmount = parseFloat(formData.loan_amount);
+    const annualIncome = parseFloat(formData.annual_income) || 0;
+
+    if (propertyValue && loanAmount) {
+      const ltv = (loanAmount / propertyValue) * 100;
+
+      // Clear existing timeout
+      if (triageTimeoutRef.current) {
+        clearTimeout(triageTimeoutRef.current);
+      }
+
+      // Debounce by 500ms
+      triageTimeoutRef.current = setTimeout(async () => {
+        setIsCalculatingTriage(true);
+        try {
+          const response = await base44.functions.invoke('calculateTriage', {
+            ltv: Math.round(ltv * 10) / 10,
+            annual_income: annualIncome,
+            time_sensitivity: formData.time_sensitivity,
+            category: formData.category
+          });
+
+          setTriageFeedback(response.data);
+        } catch (error) {
+          console.error('Failed to calculate triage:', error);
+        } finally {
+          setIsCalculatingTriage(false);
+        }
+      }, 500);
+    } else {
+      setTriageFeedback(null);
+    }
+
+    return () => {
+      if (triageTimeoutRef.current) {
+        clearTimeout(triageTimeoutRef.current);
+      }
+    };
+  }, [formData.property_value, formData.loan_amount, formData.annual_income, formData.time_sensitivity, formData.category]);
 
   const validateStep = (stepNum) => {
     const newErrors = {};
@@ -398,6 +445,43 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   placeholder="Gross annual"
                 />
               </div>
+
+              {/* Live Triage Feedback */}
+              {triageFeedback && ltv && (
+                <div 
+                  className="p-4 rounded-lg bg-white border-l-[5px] transition-all"
+                  style={{ 
+                    borderLeftColor: triageFeedback.color,
+                    opacity: isCalculatingTriage ? 0.6 : 1
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0"
+                      style={{ backgroundColor: triageFeedback.color }}
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold text-slate-900 mb-2" style={{ fontWeight: 600 }}>
+                        {triageFeedback.rating === 'red' ? 'Urgent' : 
+                         triageFeedback.rating === 'yellow' ? 'Review' : 'Strong'}
+                      </p>
+                      {triageFeedback.factors && triageFeedback.factors.length > 0 && (
+                        <ul className="space-y-1">
+                          {triageFeedback.factors.map((factor, idx) => (
+                            <li key={idx} className="text-sm text-slate-600 flex items-start gap-2">
+                              <span className="text-slate-400 mt-0.5">•</span>
+                              <span>{factor}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    {isCalculatingTriage && (
+                      <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                    )}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
