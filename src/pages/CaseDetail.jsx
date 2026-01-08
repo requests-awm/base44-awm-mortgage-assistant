@@ -683,7 +683,31 @@ export default function CaseDetail() {
               </TabsContent>
 
               <TabsContent value="checks">
-                <LenderChecks checks={caseData.lender_checks} />
+                <LenderChecks 
+                  checks={caseData.lender_checks} 
+                  caseData={caseData}
+                  onRecalculate={async () => {
+                    try {
+                      const result = await base44.functions.invoke('matchLenders', {
+                        ltv: caseData.ltv,
+                        category: caseData.category,
+                        annual_income: caseData.annual_income,
+                        income_type: caseData.income_type
+                      });
+
+                      await updateMutation.mutateAsync({
+                        matched_lenders: result.data.lenders,
+                        total_lender_matches: result.data.total_matches,
+                        lender_match_calculated_at: result.data.timestamp
+                      });
+
+                      toast.success('Lender matches recalculated');
+                    } catch (error) {
+                      toast.error('Failed to recalculate: ' + error.message);
+                    }
+                  }}
+                  isRecalculating={updateMutation.isPending}
+                />
               </TabsContent>
 
               <TabsContent value="underwriting">

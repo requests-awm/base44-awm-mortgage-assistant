@@ -1,11 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { 
   CheckCircle, AlertTriangle, XCircle, Clock,
-  ShieldCheck, ShieldAlert, ShieldX
+  ShieldCheck, ShieldAlert, ShieldX, RefreshCw, Info
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 const STATUS_CONFIG = {
   eligible: {
@@ -34,19 +49,238 @@ const CONFIDENCE_CONFIG = {
   low: { label: 'Low', color: 'text-slate-500' }
 };
 
-export default function LenderChecks({ checks = [] }) {
-  if (!checks || checks.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-        <Clock className="w-8 h-8 mb-2" />
-        <p className="text-sm">No lender eligibility checks performed yet</p>
-        <p className="text-xs mt-1">Checks run automatically during market analysis</p>
-      </div>
-    );
-  }
+const CATEGORY_LABELS = {
+  high_street: 'High Street',
+  building_society: 'Building Society',
+  specialist: 'Specialist',
+  private_bank: 'Private Bank',
+  challenger: 'Challenger'
+};
+
+const getConfidenceColor = (confidence) => {
+  if (confidence >= 80) return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+  if (confidence >= 60) return 'text-amber-600 bg-amber-50 border-amber-200';
+  return 'text-orange-600 bg-orange-50 border-orange-200';
+};
+
+export default function LenderChecks({ checks = [], caseData, onRecalculate, isRecalculating }) {
+  const [sortBy, setSortBy] = useState('confidence');
+  const [sortOrder, setSortOrder] = useState('desc');
+
+  const matchedLenders = caseData?.matched_lenders || [];
+  const totalMatches = caseData?.total_lender_matches || 0;
+  const lastCalculated = caseData?.lender_match_calculated_at;
+
+  // Sort matched lenders
+  const sortedMatches = [...matchedLenders].sort((a, b) => {
+    let comparison = 0;
+    if (sortBy === 'confidence') {
+      comparison = (b.confidence || 0) - (a.confidence || 0);
+    } else if (sortBy === 'name') {
+      comparison = a.name.localeCompare(b.name);
+    } else if (sortBy === 'category') {
+      comparison = (a.category || '').localeCompare(b.category || '');
+    }
+    return sortOrder === 'desc' ? comparison : -comparison;
+  });
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortBy(column);
+      setSortOrder('desc');
+    }
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Initial Match Assessment Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1">Initial Match Assessment</h3>
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Info className="w-4 h-4" />
+            <span>These lenders may be suitable - verify in TRIGOLD before proceeding</span>
+          </div>
+        </div>
+
+        {/* Metadata */}
+        {lastCalculated && (
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-3">
+              <Clock className="w-4 h-4 text-slate-400" />
+              <div>
+                <p className="text-xs text-slate-500">Last calculated</p>
+                <p className="text-sm font-medium text-slate-700">
+                  {formatDistanceToNow(new Date(lastCalculated), { addSuffix: true })}
+                </p>
+              </div>
+            </div>
+            {onRecalculate && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRecalculate}
+                disabled={isRecalculating}
+                className="gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${isRecalculating ? 'animate-spin' : ''}`} />
+                Recalculate Matches
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {totalMatches === 0 ? (
+          <Card className="border-0 shadow-sm bg-amber-50 border-amber-200">
+            <CardContent className="p-6">
+              <div className="flex gap-4">
+                <div className="p-3 bg-amber-100 rounded-lg h-fit">
+                  <AlertTriangle className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-amber-900 mb-2">No lenders matched based on current criteria</h4>
+                  <ul className="space-y-1 text-sm text-amber-800">
+                    <li>• LTV may be too high</li>
+                    <li>• Income may be too low</li>
+                    <li>• Category may require specialist lenders</li>
+                  </ul>
+                  <p className="text-sm text-amber-700 mt-3 font-medium">
+                    Review case details or consult senior broker
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Desktop Table View */}
+            <Card className="border-0 shadow-sm hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50">
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('name')}
+                        className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                      >
+                        Lender Name
+                        {sortBy === 'name' && (
+                          <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                        )}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('category')}
+                        className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                      >
+                        Type
+                        {sortBy === 'category' && (
+                          <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                        )}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('confidence')}
+                        className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                      >
+                        Confidence
+                        {sortBy === 'confidence' && (
+                          <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                        )}
+                      </button>
+                    </TableHead>
+                    <TableHead className="font-semibold">Max LTV</TableHead>
+                    <TableHead className="font-semibold">Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedMatches.map((lender, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="font-medium">{lender.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {CATEGORY_LABELS[lender.category] || lender.category || 'Unknown'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${getConfidenceColor(lender.confidence)} border font-semibold`}>
+                          {lender.confidence}%
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-slate-700">{lender.max_ltv}%</span>
+                      </TableCell>
+                      <TableCell>
+                        {lender.notes ? (
+                          lender.notes.length > 60 ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button className="text-sm text-slate-600 hover:text-slate-900 text-left">
+                                    {lender.notes.substring(0, 60)}...
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                  <p className="text-sm">{lender.notes}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <span className="text-sm text-slate-600">{lender.notes}</span>
+                          )
+                        ) : (
+                          <span className="text-sm text-slate-400">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+              {sortedMatches.map((lender, idx) => (
+                <Card key={idx} className="border-0 shadow-sm">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-semibold text-slate-900">{lender.name}</h4>
+                        <Badge variant="outline" className="text-xs mt-1">
+                          {CATEGORY_LABELS[lender.category] || lender.category || 'Unknown'}
+                        </Badge>
+                      </div>
+                      <Badge className={`${getConfidenceColor(lender.confidence)} border font-semibold`}>
+                        {lender.confidence}%
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div>
+                        <p className="text-xs text-slate-500">Max LTV</p>
+                        <p className="font-medium text-slate-700">{lender.max_ltv}%</p>
+                      </div>
+                    </div>
+                    {lender.notes && (
+                      <div className="pt-2 border-t">
+                        <p className="text-sm text-slate-600">{lender.notes}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Existing Lender Checks Section */}
+      {checks && checks.length > 0 && (
+        <div className="space-y-4 pt-6 border-t">
       {/* Summary */}
       <Card className="border-0 shadow-sm bg-slate-50">
         <CardContent className="p-5">
@@ -85,8 +319,50 @@ export default function LenderChecks({ checks = [] }) {
         </CardContent>
       </Card>
 
-      {/* Individual Lender Checks */}
-      {checks.map((check, idx) => {
+        {/* Individual Lender Checks */}
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Detailed Eligibility Checks</h3>
+        </div>
+
+        {/* Summary */}
+        <Card className="border-0 shadow-sm bg-slate-50">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Lenders Checked</p>
+                <p className="text-2xl font-bold text-slate-900">{checks.length}</p>
+              </div>
+              <div className="flex gap-3">
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-1">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    {checks.filter(c => c.overall_status === 'eligible').length}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mb-1">
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    {checks.filter(c => c.overall_status === 'review_required').length}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mb-1">
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    {checks.filter(c => c.overall_status === 'likely_decline').length}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {checks.map((check, idx) => {
         const statusConfig = STATUS_CONFIG[check.overall_status] || STATUS_CONFIG.review_required;
         const StatusIcon = statusConfig.icon;
         const confidence = CONFIDENCE_CONFIG[check.confidence] || CONFIDENCE_CONFIG.medium;
@@ -195,7 +471,9 @@ export default function LenderChecks({ checks = [] }) {
             </CardContent>
           </Card>
         );
-      })}
+        })}
+      </div>
+      )}
     </div>
   );
 }
