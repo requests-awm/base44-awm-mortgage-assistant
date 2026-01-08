@@ -78,29 +78,34 @@ Deno.serve(async (req) => {
     }
 
     // Determine rating
-    let rating, color, label;
+    let rating, color, label, description;
     if (score < 0) {
       rating = 'blue';
       color = '#3B82F6';
-      label = 'Ideal';
+      label = 'Quick Win';
+      description = 'Perfect case, any lender, fast approval';
     } else if (score < 20) {
       rating = 'green';
       color = '#10B981';
-      label = 'Strong';
+      label = 'Good Case';
+      description = 'Minimal broker effort';
     } else if (score < 40) {
       rating = 'yellow';
       color = '#F59E0B';
-      label = 'Review';
+      label = 'Needs Attention';
+      description = 'Requires broker expertise';
     } else {
       rating = 'red';
       color = '#EF4444';
-      label = 'Urgent';
+      label = 'Complex';
+      description = 'Specialist required, high effort';
     }
 
     return Response.json({
       rating,
       color,
       label,
+      description,
       score,
       factors,
       timestamp: new Date().toISOString()

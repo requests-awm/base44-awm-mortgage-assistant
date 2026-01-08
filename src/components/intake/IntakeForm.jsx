@@ -463,11 +463,14 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                       style={{ backgroundColor: triageFeedback.color }}
                     />
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 mb-2" style={{ fontWeight: 600 }}>
-                        {triageFeedback.label || 'Strong'}
+                      <p className="text-slate-900 mb-0.5">
+                        {triageFeedback.label || 'Good Case'}
+                      </p>
+                      <p className="text-xs text-slate-500 mb-2">
+                        {triageFeedback.description}
                       </p>
                       {triageFeedback.factors && triageFeedback.factors.length > 0 && (
-                        <ul className="space-y-1">
+                        <ul className="space-y-1 mt-3">
                           {triageFeedback.factors.map((factor, idx) => (
                             <li key={idx} className="text-sm text-slate-600 flex items-start gap-2">
                               <span className="text-slate-400 mt-0.5">•</span>

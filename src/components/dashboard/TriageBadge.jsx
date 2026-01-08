@@ -2,38 +2,50 @@ import React from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const TRIAGE_CONFIG = {
-  red: {
-    label: 'Urgent',
-    dotColor: '#EF4444',
-    description: 'Urgent attention required'
-  },
-  yellow: {
-    label: 'Review',
-    dotColor: '#F59E0B',
-    description: 'Watch / Missing data'
+  blue: {
+    label: 'Quick Win',
+    dotColor: '#3B82F6',
+    description: 'Perfect case, any lender, fast approval'
   },
   green: {
-    label: 'Strong',
+    label: 'Good Case',
     dotColor: '#10B981',
-    description: 'On track'
+    description: 'Minimal broker effort'
+  },
+  yellow: {
+    label: 'Needs Attention',
+    dotColor: '#F59E0B',
+    description: 'Requires broker expertise'
+  },
+  red: {
+    label: 'Complex',
+    dotColor: '#EF4444',
+    description: 'Specialist required, high effort'
   }
 };
 
-export function TriageBadge({ rating, factors = [], showLabel = true, size = 'default' }) {
+export function TriageBadge({ rating, factors = [], showLabel = true, showDescription = false, size = 'default' }) {
   const config = TRIAGE_CONFIG[rating] || TRIAGE_CONFIG.green;
   const dotSize = size === 'sm' ? 'w-2 h-2' : 'w-2.5 h-2.5';
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
 
   const badge = (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-start gap-1.5">
       <span 
-        className={`${dotSize} rounded-full flex-shrink-0`}
+        className={`${dotSize} rounded-full flex-shrink-0 mt-1`}
         style={{ backgroundColor: config.dotColor }}
       />
       {showLabel && (
-        <span className={`${textSize} text-slate-500 font-medium`}>
-          {config.label}
-        </span>
+        <div className="flex flex-col">
+          <span className={`${textSize} text-slate-700`}>
+            {config.label}
+          </span>
+          {showDescription && (
+            <span className="text-xs text-slate-500 mt-0.5">
+              {config.description}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
