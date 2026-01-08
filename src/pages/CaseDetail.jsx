@@ -12,8 +12,22 @@ import {
   FileText, Play, Pause, CheckCircle, AlertTriangle,
   MessageSquare, Send, RefreshCw, Loader2, Eye,
   Calendar, Mail, Phone, ExternalLink, ShieldCheck,
-  Edit, Trash2
+  Edit, Trash2, ArrowUpDown
 } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -75,6 +89,8 @@ export default function CaseDetail() {
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [sortBy, setSortBy] = useState('confidence');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   const { data: caseData, isLoading } = useQuery({
     queryKey: ['mortgageCase', caseId],
@@ -324,6 +340,43 @@ export default function CaseDetail() {
     }).format(value);
   };
 
+  const CATEGORY_LABELS = {
+    high_street: 'High Street',
+    building_society: 'Building Society',
+    specialist: 'Specialist',
+    private_bank: 'Private Bank',
+    challenger: 'Challenger'
+  };
+
+  const getConfidenceColor = (confidence) => {
+    if (confidence >= 80) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (confidence >= 60) return 'bg-amber-50 text-amber-700 border-amber-200';
+    return 'bg-orange-50 text-orange-700 border-orange-200';
+  };
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortBy(column);
+      setSortOrder('desc');
+    }
+  };
+
+  const sortedMatchedLenders = [...(caseData?.matched_lenders || [])].sort((a, b) => {
+    let comparison = 0;
+    if (sortBy === 'confidence') {
+      comparison = (b.confidence || 0) - (a.confidence || 0);
+    } else if (sortBy === 'name') {
+      comparison = a.name.localeCompare(b.name);
+    } else if (sortBy === 'category') {
+      comparison = (a.category || '').localeCompare(b.category || '');
+    } else if (sortBy === 'max_ltv') {
+      comparison = (b.max_ltv || 0) - (a.max_ltv || 0);
+    }
+    return sortOrder === 'desc' ? comparison : -comparison;
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100">
       <div className="max-w-6xl mx-auto p-6 lg:p-8">
@@ -544,40 +597,99 @@ export default function CaseDetail() {
                     ) : (
                       <>
                         <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead className="border-b border-slate-200">
-                              <tr>
-                                <th className="text-left py-2 font-semibold text-slate-700">Lender Name</th>
-                                <th className="text-left py-2 font-semibold text-slate-700">Type</th>
-                                <th className="text-left py-2 font-semibold text-slate-700">Confidence</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {(caseData.matched_lenders || []).slice(0, 5).map((lender, idx) => (
-                                <tr key={idx} className="border-b border-slate-100 last:border-0">
-                                  <td className="py-2.5 font-medium text-slate-900">{lender.name}</td>
-                                  <td className="py-2.5">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-slate-50">
+                                <TableHead>
+                                  <button
+                                    onClick={() => handleSort('name')}
+                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                                  >
+                                    Lender Name
+                                    {sortBy === 'name' && (
+                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                                    )}
+                                  </button>
+                                </TableHead>
+                                <TableHead>
+                                  <button
+                                    onClick={() => handleSort('category')}
+                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                                  >
+                                    Type
+                                    {sortBy === 'category' && (
+                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                                    )}
+                                  </button>
+                                </TableHead>
+                                <TableHead>
+                                  <button
+                                    onClick={() => handleSort('confidence')}
+                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                                  >
+                                    Confidence
+                                    {sortBy === 'confidence' && (
+                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                                    )}
+                                  </button>
+                                </TableHead>
+                                <TableHead>
+                                  <button
+                                    onClick={() => handleSort('max_ltv')}
+                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                                  >
+                                    Max LTV
+                                    {sortBy === 'max_ltv' && (
+                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                                    )}
+                                  </button>
+                                </TableHead>
+                                <TableHead className="font-semibold">Notes</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {sortedMatchedLenders.map((lender, idx) => (
+                                <TableRow key={idx}>
+                                  <TableCell className="font-medium">{lender.name}</TableCell>
+                                  <TableCell>
                                     <Badge variant="outline" className="text-xs">
-                                      {lender.category === 'high_street' ? 'High Street' :
-                                       lender.category === 'building_society' ? 'Building Society' :
-                                       lender.category === 'specialist' ? 'Specialist' :
-                                       lender.category === 'challenger' ? 'Challenger' :
-                                       lender.category || 'Unknown'}
+                                      {CATEGORY_LABELS[lender.category] || lender.category || 'Unknown'}
                                     </Badge>
-                                  </td>
-                                  <td className="py-2.5">
-                                    <Badge className={`${
-                                      (lender.confidence || 0) >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                      (lender.confidence || 0) >= 60 ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                      'bg-orange-50 text-orange-700 border-orange-200'
-                                    } border font-semibold`}>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge className={`${getConfidenceColor(lender.confidence)} border font-semibold`}>
                                       {lender.confidence}%
                                     </Badge>
-                                  </td>
-                                </tr>
+                                  </TableCell>
+                                  <TableCell>
+                                    <span className="font-medium text-slate-700">{lender.max_ltv}%</span>
+                                  </TableCell>
+                                  <TableCell>
+                                    {lender.notes ? (
+                                      lender.notes.length > 50 ? (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <button className="text-sm text-slate-600 hover:text-slate-900 text-left">
+                                                {lender.notes.substring(0, 50)}...
+                                              </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                              <p className="text-sm">{lender.notes}</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      ) : (
+                                        <span className="text-sm text-slate-600">{lender.notes}</span>
+                                      )
+                                    ) : (
+                                      <span className="text-sm text-slate-400">—</span>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
                               ))}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
 
                         <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
