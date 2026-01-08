@@ -476,7 +476,53 @@ export default function CaseDetail() {
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              ...
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Category</p>
+                        <p className="font-medium text-slate-900">
+                          {CATEGORY_LABELS[caseData.category] || caseData.category}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Purpose</p>
+                        <p className="font-medium text-slate-900">
+                          {PURPOSE_LABELS[caseData.purpose] || caseData.purpose}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Property Value</p>
+                        <p className="font-medium text-slate-900">
+                          {formatCurrency(caseData.property_value)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Loan Amount</p>
+                        <p className="font-medium text-slate-900">
+                          {formatCurrency(caseData.loan_amount)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {caseData.ltv && (
+                      <div className="mt-6 pt-6 border-t">
+                        <div className="flex items-center justify-between text-sm mb-2">
+                          <span className="text-slate-500">Loan-to-Value</span>
+                          <span className={`font-semibold ${
+                            caseData.ltv <= 75 ? 'text-emerald-600' :
+                            caseData.ltv <= 85 ? 'text-amber-600' :
+                            'text-orange-600'
+                          }`}>{caseData.ltv}%</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${
+                              caseData.ltv <= 75 ? 'bg-emerald-400' :
+                              caseData.ltv <= 85 ? 'bg-amber-400' :
+                              'bg-orange-400'
+                            }`}
+                            style={{ width: `${Math.min(caseData.ltv, 100)}%` }}
+                          />
+                        </div>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
