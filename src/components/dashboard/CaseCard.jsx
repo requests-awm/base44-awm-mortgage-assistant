@@ -65,7 +65,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
       <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
         <Card 
           className="hover:shadow-md transition-all cursor-pointer border-0 bg-white/60 backdrop-blur-sm"
-          style={{ borderLeft: `5px solid ${triageData.rating === 'red' ? '#EF4444' : triageData.rating === 'yellow' ? '#F59E0B' : '#10B981'}` }}
+          style={{ borderLeft: `4px solid ${triageData.rating === 'red' ? '#EF4444' : triageData.rating === 'yellow' ? '#F59E0B' : '#10B981'}` }}
         >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -75,7 +75,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
                   <p className="text-xs text-slate-500">{mortgageCase.reference}</p>
                 </div>
               </div>
-              <span className="text-xs" style={{ color: '#6B7280' }}>{stage.label}</span>
+              <span className="text-xs text-slate-500">{stage.label}</span>
             </div>
           </CardContent>
         </Card>
@@ -89,7 +89,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
     <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
       <Card 
         className="hover:shadow-lg transition-all cursor-pointer border-0 bg-white/80 backdrop-blur-sm group"
-        style={{ borderLeft: `5px solid ${triageColor}` }}
+        style={{ borderLeft: `4px solid ${triageColor}` }}
       >
         <CardContent className="p-6">
           {/* Triage at top */}
@@ -110,7 +110,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
 
           {/* Status */}
           <div className="mb-5">
-            <p className="text-xs" style={{ color: '#6B7280' }}>{stage.label}</p>
+            <p className="text-sm text-slate-500">{stage.label}</p>
           </div>
 
           {/* Details Grid */}

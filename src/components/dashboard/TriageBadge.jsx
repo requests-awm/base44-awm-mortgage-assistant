@@ -25,13 +25,13 @@ export function TriageBadge({ rating, factors = [], showLabel = true, size = 'de
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
 
   const badge = (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       <span 
         className={`${dotSize} rounded-full flex-shrink-0`}
         style={{ backgroundColor: config.dotColor }}
       />
       {showLabel && (
-        <span className={`${textSize} font-semibold`} style={{ color: config.dotColor }}>
+        <span className={`${textSize} text-slate-500 font-medium`}>
           {config.label}
         </span>
       )}
