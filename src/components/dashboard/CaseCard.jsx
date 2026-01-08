@@ -11,6 +11,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
+import { TimelineBadge } from '@/components/dashboard/TimelineBadge.jsx';
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700', icon: FileText },
@@ -92,14 +93,21 @@ export default function CaseCard({ mortgageCase, compact = false }) {
         style={{ borderLeft: `4px solid ${triageColor}` }}
       >
         <CardContent className="p-6">
-          {/* Triage at top */}
-          <div className="mb-5">
+          {/* Triage and Timeline at top */}
+          <div className="mb-5 flex items-center justify-between gap-2">
             <TriageBadge 
               rating={triageData.rating} 
               factors={triageData.factors}
               showLabel={true}
               size="sm"
             />
+            {mortgageCase.timeline_urgency && (
+              <TimelineBadge 
+                urgency={mortgageCase.timeline_urgency}
+                daysLeft={mortgageCase.days_until_deadline}
+                size="sm"
+              />
+            )}
           </div>
 
           {/* Client Name & Reference */}

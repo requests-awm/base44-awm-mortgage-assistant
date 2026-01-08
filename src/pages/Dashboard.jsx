@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [triageFilter, setTriageFilter] = useState('all');
+  const [timelineFilter, setTimelineFilter] = useState('all');
 
   const { data: cases = [], isLoading } = useQuery({
     queryKey: ['mortgageCases'],
@@ -53,7 +54,13 @@ export default function Dashboard() {
       matchesTriage = triage === triageFilter;
     }
     
-    return matchesSearch && matchesFilter && matchesTriage;
+    // Timeline filter
+    let matchesTimeline = true;
+    if (timelineFilter !== 'all') {
+      matchesTimeline = c.timeline_urgency === timelineFilter;
+    }
+    
+    return matchesSearch && matchesFilter && matchesTriage && matchesTimeline;
   });
 
   // Calculate metrics
@@ -152,11 +159,21 @@ export default function Dashboard() {
 
             <Tabs value={triageFilter} onValueChange={setTriageFilter}>
               <TabsList className="bg-white/80">
-                <TabsTrigger value="all">All Priority</TabsTrigger>
+                <TabsTrigger value="all">All Complexity</TabsTrigger>
                 <TabsTrigger value="blue" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">Quick Win</TabsTrigger>
                 <TabsTrigger value="green" className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700">Good Case</TabsTrigger>
                 <TabsTrigger value="yellow" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-700">Needs Attention</TabsTrigger>
                 <TabsTrigger value="red" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">Complex</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <Tabs value={timelineFilter} onValueChange={setTimelineFilter}>
+              <TabsList className="bg-white/80">
+                <TabsTrigger value="all">All Timeline</TabsTrigger>
+                <TabsTrigger value="overdue" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">Overdue</TabsTrigger>
+                <TabsTrigger value="critical" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">Critical</TabsTrigger>
+                <TabsTrigger value="soon" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-700">Soon</TabsTrigger>
+                <TabsTrigger value="standard" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-700">Standard</TabsTrigger>
               </TabsList>
             </Tabs>
 
