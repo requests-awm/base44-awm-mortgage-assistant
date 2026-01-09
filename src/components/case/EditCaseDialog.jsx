@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from 'lucide-react';
+import RemortgageFields from '@/components/intake/RemortgageFields';
 
 const CATEGORIES = [
   { value: 'residential', label: 'Residential' },
@@ -35,6 +36,12 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
     client_phone: caseData?.client_phone || '',
     category: caseData?.category || '',
     purpose: caseData?.purpose || '',
+    existing_lender: caseData?.existing_lender || '',
+    existing_rate: caseData?.existing_rate || '',
+    existing_product_type: caseData?.existing_product_type || '',
+    existing_product_end_date: caseData?.existing_product_end_date || '',
+    existing_monthly_payment: caseData?.existing_monthly_payment || '',
+    switching_reason: caseData?.switching_reason || '',
     property_value: caseData?.property_value || '',
     loan_amount: caseData?.loan_amount || '',
     income_type: caseData?.income_type || '',
@@ -43,6 +50,10 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
     rate_expiry_date: caseData?.rate_expiry_date || '',
     notes: caseData?.notes || ''
   });
+
+  const updateField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -56,6 +67,8 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
       property_value: parseFloat(formData.property_value) || null,
       loan_amount: parseFloat(formData.loan_amount) || null,
       annual_income: parseFloat(formData.annual_income) || null,
+      existing_rate: parseFloat(formData.existing_rate) || null,
+      existing_monthly_payment: parseFloat(formData.existing_monthly_payment) || null,
       ltv: ltv ? Math.round(ltv * 10) / 10 : null
     });
   };
@@ -133,6 +146,14 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
               </div>
             </div>
           </div>
+
+          {/* Existing Mortgage (Remortgage only) */}
+          {formData.purpose === 'remortgage' && (
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-sm font-semibold text-slate-900">Current Mortgage</h3>
+              <RemortgageFields formData={formData} updateField={updateField} />
+            </div>
+          )}
 
           {/* Financial Details */}
           <div className="space-y-4 pt-4 border-t">
