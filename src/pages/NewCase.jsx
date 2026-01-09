@@ -18,9 +18,14 @@ export default function NewCase() {
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const user = await base44.auth.me();
-      
+
       // Generate reference
       const reference = `AWM-${Date.now().toString(36).toUpperCase()}`;
+
+      // Auto-generate Asana URL if GID provided
+      if (data.asana_task_gid) {
+        data.asana_task_url = `https://app.asana.com/0/0/${data.asana_task_gid}`;
+      }
       
       // Calculate triage rating
       const triageResponse = await base44.functions.invoke('calculateTriage', {
