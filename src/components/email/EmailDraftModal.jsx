@@ -195,7 +195,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Email Draft - Version {caseData?.email_version || 1}</DialogTitle>
@@ -223,9 +223,9 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email_subject">Subject</Label>
+          <div className="space-y-6">
+          <div className="space-y-3">
+            <Label htmlFor="email_subject" className="text-sm font-medium text-slate-700">Subject</Label>
             <Input
               id="email_subject"
               value={subject}
@@ -235,11 +235,12 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
               }}
               maxLength={100}
               placeholder="Email subject line"
+              className="text-[16px] font-semibold py-3 px-4 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email_body">Email Body</Label>
+          <div className="space-y-3">
+            <Label htmlFor="email_body" className="text-sm font-medium text-slate-700">Email Body</Label>
             <Textarea
               id="email_body"
               value={body}
@@ -247,43 +248,41 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                 setBody(e.target.value);
                 setIsDirty(true);
               }}
-              rows={16}
-              className="font-mono text-sm"
+              className="min-h-[450px] text-[15px] leading-relaxed p-5 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg resize-none"
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif', lineHeight: '1.6' }}
               placeholder="Email content will appear here..."
             />
           </div>
 
           {/* Email Stats */}
-          <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between text-[13px] text-slate-600 pt-3 border-t border-slate-200">
+            <div className="flex items-center gap-2">
               <span>{emailStats.charCount} characters</span>
-              <span>•</span>
+              <span className="text-slate-400">•</span>
               <span>{emailStats.wordCount} words</span>
-              <span>•</span>
+              <span className="text-slate-400">•</span>
               <span>{emailStats.readTimeMinutes} min read</span>
               {caseData?.email_generated_at && (
                 <>
-                  <span>•</span>
-                  <span>
-                    Generated {format(new Date(caseData.email_generated_at), 'dd MMM HH:mm')}
-                  </span>
+                  <span className="text-slate-400">•</span>
+                  <span>Generated {format(new Date(caseData.email_generated_at), 'dd MMM HH:mm')}</span>
                 </>
               )}
             </div>
-            <Badge variant="outline" className="text-xs">
-              Tone: {emailStats.tone}
+            <Badge variant="outline" className="text-[13px] px-3 py-1">
+              {emailStats.tone}
             </Badge>
           </div>
           </div>
         )}
 
-        <DialogFooter className="flex flex-row gap-2 justify-between">
-          <div className="flex gap-2">
+        <DialogFooter className="flex flex-row gap-3 justify-between pt-6 border-t border-slate-200">
+          <div className="flex gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  size="sm"
+                  className="h-10 text-[15px]"
                   disabled={isGenerating}
                 >
                   {isGenerating ? (
@@ -295,32 +294,32 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                     <>
                       <Sparkles className="w-4 h-4 mr-2" />
                       Adjust Tone & Focus
-                      <ChevronDown className="w-4 h-4 ml-1" />
+                      <ChevronDown className="w-4 h-4 ml-2" />
                     </>
                   )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuLabel>Tone Options</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => handleAdjustment('formal')}>
+                <DropdownMenuLabel className="text-[13px] font-semibold">Tone Options</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleAdjustment('formal')} className="text-[15px] py-2.5">
                   Make More Formal
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAdjustment('friendly')}>
+                <DropdownMenuItem onClick={() => handleAdjustment('friendly')} className="text-[15px] py-2.5">
                   Make More Friendly
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAdjustment('urgent')}>
+                <DropdownMenuItem onClick={() => handleAdjustment('urgent')} className="text-[15px] py-2.5">
                   Add Urgency
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Focus Options</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => handleAdjustment('savings')}>
+                <DropdownMenuLabel className="text-[13px] font-semibold">Focus Options</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleAdjustment('savings')} className="text-[15px] py-2.5">
                   Emphasize Savings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAdjustment('speed')}>
+                <DropdownMenuItem onClick={() => handleAdjustment('speed')} className="text-[15px] py-2.5">
                   Highlight Speed
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAdjustment('experience')}>
+                <DropdownMenuItem onClick={() => handleAdjustment('experience')} className="text-[15px] py-2.5">
                   Stress Experience
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -328,7 +327,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
 
             <Button
               variant="outline"
-              size="sm"
+              className="h-10 text-[15px]"
               onClick={handleUseDefault}
               disabled={isGenerating}
             >
@@ -338,7 +337,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
 
             <Button
               variant="outline"
-              size="sm"
+              className="h-10 text-[15px]"
               onClick={copyToClipboard}
               disabled={!body}
             >
@@ -347,10 +346,10 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
             </Button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button
               variant="outline"
-              size="sm"
+              className="h-10 text-[15px]"
               onClick={() => saveMutation.mutate()}
               disabled={!isDirty || saveMutation.isPending || isGenerating}
             >
@@ -368,10 +367,9 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
             </Button>
 
             <Button
-              size="sm"
+              className="h-10 text-[15px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-6"
               onClick={() => markSentMutation.mutate()}
               disabled={markSentMutation.isPending || isGenerating || !body}
-              className="bg-emerald-600 hover:bg-emerald-700"
             >
               {markSentMutation.isPending ? (
                 <>
@@ -386,7 +384,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
               )}
             </Button>
 
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" className="h-10 text-[15px]" onClick={onClose}>
               <X className="w-4 h-4 mr-2" />
               Close
             </Button>
