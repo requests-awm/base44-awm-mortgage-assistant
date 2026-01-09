@@ -57,6 +57,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     client_deadline: initialData.client_deadline || '',
     rate_expiry_date: initialData.rate_expiry_date || '',
     intake_type: initialData.intake_type || 'identification',
+    referral_source: initialData.referral_source || '',
     notes: initialData.notes || ''
   });
 
@@ -310,6 +311,25 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     placeholder="+44 ..."
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="referral_source">How did you find us? (Optional)</Label>
+                <Select value={formData.referral_source || ''} onValueChange={(v) => updateField('referral_source', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Existing Client">Existing Client</SelectItem>
+                    <SelectItem value="Referral - Friend/Family">Referral - Friend/Family</SelectItem>
+                    <SelectItem value="Google Search">Google Search</SelectItem>
+                    <SelectItem value="Social Media">Social Media</SelectItem>
+                    <SelectItem value="Estate Agent Partner">Estate Agent Partner</SelectItem>
+                    <SelectItem value="Financial Adviser Partner">Financial Adviser Partner</SelectItem>
+                    <SelectItem value="Previous Client">Previous Client</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </motion.div>
           )}

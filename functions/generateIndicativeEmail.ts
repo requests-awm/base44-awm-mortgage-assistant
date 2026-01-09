@@ -88,7 +88,8 @@ Deno.serve(async (req) => {
         email_subject: defaultTemplate.subject,
         email_generated_at: new Date().toISOString(),
         email_status: 'draft',
-        email_version: currentVersion + 1
+        email_version: currentVersion + 1,
+        last_activity_by: user.full_name || user.email
       });
 
       await base44.entities.AuditLog.create({
@@ -261,7 +262,8 @@ ${LOCKED_SECTIONS.signOff}`.trim();
       email_subject: emailSubject,
       email_generated_at: new Date().toISOString(),
       email_version: currentVersion + 1,
-      email_status: 'draft'
+      email_status: 'draft',
+      last_activity_by: user.full_name || user.email
     });
     console.log('[EMAIL_GEN] Case updated successfully');
 
