@@ -84,7 +84,7 @@ Output only the email body - no preamble or explanations.`;
 
     console.log('[EMAIL_GEN] Calling Gemini API...');
     const geminiResponse = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
       {
         method: 'POST',
         headers: {
@@ -168,20 +168,7 @@ Output only the email body - no preamble or explanations.`;
     });
 
   } catch (error) {
-    console.error('Email generation error:', error);
-
-    // Try to update case status to failed
-    try {
-      const { case_id } = await req.json();
-      if (case_id) {
-        const base44 = createClientFromRequest(req);
-        await base44.entities.MortgageCase.update(case_id, {
-          email_status: 'failed'
-        });
-      }
-    } catch (updateError) {
-      console.error('Failed to update case status:', updateError);
-    }
+    console.error('[EMAIL_GEN] Error:', error.message);
 
     return Response.json({
       success: false,
