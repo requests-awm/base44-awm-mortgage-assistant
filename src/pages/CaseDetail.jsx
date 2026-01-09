@@ -873,6 +873,93 @@ export default function CaseDetail() {
                   </CardContent>
                 </Card>
 
+                {/* Email Section */}
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-slate-500" />
+                      Client Email
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {caseData.email_status === 'not_generated' ? (
+                      <div className="text-sm text-slate-500 space-y-3">
+                        <p>No email draft generated yet</p>
+                        <Button
+                          size="sm"
+                          onClick={() => setIsEmailModalOpen(true)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Generate Email with AI
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {/* Status Badge */}
+                        <div className="flex items-center gap-2">
+                          {caseData.email_status === 'draft' && (
+                            <Badge className="bg-blue-100 text-blue-700">
+                              ✉️ Draft Ready
+                            </Badge>
+                          )}
+                          {caseData.email_status === 'sent' && (
+                            <Badge className="bg-emerald-100 text-emerald-700">
+                              ✓ Sent
+                            </Badge>
+                          )}
+                          {caseData.email_status === 'failed' && (
+                            <Badge className="bg-red-100 text-red-700">
+                              ⚠️ Generation Failed
+                            </Badge>
+                          )}
+                          <span className="text-xs text-slate-500">v{caseData.email_version || 1}</span>
+                        </div>
+
+                        {/* Subject Preview */}
+                        {caseData.email_subject && (
+                          <div className="border-l-2 border-blue-200 pl-3">
+                            <p className="text-xs text-slate-500 mb-1">Subject:</p>
+                            <p className="font-medium text-sm text-slate-900">{caseData.email_subject}</p>
+                          </div>
+                        )}
+
+                        {/* Body Preview */}
+                        {caseData.email_draft && (
+                          <div className="border-l-2 border-slate-200 pl-3">
+                            <p className="text-xs text-slate-500 mb-1">Preview:</p>
+                            <p className="text-sm text-slate-600">
+                              {caseData.email_draft.substring(0, 120)}...
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Timeline */}
+                        <div className="text-xs text-slate-500 space-y-1">
+                          {caseData.email_generated_at && (
+                            <p>Generated: {formatDistanceToNow(new Date(caseData.email_generated_at), { addSuffix: true })}</p>
+                          )}
+                          {caseData.email_sent_at && (
+                            <p>Sent: {format(new Date(caseData.email_sent_at), 'dd MMM yyyy HH:mm')} by {caseData.email_sent_by}</p>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setIsEmailModalOpen(true)}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Full Draft
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Fee Acknowledgement (show when client proceeding) */}
                 {caseData.stage === 'client_proceeding' && (
                   <FeeAcknowledgement 
@@ -1199,10 +1286,10 @@ export default function CaseDetail() {
 
         {/* Email Draft Modal */}
         <EmailDraftModal
-        isOpen={isEmailModalOpen}
-        onClose={() => setIsEmailModalOpen(false)}
-        caseData={caseData}
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+          caseData={caseData}
         />
-        </div>
-        );
-        }
+      </div>
+    );
+  }
