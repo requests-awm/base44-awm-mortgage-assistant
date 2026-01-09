@@ -151,9 +151,28 @@ export default function CaseCard({ mortgageCase, compact = false }) {
             <p className="text-sm text-slate-500">{mortgageCase.reference}</p>
           </div>
 
-          {/* Status */}
-          <div className="mb-5">
-            <p className="text-sm text-slate-500">{stage.label}</p>
+          {/* Status & Email Badge */}
+          <div className="mb-5 flex items-center gap-2 flex-wrap">
+            <Badge className={`${stage.color} text-xs`}>
+              {stage.label}
+            </Badge>
+            
+            {/* Email Status Badge */}
+            {mortgageCase.email_status === 'draft' && (
+              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                ✉️ Draft ready
+              </Badge>
+            )}
+            {mortgageCase.email_status === 'sent' && mortgageCase.email_sent_at && (
+              <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                ✓ Sent {format(new Date(mortgageCase.email_sent_at), 'dd MMM')}
+              </Badge>
+            )}
+            {mortgageCase.email_status === 'failed' && (
+              <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                ⚠️ Failed
+              </Badge>
+            )}
           </div>
 
           {/* Details Grid */}
