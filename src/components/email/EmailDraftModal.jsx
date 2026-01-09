@@ -195,7 +195,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[800px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[90vw] max-w-[800px] max-h-[85vh] overflow-y-auto p-6">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Email Draft - Version {caseData?.email_version || 1}</DialogTitle>
@@ -248,8 +248,15 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                 setBody(e.target.value);
                 setIsDirty(true);
               }}
-              className="min-h-[450px] text-[15px] leading-relaxed p-5 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg resize-none"
-              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif', lineHeight: '1.6' }}
+              className="w-full min-h-[450px] text-[15px] leading-relaxed p-5 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg resize-none overflow-x-hidden"
+              style={{ 
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif', 
+                lineHeight: '1.6',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'normal',
+                overflowWrap: 'break-word',
+                boxSizing: 'border-box'
+              }}
               placeholder="Email content will appear here..."
             />
           </div>
