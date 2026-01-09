@@ -82,43 +82,47 @@ Output only the email body - no preamble or explanations.`;
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    console.log('[EMAIL_GEN] Calling Gemini API...');
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
-    const geminiResponse = await fetch(geminiUrl, {
+    console.log('[EMAIL_GEN] Calling OpenAI API as fallback...');
+    // Use OpenAI's ChatGPT instead since Gemini quota is exhausted
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
+          model: 'gpt-4o-mini',
+          messages: [{
+            role: 'system',
+            content: 'You are a UK mortgage adviser assistant. Write professional emails.'
+          }, {
+            role: 'user',
+            content: prompt
           }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 800
-          }
+          temperature: 0.7,
+          max_tokens: 800
         })
       }
     );
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error('[EMAIL_GEN] Gemini API error:', geminiResponse.status, errorText);
-      throw new Error(`Gemini API error: ${geminiResponse.status} - ${errorText}`);
+    if (!openaiResponse.ok) {
+      const errorText = await openaiResponse.text();
+      console.error('[EMAIL_GEN] OpenAI API error:', openaiResponse.status, errorText);
+      throw new Error(`OpenAI API error: ${openaiResponse.status} - ${errorText}`);
     }
 
-    const geminiData = await geminiResponse.json();
-    console.log('[EMAIL_GEN] Gemini response received');
-    const emailDraft = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const openaiData = await openaiResponse.json();
+    console.log('[EMAIL_GEN] OpenAI response received');
+    const emailDraft = openaiData.choices?.[0]?.message?.content;
 
     if (!emailDraft) {
-      console.error('[EMAIL_GEN] No content in Gemini response:', JSON.stringify(geminiData));
+      console.error('[EMAIL_GEN] No content in OpenAI response:', JSON.stringify(openaiData));
       throw new Error('No email content generated');
     }
 
     console.log('[EMAIL_GEN] Email generated, length:', emailDraft.length);
+
+
 
     // Generate subject based on purpose
     let subject = 'Your Mortgage Assessment';
