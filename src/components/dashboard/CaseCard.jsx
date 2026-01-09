@@ -101,13 +101,32 @@ export default function CaseCard({ mortgageCase, compact = false }) {
               showLabel={true}
               size="sm"
             />
-            {mortgageCase.timeline_urgency && (
-              <TimelineBadge 
-                urgency={mortgageCase.timeline_urgency}
-                daysLeft={mortgageCase.days_until_deadline}
-                size="sm"
-              />
-            )}
+            <div className="flex flex-col items-end gap-1">
+              {mortgageCase.timeline_urgency && (
+                <TimelineBadge 
+                  urgency={mortgageCase.timeline_urgency}
+                  daysLeft={mortgageCase.days_until_deadline}
+                  size="sm"
+                />
+              )}
+              {mortgageCase.purpose === 'remortgage' && mortgageCase.existing_product_end_date && (
+                <div className="text-xs text-slate-500">
+                  Deal expires: {(() => {
+                    const endDate = new Date(mortgageCase.existing_product_end_date);
+                    const today = new Date();
+                    const daysUntilExpiry = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                    const dateStr = format(endDate, 'dd/MM/yyyy');
+                    
+                    if (daysUntilExpiry < 30) {
+                      return <span className="text-red-600 font-medium">{dateStr}</span>;
+                    } else if (daysUntilExpiry <= 90) {
+                      return <span className="text-amber-600 font-medium">{dateStr}</span>;
+                    }
+                    return dateStr;
+                  })()}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Client Name & Reference */}

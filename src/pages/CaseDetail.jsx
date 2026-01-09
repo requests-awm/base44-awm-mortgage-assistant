@@ -701,6 +701,85 @@ export default function CaseDetail() {
                   </CardContent>
                 </Card>
 
+                {/* Current Mortgage Details */}
+                {caseData.purpose === 'remortgage' && (caseData.existing_lender || caseData.existing_rate || caseData.existing_product_end_date) && (
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Building className="w-4 h-4 text-slate-500" />
+                        Current Mortgage
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {caseData.existing_lender && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">Lender</span>
+                            <span className="text-slate-900 font-medium">{caseData.existing_lender}</span>
+                          </div>
+                        )}
+                        {caseData.existing_rate && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">Current Rate</span>
+                            <span className="text-slate-900 font-medium">{caseData.existing_rate}%</span>
+                          </div>
+                        )}
+                        {caseData.existing_product_type && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">Product Type</span>
+                            <span className="text-slate-700">{caseData.existing_product_type}</span>
+                          </div>
+                        )}
+                        {caseData.existing_product_end_date && (
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-slate-500">Product Ends</span>
+                              <span className="text-slate-700">{format(new Date(caseData.existing_product_end_date), 'dd MMM yyyy')}</span>
+                            </div>
+                            {(() => {
+                              const endDate = new Date(caseData.existing_product_end_date);
+                              const today = new Date();
+                              const daysUntilExpiry = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+                              if (daysUntilExpiry < 30) {
+                                return (
+                                  <Badge className="bg-red-100 text-red-700 border-red-200">
+                                    {daysUntilExpiry < 0 ? 'EXPIRED' : `URGENT - Expires in ${daysUntilExpiry} days`}
+                                  </Badge>
+                                );
+                              } else if (daysUntilExpiry <= 90) {
+                                return (
+                                  <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                                    Expiring soon - {daysUntilExpiry} days
+                                  </Badge>
+                                );
+                              } else {
+                                return (
+                                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                                    {daysUntilExpiry} days remaining
+                                  </Badge>
+                                );
+                              }
+                            })()}
+                          </div>
+                        )}
+                        {caseData.existing_monthly_payment && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">Monthly Payment</span>
+                            <span className="text-slate-900 font-medium">{formatCurrency(caseData.existing_monthly_payment)}</span>
+                          </div>
+                        )}
+                        {caseData.switching_reason && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">Switching Reason</span>
+                            <span className="text-slate-700">{caseData.switching_reason}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Client Contact */}
                 <Card className="border-0 shadow-sm">
                   <CardHeader className="pb-3">
