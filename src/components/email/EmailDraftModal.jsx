@@ -195,7 +195,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] max-w-[800px] max-h-[85vh] overflow-y-auto p-6">
+      <DialogContent className="w-[95vw] max-w-[1000px] max-h-[90vh] overflow-y-auto overflow-x-hidden p-8">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Email Draft - Version {caseData?.email_version || 1}</DialogTitle>
