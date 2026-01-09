@@ -733,6 +733,36 @@ export default function CaseDetail() {
                   </CardContent>
                 </Card>
 
+                {/* Linked Systems */}
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-slate-500" />
+                      Linked Systems
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {caseData.asana_task_url ? (
+                      <div className="flex items-center gap-3 text-sm">
+                        <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-12.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-4.5 4.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
+                        </svg>
+                        <span className="text-slate-600">Asana Task:</span>
+                        <a
+                          href={caseData.asana_task_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-700 hover:underline font-mono text-xs"
+                        >
+                          {caseData.asana_task_gid}
+                        </a>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-500">No Asana task linked</p>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Fee Acknowledgement (show when client proceeding) */}
                 {caseData.stage === 'client_proceeding' && (
                   <FeeAcknowledgement 

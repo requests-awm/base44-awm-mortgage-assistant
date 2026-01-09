@@ -39,6 +39,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   const [formData, setFormData] = useState({
     is_existing_client: initialData.is_existing_client ?? true,
     insightly_id: initialData.insightly_id || '',
+    asana_task_gid: initialData.asana_task_gid || '',
     client_name: initialData.client_name || '',
     client_email: initialData.client_email || '',
     client_phone: initialData.client_phone || '',
@@ -258,6 +259,17 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   )}
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label htmlFor="asana_task_gid">Asana Task ID (Optional)</Label>
+                <Input
+                  id="asana_task_gid"
+                  value={formData.asana_task_gid}
+                  onChange={(e) => updateField('asana_task_gid', e.target.value)}
+                  placeholder="Paste Asana task ID here (e.g., 1234567890123456)"
+                />
+                <p className="text-xs text-slate-500">Find this in your Asana task URL after /0/0/</p>
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="client_name">Client Name</Label>
