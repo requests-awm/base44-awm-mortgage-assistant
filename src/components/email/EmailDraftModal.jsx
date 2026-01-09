@@ -17,14 +17,44 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(''); // 'saving', 'saved', ''
+  const [isGenerating, setIsGenerating] = useState(false);
   const autoSaveTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
 
+  // Auto-generate email when modal opens if no draft exists
   useEffect(() => {
-    setSubject(caseData?.email_subject || '');
-    setBody(caseData?.email_draft || '');
-    setIsDirty(false);
-  }, [caseData]);
+    if (isOpen && (!caseData?.email_draft || caseData?.email_status === 'not_generated')) {
+      generateEmail();
+    } else if (isOpen) {
+      setSubject(caseData?.email_subject || '');
+      setBody(caseData?.email_draft || '');
+      setIsDirty(false);
+    }
+  }, [isOpen, caseData?.id]);
+
+  const generateEmail = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await base44.functions.invoke('generateIndicativeEmail', {
+        case_id: caseData.id
+      });
+      
+      if (response.data.success) {
+        setSubject(response.data.subject);
+        setBody(response.data.draft);
+        setIsDirty(false);
+        queryClient.invalidateQueries(['mortgageCase', caseData.id]);
+        toast.success(`Email generated (v${response.data.version})`);
+      } else {
+        throw new Error(response.data.error || 'Generation failed');
+      }
+    } catch (error) {
+      console.error('Email generation error:', error);
+      toast.error('Failed to generate email. You can type manually or try regenerating.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   // Auto-save functionality
   useEffect(() => {
@@ -63,24 +93,29 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
     }
   };
 
-  const regenerateMutation = useMutation({
-    mutationFn: async () => {
+  const handleRegenerate = async () => {
+    setIsGenerating(true);
+    try {
       const response = await base44.functions.invoke('generateIndicativeEmail', {
         case_id: caseData.id
       });
-      return response.data;
-    },
-    onSuccess: (data) => {
-      setSubject(data.subject);
-      setBody(data.draft);
-      setIsDirty(false);
-      queryClient.invalidateQueries(['mortgageCase', caseData.id]);
-      toast.success(`Email regenerated (v${data.version})`);
-    },
-    onError: (error) => {
-      toast.error('Failed to regenerate email: ' + error.message);
+      
+      if (response.data.success) {
+        setSubject(response.data.subject);
+        setBody(response.data.draft);
+        setIsDirty(false);
+        queryClient.invalidateQueries(['mortgageCase', caseData.id]);
+        toast.success(`Email regenerated (v${response.data.version})`);
+      } else {
+        throw new Error(response.data.error || 'Regeneration failed');
+      }
+    } catch (error) {
+      console.error('Regeneration error:', error);
+      toast.error('Failed to regenerate: ' + error.message);
+    } finally {
+      setIsGenerating(false);
     }
-  });
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -150,7 +185,16 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
           </div>
         </DialogHeader>
 
-        <div className="space-y-4">
+        {isGenerating ? (
+          <div className="flex flex-col items-center justify-center py-16 space-y-4">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+            <div className="text-center">
+              <p className="text-lg font-medium text-slate-900">Generating email with AI...</p>
+              <p className="text-sm text-slate-500 mt-1">This may take 5-10 seconds</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email_subject">Subject</Label>
             <Input
@@ -191,17 +235,18 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
             </div>
             <span>{characterCount} characters</span>
           </div>
-        </div>
+          </div>
+        )}
 
         <DialogFooter className="flex flex-row gap-2 justify-between">
           <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => regenerateMutation.mutate()}
-              disabled={regenerateMutation.isPending}
+              onClick={handleRegenerate}
+              disabled={isGenerating}
             >
-              {regenerateMutation.isPending ? (
+              {isGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Generating...
@@ -220,7 +265,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
               variant="outline"
               size="sm"
               onClick={() => saveMutation.mutate()}
-              disabled={!isDirty || saveMutation.isPending}
+              disabled={!isDirty || saveMutation.isPending || isGenerating}
             >
               {saveMutation.isPending ? (
                 <>
@@ -238,7 +283,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
             <Button
               size="sm"
               onClick={() => markSentMutation.mutate()}
-              disabled={markSentMutation.isPending}
+              disabled={markSentMutation.isPending || isGenerating || !body}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
               {markSentMutation.isPending ? (
