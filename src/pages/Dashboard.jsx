@@ -395,8 +395,96 @@ export default function Dashboard() {
 
         {/* Pipeline View */}
         <div id="pipeline-view" style={{ display: activeTab === 'pipeline' ? 'block' : 'none' }}>
-          <div className="flex items-center justify-center py-16 text-slate-400">
-            <p>Pipeline view content will be added here</p>
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {/* Pipeline Column */}
+            <div className="flex-1 min-w-[280px] border-r border-slate-200 pr-4">
+              <div className="sticky top-0 bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 pb-3 mb-3 z-10">
+                <h3 className="text-[16px] font-semibold text-slate-700">
+                  Pipeline <span className="text-slate-400 font-normal">({getCasesByStages(STAGE_GROUPS.pipeline).length})</span>
+                </h3>
+              </div>
+              <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {getCasesByStages(STAGE_GROUPS.pipeline).length === 0 ? (
+                  <p className="text-slate-400 text-center py-8">No cases</p>
+                ) : (
+                  getCasesByStages(STAGE_GROUPS.pipeline).map(c => (
+                    <CaseCard key={c.id} mortgageCase={c} />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Review & Delivery Column */}
+            <div className="flex-1 min-w-[280px] border-r border-slate-200 pr-4">
+              <div className="sticky top-0 bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 pb-3 mb-3 z-10">
+                <h3 className="text-[16px] font-semibold text-slate-700">
+                  Review & Delivery <span className="text-slate-400 font-normal">({getCasesByStages(STAGE_GROUPS.review).length})</span>
+                </h3>
+              </div>
+              <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {getCasesByStages(STAGE_GROUPS.review).length === 0 ? (
+                  <p className="text-slate-400 text-center py-8">No cases</p>
+                ) : (
+                  getCasesByStages(STAGE_GROUPS.review).map(c => (
+                    <CaseCard key={c.id} mortgageCase={c} />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Client Decision Column */}
+            <div className="flex-1 min-w-[280px] border-r border-slate-200 pr-4">
+              <div className="sticky top-0 bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 pb-3 mb-3 z-10">
+                <h3 className="text-[16px] font-semibold text-slate-700">
+                  Client Decision <span className="text-slate-400 font-normal">({getCasesByStages(STAGE_GROUPS.active).length})</span>
+                </h3>
+              </div>
+              <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {getCasesByStages(STAGE_GROUPS.active).length === 0 ? (
+                  <p className="text-slate-400 text-center py-8">No cases</p>
+                ) : (
+                  getCasesByStages(STAGE_GROUPS.active).map(c => (
+                    <CaseCard key={c.id} mortgageCase={c} />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Broker Stage Column */}
+            <div className="flex-1 min-w-[280px] border-r border-slate-200 pr-4">
+              <div className="sticky top-0 bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 pb-3 mb-3 z-10">
+                <h3 className="text-[16px] font-semibold text-slate-700">
+                  Broker Stage <span className="text-slate-400 font-normal">({getCasesByStages(STAGE_GROUPS.broker).length})</span>
+                </h3>
+              </div>
+              <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {getCasesByStages(STAGE_GROUPS.broker).length === 0 ? (
+                  <p className="text-slate-400 text-center py-8">No cases</p>
+                ) : (
+                  getCasesByStages(STAGE_GROUPS.broker).map(c => (
+                    <CaseCard key={c.id} mortgageCase={c} />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Closed Column */}
+            <div className="flex-1 min-w-[280px]">
+              <div className="sticky top-0 bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 pb-3 mb-3 z-10">
+                <h3 className="text-[16px] font-semibold text-slate-700">
+                  Closed <span className="text-slate-400 font-normal">({getCasesByStages(STAGE_GROUPS.closed).length})</span>
+                </h3>
+              </div>
+              <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {getCasesByStages(STAGE_GROUPS.closed).length === 0 ? (
+                  <p className="text-slate-400 text-center py-8">No cases</p>
+                ) : (
+                  getCasesByStages(STAGE_GROUPS.closed).map(c => (
+                    <CaseCard key={c.id} mortgageCase={c} />
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
