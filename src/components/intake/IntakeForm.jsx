@@ -10,7 +10,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, AlertTriangle, ArrowRight, User, Building, Banknote, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import RemortgageFields from '@/components/intake/RemortgageFields';
 
 const CATEGORIES = [
@@ -33,8 +32,6 @@ const INCOME_TYPES = [
   { value: 'retired', label: 'Retired' },
   { value: 'mixed', label: 'Mixed Income' }
 ];
-
-
 
 export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} }) {
   const [step, setStep] = useState(1);
@@ -379,106 +376,6 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               {/* Current Mortgage Details - Only for Remortgage */}
               {formData.purpose === 'remortgage' && (
                 <RemortgageFields formData={formData} updateField={updateField} />
-              )}
-            </motion.div>
-          )}
-
-          {/* Step 3: Financials */}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* Step 3: Financials */}
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-5"
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="property_value">Property Value (£)</Label>
-                      <div className="relative">
-                        <Input
-                          id="existing_rate"
-                          type="number"
-                          step="0.01"
-                          value={formData.existing_rate}
-                          onChange={(e) => updateField('existing_rate', e.target.value)}
-                          placeholder="e.g., 2.18"
-                          className="bg-white pr-8"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Product Type</Label>
-                      <Select value={formData.existing_product_type} onValueChange={(v) => updateField('existing_product_type', v)}>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Fixed">Fixed</SelectItem>
-                          <SelectItem value="Tracker">Tracker</SelectItem>
-                          <SelectItem value="Variable">Variable</SelectItem>
-                          <SelectItem value="Discounted">Discounted</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="existing_product_end_date" className="text-xs">Product End Date</Label>
-                      <Input
-                        id="existing_product_end_date"
-                        type="date"
-                        value={formData.existing_product_end_date}
-                        onChange={(e) => updateField('existing_product_end_date', e.target.value)}
-                        className="bg-white"
-                      />
-                      <p className="text-xs text-slate-500">When does your current deal end?</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="existing_monthly_payment" className="text-xs">Current Monthly Payment</Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">£</span>
-                        <Input
-                          id="existing_monthly_payment"
-                          type="number"
-                          value={formData.existing_monthly_payment}
-                          onChange={(e) => updateField('existing_monthly_payment', e.target.value)}
-                          placeholder="e.g., 850"
-                          className="bg-white pl-8"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Reason for Switching</Label>
-                      <Select value={formData.switching_reason} onValueChange={(v) => updateField('switching_reason', v)}>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select reason" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Rate Expiry">Rate Expiry</SelectItem>
-                          <SelectItem value="Better Rate Available">Better Rate Available</SelectItem>
-                          <SelectItem value="Change in Circumstances">Change in Circumstances</SelectItem>
-                          <SelectItem value="Debt Consolidation">Debt Consolidation</SelectItem>
-                          <SelectItem value="Capital Raise">Capital Raise</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
               )}
             </motion.div>
           )}
