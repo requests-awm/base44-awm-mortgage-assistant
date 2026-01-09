@@ -4,14 +4,23 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
 import { 
   Plus, Search, Filter, LayoutGrid, List, 
   FileText, Clock, CheckCircle, MessageSquare,
-  AlertTriangle, Building, TrendingUp, Users, Loader2, ChevronDown
+  AlertTriangle, Building, TrendingUp, Users, Loader2, ChevronDown,
+  ArrowUpDown, Download
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { format, formatDistanceToNow } from 'date-fns';
 import MetricCard from '@/components/dashboard/MetricCard';
 import CaseCard from '@/components/dashboard/CaseCard';
 import StageColumn from '@/components/dashboard/StageColumn';
@@ -133,6 +142,144 @@ export default function Dashboard() {
     return cases
       .filter(c => ['awaiting_decision', 'decision_chase'].includes(c.stage))
       .sort((a, b) => new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date));
+  };
+
+  // All Cases table state
+  const [tableSort, setTableSort] = useState({ field: 'created_date', order: 'desc' });
+  const [tableFilters, setTableFilters] = useState({
+    triage: 'all',
+    emailStatus: 'all',
+    timeline: 'all'
+  });
+  const [displayLimit, setDisplayLimit] = useState(50);
+  const navigate = useNavigate();
+
+  // Table helper functions
+  const getFilteredAndSortedCases = () => {
+    let filtered = [...cases];
+
+    if (tableFilters.triage !== 'all') {
+      filtered = filtered.filter(c => {
+        const triage = c.triage_rating || calculateTriageRating(c).rating;
+        return triage === tableFilters.triage;
+      });
+    }
+
+    if (tableFilters.emailStatus !== 'all') {
+      filtered = filtered.filter(c => c.email_status === tableFilters.emailStatus);
+    }
+
+    if (tableFilters.timeline !== 'all') {
+      filtered = filtered.filter(c => c.timeline_urgency === tableFilters.timeline);
+    }
+
+    filtered.sort((a, b) => {
+      let aVal, bVal;
+      switch (tableSort.field) {
+        case 'client_name':
+          aVal = a.client_name || '';
+          bVal = b.client_name || '';
+          return tableSort.order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        case 'reference':
+          aVal = a.reference || '';
+          bVal = b.reference || '';
+          return tableSort.order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        case 'loan_amount':
+          aVal = a.loan_amount || 0;
+          bVal = b.loan_amount || 0;
+          return tableSort.order === 'asc' ? aVal - bVal : bVal - aVal;
+        case 'ltv':
+          aVal = a.ltv || 0;
+          bVal = b.ltv || 0;
+          return tableSort.order === 'asc' ? aVal - bVal : bVal - aVal;
+        case 'timeline':
+          aVal = a.days_until_deadline || 999;
+          bVal = b.days_until_deadline || 999;
+          return tableSort.order === 'asc' ? aVal - bVal : bVal - aVal;
+        case 'created_date':
+        default:
+          aVal = new Date(a.created_date || 0);
+          bVal = new Date(b.created_date || 0);
+          return tableSort.order === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+    });
+
+    return filtered;
+  };
+
+  const handleSort = (field) => {
+    setTableSort(prev => ({
+      field,
+      order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  const formatCurrency = (value) => {
+    if (!value) return '-';
+    return new Intl.NumberFormat('en-GB', { 
+      style: 'currency', 
+      currency: 'GBP',
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  const exportToCSV = () => {
+    const data = getFilteredAndSortedCases();
+    const headers = [
+      'Client Name', 'Reference', 'Category', 'Purpose', 'Property Value', 
+      'Loan Amount', 'LTV', 'Income Type', 'Annual Income', 'Stage', 
+      'Triage', 'Email Status', 'Timeline', 'Days Until Deadline', 'Created Date'
+    ];
+
+    const rows = data.map(c => {
+      const triage = c.triage_rating || calculateTriageRating(c).rating;
+      return [
+        c.client_name || '',
+        c.reference || '',
+        c.category || '',
+        c.purpose || '',
+        c.property_value || '',
+        c.loan_amount || '',
+        c.ltv || '',
+        c.income_type || '',
+        c.annual_income || '',
+        c.stage || '',
+        triage,
+        c.email_status || 'not_generated',
+        c.timeline_urgency || 'standard',
+        c.days_until_deadline || '',
+        c.created_date ? format(new Date(c.created_date), 'yyyy-MM-dd HH:mm:ss') : ''
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mortgage-cases-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const triageDotColors = {
+    blue: '#3B82F6',
+    green: '#10B981',
+    yellow: '#F59E0B',
+    red: '#EF4444'
+  };
+
+  const triageLabels = {
+    blue: 'Quick Win',
+    green: 'Good Case',
+    yellow: 'Needs Attention',
+    red: 'Complex'
   };
 
   if (isLoading) {
@@ -490,8 +637,144 @@ export default function Dashboard() {
 
         {/* All Cases View */}
         <div id="all-cases-view" style={{ display: activeTab === 'all-cases' ? 'block' : 'none' }}>
-          <div className="flex items-center justify-center py-16 text-slate-400">
-            <p>All Cases view content will be added here</p>
+          <div className="flex flex-wrap items-center gap-4 mb-6 bg-white/80 p-4 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">Complexity:</span>
+              <Select value={tableFilters.triage} onValueChange={(val) => setTableFilters(prev => ({ ...prev, triage: val }))}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="blue">Quick Win</SelectItem>
+                  <SelectItem value="green">Good Case</SelectItem>
+                  <SelectItem value="yellow">Needs Attention</SelectItem>
+                  <SelectItem value="red">Complex</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">Email:</span>
+              <Select value={tableFilters.emailStatus} onValueChange={(val) => setTableFilters(prev => ({ ...prev, emailStatus: val }))}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="draft">Draft Ready</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="not_generated">Not Generated</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">Timeline:</span>
+              <Select value={tableFilters.timeline} onValueChange={(val) => setTableFilters(prev => ({ ...prev, timeline: val }))}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="soon">Soon</SelectItem>
+                  <SelectItem value="standard">Standard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="ml-auto">
+              <Button onClick={exportToCSV} variant="outline" className="gap-2">
+                <Download className="w-4 h-4" />
+                Export CSV
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 sticky top-0 z-10">
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('client_name')}>
+                      <div className="flex items-center gap-1">Client Name <ArrowUpDown className="w-3 h-3" /></div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('reference')}>
+                      <div className="flex items-center gap-1">Case Ref <ArrowUpDown className="w-3 h-3" /></div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">Triage</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">Email Status</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('timeline')}>
+                      <div className="flex items-center gap-1">Timeline <ArrowUpDown className="w-3 h-3" /></div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('loan_amount')}>
+                      <div className="flex items-center gap-1">Loan Amount <ArrowUpDown className="w-3 h-3" /></div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('ltv')}>
+                      <div className="flex items-center gap-1">LTV <ArrowUpDown className="w-3 h-3" /></div>
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('created_date')}>
+                      <div className="flex items-center gap-1">Created Date <ArrowUpDown className="w-3 h-3" /></div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getFilteredAndSortedCases().slice(0, displayLimit).map((c, idx) => {
+                    const triage = c.triage_rating || calculateTriageRating(c).rating;
+                    return (
+                      <tr key={c.id} onClick={() => navigate(createPageUrl(`CaseDetail?id=${c.id}`))} className={`border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                        <td className="px-4 py-3"><div className="font-semibold text-[14px] text-slate-900">{c.client_name}</div></td>
+                        <td className="px-4 py-3"><div className="text-[13px] text-slate-500">{c.reference}</div></td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2 text-[14px] text-slate-700">
+                            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: triageDotColors[triage] }} />
+                            {triageLabels[triage]}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-[14px]">
+                            {c.email_status === 'draft' && <span className="text-blue-600">✉️ Draft</span>}
+                            {c.email_status === 'sent' && <span className="text-emerald-600">✅ Sent</span>}
+                            {c.email_status === 'failed' && <span className="text-red-600">⚠️ Failed</span>}
+                            {c.email_status === 'not_generated' && <span className="text-slate-400">—</span>}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-[14px]">
+                            {c.days_until_deadline ? (
+                              <span className={c.timeline_urgency === 'overdue' || c.timeline_urgency === 'critical' ? 'text-red-600 font-medium' : c.timeline_urgency === 'soon' ? 'text-amber-600 font-medium' : 'text-slate-600'}>
+                                {c.days_until_deadline < 0 ? `${Math.abs(c.days_until_deadline)}d overdue` : `${c.days_until_deadline}d`}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">Standard</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3"><div className="text-[14px] text-slate-700">{formatCurrency(c.loan_amount)}</div></td>
+                        <td className="px-4 py-3"><div className="text-[14px] text-slate-700">{c.ltv ? `${c.ltv}%` : '—'}</div></td>
+                        <td className="px-4 py-3"><div className="text-[13px] text-slate-500">{formatDistanceToNow(new Date(c.created_date), { addSuffix: true })}</div></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {getFilteredAndSortedCases().length > displayLimit && (
+              <div className="p-4 text-center border-t border-slate-200">
+                <Button variant="outline" onClick={() => setDisplayLimit(prev => prev + 50)}>Load More Cases</Button>
+              </div>
+            )}
+
+            {getFilteredAndSortedCases().length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                <FileText className="w-12 h-12 mb-3" />
+                <p>No cases found</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
