@@ -31,6 +31,14 @@ export default function Dashboard() {
   const [filter, setFilter] = useState('all');
   const [triageFilter, setTriageFilter] = useState('all');
   const [timelineFilter, setTimelineFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('dashboardActiveTab') || 'my-work';
+  });
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    sessionStorage.setItem('dashboardActiveTab', tab);
+  };
 
   const { data: cases = [], isLoading } = useQuery({
     queryKey: ['mortgageCases'],
@@ -105,7 +113,7 @@ export default function Dashboard() {
         </div>
 
         {/* Metrics Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <MetricCard
             title="Active Cases"
             value={activeCases.length}
@@ -134,6 +142,40 @@ export default function Dashboard() {
             icon={AlertTriangle}
             color="purple"
           />
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-1 mb-6 border-b border-slate-200">
+          <button
+            onClick={() => handleTabChange('my-work')}
+            className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
+              activeTab === 'my-work'
+                ? 'text-[#3B82F6] font-semibold border-b-[3px] border-[#3B82F6]'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-blue-50'
+            }`}
+          >
+            📋 My Work
+          </button>
+          <button
+            onClick={() => handleTabChange('pipeline')}
+            className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
+              activeTab === 'pipeline'
+                ? 'text-[#3B82F6] font-semibold border-b-[3px] border-[#3B82F6]'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-blue-50'
+            }`}
+          >
+            🔄 Pipeline
+          </button>
+          <button
+            onClick={() => handleTabChange('all-cases')}
+            className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
+              activeTab === 'all-cases'
+                ? 'text-[#3B82F6] font-semibold border-b-[3px] border-[#3B82F6]'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-blue-50'
+            }`}
+          >
+            📊 All Cases
+          </button>
         </div>
 
         {/* Filters & View Toggle */}
@@ -194,51 +236,68 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Kanban View */}
-        {view === 'kanban' && (
-          <div className="flex gap-5 overflow-x-auto pb-4">
-            <StageColumn
-              title="Pipeline"
-              icon={FileText}
-              cases={getCasesByStages(STAGE_GROUPS.pipeline)}
-            />
-            <StageColumn
-              title="Review & Delivery"
-              icon={Clock}
-              cases={getCasesByStages(STAGE_GROUPS.review)}
-            />
-            <StageColumn
-              title="Client Decision"
-              icon={MessageSquare}
-              cases={getCasesByStages(STAGE_GROUPS.active)}
-            />
-            <StageColumn
-              title="Broker Stage"
-              icon={Users}
-              cases={getCasesByStages(STAGE_GROUPS.broker)}
-            />
-            <StageColumn
-              title="Closed"
-              icon={CheckCircle}
-              cases={getCasesByStages(STAGE_GROUPS.closed)}
-            />
-          </div>
-        )}
+        {/* My Work View */}
+        <div id="my-work-view" style={{ display: activeTab === 'my-work' ? 'block' : 'none' }}>
+          {/* Kanban View */}
+          {view === 'kanban' && (
+            <div className="flex gap-5 overflow-x-auto pb-4">
+              <StageColumn
+                title="Pipeline"
+                icon={FileText}
+                cases={getCasesByStages(STAGE_GROUPS.pipeline)}
+              />
+              <StageColumn
+                title="Review & Delivery"
+                icon={Clock}
+                cases={getCasesByStages(STAGE_GROUPS.review)}
+              />
+              <StageColumn
+                title="Client Decision"
+                icon={MessageSquare}
+                cases={getCasesByStages(STAGE_GROUPS.active)}
+              />
+              <StageColumn
+                title="Broker Stage"
+                icon={Users}
+                cases={getCasesByStages(STAGE_GROUPS.broker)}
+              />
+              <StageColumn
+                title="Closed"
+                icon={CheckCircle}
+                cases={getCasesByStages(STAGE_GROUPS.closed)}
+              />
+            </div>
+          )}
 
-        {/* List View */}
-        {view === 'list' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredCases.map(c => (
-              <CaseCard key={c.id} mortgageCase={c} />
-            ))}
-            {filteredCases.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-16 text-slate-400">
-                <FileText className="w-12 h-12 mb-3" />
-                <p>No cases found</p>
-              </div>
-            )}
+          {/* List View */}
+          {view === 'list' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {filteredCases.map(c => (
+                <CaseCard key={c.id} mortgageCase={c} />
+              ))}
+              {filteredCases.length === 0 && (
+                <div className="col-span-full flex flex-col items-center justify-center py-16 text-slate-400">
+                  <FileText className="w-12 h-12 mb-3" />
+                  <p>No cases found</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Pipeline View */}
+        <div id="pipeline-view" style={{ display: activeTab === 'pipeline' ? 'block' : 'none' }}>
+          <div className="flex items-center justify-center py-16 text-slate-400">
+            <p>Pipeline view content will be added here</p>
           </div>
-        )}
+        </div>
+
+        {/* All Cases View */}
+        <div id="all-cases-view" style={{ display: activeTab === 'all-cases' ? 'block' : 'none' }}>
+          <div className="flex items-center justify-center py-16 text-slate-400">
+            <p>All Cases view content will be added here</p>
+          </div>
+        </div>
       </div>
     </div>
   );
