@@ -33,24 +33,30 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   }, [isOpen, caseData?.id]);
 
   const generateEmail = async () => {
+    console.log('[MODAL] Starting email generation for case:', caseData.id);
     setIsGenerating(true);
     try {
+      console.log('[MODAL] Calling backend function...');
       const response = await base44.functions.invoke('generateIndicativeEmail', {
         case_id: caseData.id
       });
       
+      console.log('[MODAL] Backend response:', response);
+      
       if (response.data.success) {
+        console.log('[MODAL] Success! Draft length:', response.data.draft.length);
         setSubject(response.data.subject);
         setBody(response.data.draft);
         setIsDirty(false);
         queryClient.invalidateQueries(['mortgageCase', caseData.id]);
         toast.success(`Email generated (v${response.data.version})`);
       } else {
+        console.error('[MODAL] Generation failed:', response.data.error);
         throw new Error(response.data.error || 'Generation failed');
       }
     } catch (error) {
-      console.error('Email generation error:', error);
-      toast.error('Failed to generate email. You can type manually or try regenerating.');
+      console.error('[MODAL] Email generation error:', error);
+      toast.error('Failed to generate email: ' + error.message);
     } finally {
       setIsGenerating(false);
     }

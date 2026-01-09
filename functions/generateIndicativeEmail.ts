@@ -6,24 +6,31 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (!user) {
+      console.error('[EMAIL_GEN] Unauthorized - no user');
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { case_id } = await req.json();
+    console.log('[EMAIL_GEN] Starting generation for case:', case_id);
 
     if (!case_id) {
+      console.error('[EMAIL_GEN] No case_id provided');
       return Response.json({ error: 'case_id is required' }, { status: 400 });
     }
 
     const startTime = Date.now();
 
     // Fetch case data
+    console.log('[EMAIL_GEN] Fetching case data...');
     const cases = await base44.entities.MortgageCase.filter({ id: case_id });
     const mortgageCase = cases[0];
 
     if (!mortgageCase) {
+      console.error('[EMAIL_GEN] Case not found:', case_id);
       return Response.json({ error: 'Case not found' }, { status: 404 });
     }
+
+    console.log('[EMAIL_GEN] Case found:', mortgageCase.client_name, 'LTV:', mortgageCase.ltv);
 
     // Extract client first name
     const clientFirstName = mortgageCase.client_name?.split(' ')[0] || 'there';
@@ -71,9 +78,11 @@ Output only the email body - no preamble or explanations.`;
     // Call Gemini API
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
+      console.error('[EMAIL_GEN] GEMINI_API_KEY not configured');
       throw new Error('GEMINI_API_KEY not configured');
     }
 
+    console.log('[EMAIL_GEN] Calling Gemini API...');
     const geminiResponse = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
       {
@@ -98,15 +107,20 @@ Output only the email body - no preamble or explanations.`;
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
+      console.error('[EMAIL_GEN] Gemini API error:', geminiResponse.status, errorText);
       throw new Error(`Gemini API error: ${geminiResponse.status} - ${errorText}`);
     }
 
     const geminiData = await geminiResponse.json();
+    console.log('[EMAIL_GEN] Gemini response received');
     const emailDraft = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!emailDraft) {
+      console.error('[EMAIL_GEN] No content in Gemini response:', JSON.stringify(geminiData));
       throw new Error('No email content generated');
     }
+
+    console.log('[EMAIL_GEN] Email generated, length:', emailDraft.length);
 
     // Generate subject based on purpose
     let subject = 'Your Mortgage Assessment';
@@ -118,6 +132,7 @@ Output only the email body - no preamble or explanations.`;
 
     // Update case with email draft
     const currentVersion = mortgageCase.email_version || 0;
+    console.log('[EMAIL_GEN] Updating case with draft, version:', currentVersion + 1);
     await base44.entities.MortgageCase.update(case_id, {
       email_draft: emailDraft,
       email_subject: subject,
@@ -125,6 +140,7 @@ Output only the email body - no preamble or explanations.`;
       email_version: currentVersion + 1,
       email_status: 'draft'
     });
+    console.log('[EMAIL_GEN] Case updated successfully');
 
     // Log to audit
     const apiResponseTime = Date.now() - startTime;
@@ -142,6 +158,7 @@ Output only the email body - no preamble or explanations.`;
       timestamp: new Date().toISOString()
     });
 
+    console.log('[EMAIL_GEN] Success! Returning response');
     return Response.json({
       success: true,
       draft: emailDraft,
