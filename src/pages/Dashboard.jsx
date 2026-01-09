@@ -40,8 +40,14 @@ export default function Dashboard() {
   const [filter, setFilter] = useState('all');
   const [triageFilter, setTriageFilter] = useState('all');
   const [timelineFilter, setTimelineFilter] = useState('all');
+  const [assignmentFilter, setAssignmentFilter] = useState('my-cases');
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem('dashboardActiveTab') || 'my-work';
+  });
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
   });
   const [expandedSections, setExpandedSections] = useState({
     urgent: true,
@@ -89,8 +95,17 @@ export default function Dashboard() {
     if (timelineFilter !== 'all') {
       matchesTimeline = c.timeline_urgency === timelineFilter;
     }
+
+    // Assignment filter
+    let matchesAssignment = true;
+    if (assignmentFilter === 'my-cases') {
+      const userIdentifier = currentUser?.full_name || currentUser?.email;
+      matchesAssignment = c.assigned_to === userIdentifier;
+    } else if (assignmentFilter === 'unassigned') {
+      matchesAssignment = !c.assigned_to;
+    }
     
-    return matchesSearch && matchesFilter && matchesTriage && matchesTimeline;
+    return matchesSearch && matchesFilter && matchesTriage && matchesTimeline && matchesAssignment;
   });
 
   // Calculate metrics (use filteredCases to reflect search/filters)
@@ -104,14 +119,21 @@ export default function Dashboard() {
   });
   const needingReview = filteredCases.filter(c => c.stage === 'human_review');
 
+  // Calculate my active cases metric
+  const myActiveCases = cases.filter(c => {
+    const userIdentifier = currentUser?.full_name || currentUser?.email;
+    return c.assigned_to === userIdentifier && !['completed', 'withdrawn', 'unsuitable'].includes(c.stage);
+  });
+
   // Check if any filters are active
-  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all';
+  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || assignmentFilter !== 'my-cases';
 
   const clearAllFilters = () => {
     setSearch('');
     setFilter('all');
     setTriageFilter('all');
     setTimelineFilter('all');
+    setAssignmentFilter('my-cases');
     setTableFilters({ triage: 'all', emailStatus: 'all', timeline: 'all' });
   };
 
@@ -319,7 +341,14 @@ export default function Dashboard() {
         </div>
 
         {/* Metrics Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <MetricCard
+            title="My Active Cases"
+            value={myActiveCases.length}
+            subtitle="Assigned to me"
+            icon={Users}
+            color="indigo"
+          />
           <MetricCard
             title="Active Cases"
             value={activeCases.length}
@@ -397,6 +426,17 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">Show:</span>
+              <Tabs value={assignmentFilter} onValueChange={setAssignmentFilter}>
+                <TabsList className="bg-white/80">
+                  <TabsTrigger value="my-cases">My Cases</TabsTrigger>
+                  <TabsTrigger value="all-cases">All Cases</TabsTrigger>
+                  <TabsTrigger value="unassigned">Unassigned</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
             <Tabs value={filter} onValueChange={setFilter}>
               <TabsList className="bg-white/80">
                 <TabsTrigger value="all">All</TabsTrigger>

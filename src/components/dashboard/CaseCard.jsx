@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
 import { TimelineBadge } from '@/components/dashboard/TimelineBadge.jsx';
+import UserAvatar from '@/components/dashboard/UserAvatar';
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700', icon: FileText },
@@ -123,23 +124,26 @@ export default function CaseCard({ mortgageCase, compact = false }) {
     <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
       <Card className="hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer border border-slate-200 bg-white group">
         <CardContent className="p-4">
-          {/* TOP: Client Name & Asana */}
+          {/* TOP: Client Name, User Avatar & Asana */}
           <div className="flex items-start justify-between gap-3 mb-1">
             <h3 className="font-semibold text-[16px] text-slate-900 leading-tight">{mortgageCase.client_name}</h3>
-            {mortgageCase.asana_task_url && (
-              <a
-                href={mortgageCase.asana_task_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="flex-shrink-0 p-1 rounded hover:bg-blue-50 transition-colors"
-                title="View in Asana"
-              >
-                <svg className="w-[18px] h-[18px] text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-12.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-4.5 4.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
-                </svg>
-              </a>
-            )}
+            <div className="flex items-center gap-2">
+              <UserAvatar assignedTo={mortgageCase.assigned_to} size="default" />
+              {mortgageCase.asana_task_url && (
+                <a
+                  href={mortgageCase.asana_task_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-shrink-0 p-1 rounded hover:bg-blue-50 transition-colors"
+                  title="View in Asana"
+                >
+                  <svg className="w-[18px] h-[18px] text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-12.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-4.5 4.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
+                  </svg>
+                </a>
+              )}
+            </div>
           </div>
           <p className="text-[13px] text-slate-500 mb-4">{mortgageCase.reference}</p>
 
