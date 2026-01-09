@@ -84,7 +84,7 @@ Output only the email body - no preamble or explanations.`;
 
     console.log('[EMAIL_GEN] Calling Gemini API...');
     const geminiResponse = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+      'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent',
       {
         method: 'POST',
         headers: {
