@@ -131,7 +131,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
 
           {/* Client Name & Reference */}
           <div className="mb-4">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center justify-between mb-1">
               <h3 className="font-semibold text-lg text-slate-900">{mortgageCase.client_name}</h3>
               {mortgageCase.asana_task_url && (
                 <a
@@ -139,7 +139,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="flex-shrink-0 p-1 rounded-md hover:bg-slate-100 transition-colors group"
+                  className="flex-shrink-0 p-1.5 rounded-lg bg-[#f06a6a]/10 hover:bg-[#f06a6a]/20 transition-colors group border border-[#f06a6a]/20"
                   title="View in Asana"
                 >
                   <svg className="w-5 h-5 text-[#f06a6a] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor">

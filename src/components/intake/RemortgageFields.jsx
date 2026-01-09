@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,10 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
 export default function RemortgageFields({ formData, updateField }) {
-  const [showOtherLender, setShowOtherLender] = useState(
-    formData.existing_lender && formData.existing_lender !== 'Other'
-  );
-
   const { data: lenders = [], isLoading } = useQuery({
     queryKey: ['activeLenders'],
     queryFn: async () => {
@@ -18,12 +14,27 @@ export default function RemortgageFields({ formData, updateField }) {
     }
   });
 
+  // Determine if we should show "Other" text input
+  const isCustomLender = formData.existing_lender && 
+    !lenders.some(l => l.name === formData.existing_lender) &&
+    formData.existing_lender !== '';
+  
+  const [showOtherInput, setShowOtherInput] = useState(isCustomLender);
+
+  useEffect(() => {
+    // Update showOtherInput when lenders load or existing_lender changes
+    if (lenders.length > 0 && formData.existing_lender) {
+      const isKnownLender = lenders.some(l => l.name === formData.existing_lender);
+      setShowOtherInput(!isKnownLender && formData.existing_lender !== '');
+    }
+  }, [lenders, formData.existing_lender]);
+
   const handleLenderChange = (value) => {
     if (value === 'Other') {
-      setShowOtherLender(true);
+      setShowOtherInput(true);
       updateField('existing_lender', '');
     } else {
-      setShowOtherLender(false);
+      setShowOtherInput(false);
       updateField('existing_lender', value);
     }
   };
@@ -35,7 +46,7 @@ export default function RemortgageFields({ formData, updateField }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs">Current Lender</Label>
-          {showOtherLender ? (
+          {showOtherInput ? (
             <div className="space-y-2">
               <Input
                 value={formData.existing_lender}
@@ -46,30 +57,30 @@ export default function RemortgageFields({ formData, updateField }) {
               <button
                 type="button"
                 onClick={() => {
-                  setShowOtherLender(false);
+                  setShowOtherInput(false);
                   updateField('existing_lender', '');
                 }}
-                className="text-xs text-blue-600 hover:text-blue-700"
+                className="text-xs text-blue-600 hover:text-blue-700 underline"
               >
-                Select from list
+                ← Select from list
               </button>
             </div>
           ) : (
             <Select 
-              value={formData.existing_lender} 
+              value={formData.existing_lender || undefined} 
               onValueChange={handleLenderChange}
               disabled={isLoading}
             >
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder={isLoading ? "Loading lenders..." : "Select lender"} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-64">
                 {lenders.map((lender) => (
                   <SelectItem key={lender.id} value={lender.name}>
                     {lender.name}
                   </SelectItem>
                 ))}
-                <SelectItem value="Other">Other</SelectItem>
+                <SelectItem value="Other">Other (custom)</SelectItem>
               </SelectContent>
             </Select>
           )}
