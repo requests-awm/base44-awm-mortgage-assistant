@@ -103,13 +103,24 @@ export default function NewCase() {
         timestamp: new Date().toISOString()
       });
 
+      // Auto-generate email draft (non-blocking)
+      try {
+        await base44.functions.invoke('generateIndicativeEmail', { case_id: newCase.id });
+      } catch (emailError) {
+        console.error('Email generation failed:', emailError);
+        // Don't block case creation if email fails
+        await base44.entities.MortgageCase.update(newCase.id, {
+          email_status: 'failed'
+        });
+      }
+
       return newCase;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries(['mortgageCases']);
       setCreatedCase(data);
       setSuccess(true);
-      toast.success('Case created successfully');
+      toast.success('Case created! Email draft generated.');
     },
     onError: (error) => {
       toast.error('Failed to create case: ' + error.message);
