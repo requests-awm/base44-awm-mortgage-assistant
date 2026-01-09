@@ -408,6 +408,25 @@ export default function CaseDetail() {
             </div>
             
             <div className="flex items-center gap-3">
+              {caseData.asana_task_url && (
+                <a
+                  href={caseData.asana_task_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-[#f06a6a] text-[#f06a6a] hover:bg-[#f06a6a] hover:text-white"
+                  >
+                    <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-12.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-4.5 4.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
+                    </svg>
+                    View in Asana
+                  </Button>
+                </a>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
@@ -416,7 +435,7 @@ export default function CaseDetail() {
                 <Edit className="w-4 h-4 mr-1" />
                 Edit
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="sm"

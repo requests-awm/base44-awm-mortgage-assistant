@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, AlertTriangle, ArrowRight, User, Building, Banknote, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import RemortgageFields from '@/components/intake/RemortgageFields';
 
 const CATEGORIES = [
   { value: 'residential', label: 'Residential' },
@@ -376,22 +378,30 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
               {/* Current Mortgage Details - Only for Remortgage */}
               {formData.purpose === 'remortgage' && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200 space-y-4">
-                  <h4 className="font-medium text-slate-900 text-sm">Current Mortgage Details (Optional)</h4>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="existing_lender" className="text-xs">Current Lender</Label>
-                      <Input
-                        id="existing_lender"
-                        value={formData.existing_lender}
-                        onChange={(e) => updateField('existing_lender', e.target.value)}
-                        placeholder="e.g., Barclays, Nationwide"
-                        className="bg-white"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="existing_rate" className="text-xs">Current Rate (%)</Label>
+                <RemortgageFields formData={formData} updateField={updateField} />
+              )}
+            </motion.div>
+          )}
+
+          {/* Step 3: Financials */}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Step 3: Financials */}
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-5"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="property_value">Property Value (£)</Label>
                       <div className="relative">
                         <Input
                           id="existing_rate"

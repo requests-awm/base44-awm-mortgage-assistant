@@ -131,18 +131,18 @@ export default function CaseCard({ mortgageCase, compact = false }) {
 
           {/* Client Name & Reference */}
           <div className="mb-4">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-lg text-slate-900 mb-1">{mortgageCase.client_name}</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-lg text-slate-900">{mortgageCase.client_name}</h3>
               {mortgageCase.asana_task_url && (
                 <a
                   href={mortgageCase.asana_task_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="text-slate-400 hover:text-blue-600 transition-colors"
+                  className="flex-shrink-0 p-1 rounded-md hover:bg-slate-100 transition-colors group"
                   title="View in Asana"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-5 h-5 text-[#f06a6a] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-12.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-4.5 4.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
                   </svg>
                 </a>
