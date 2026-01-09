@@ -93,25 +93,36 @@ export default function Dashboard() {
     return matchesSearch && matchesFilter && matchesTriage && matchesTimeline;
   });
 
-  // Calculate metrics
-  const activeCases = cases.filter(c => !['completed', 'withdrawn', 'unsuitable'].includes(c.stage));
-  const awaitingDecision = cases.filter(c => ['awaiting_decision', 'decision_chase'].includes(c.stage));
-  const thisWeek = cases.filter(c => {
+  // Calculate metrics (use filteredCases to reflect search/filters)
+  const activeCases = filteredCases.filter(c => !['completed', 'withdrawn', 'unsuitable'].includes(c.stage));
+  const awaitingDecision = filteredCases.filter(c => ['awaiting_decision', 'decision_chase'].includes(c.stage));
+  const thisWeek = filteredCases.filter(c => {
     const created = new Date(c.created_date);
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     return created > weekAgo;
   });
-  const needingReview = cases.filter(c => c.stage === 'human_review');
+  const needingReview = filteredCases.filter(c => c.stage === 'human_review');
+
+  // Check if any filters are active
+  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all';
+
+  const clearAllFilters = () => {
+    setSearch('');
+    setFilter('all');
+    setTriageFilter('all');
+    setTimelineFilter('all');
+    setTableFilters({ triage: 'all', emailStatus: 'all', timeline: 'all' });
+  };
 
   // Group by stage for Kanban
   const getCasesByStages = (stages) => {
     return filteredCases.filter(c => stages.includes(c.stage));
   };
 
-  // My Work section filters
+  // My Work section filters (use filteredCases for search/filter support)
   const getUrgentCases = () => {
-    return cases
+    return filteredCases
       .filter(c => c.timeline_urgency === 'critical' || c.timeline_urgency === 'overdue')
       .sort((a, b) => (a.days_until_deadline || 999) - (b.days_until_deadline || 999));
   };
@@ -121,7 +132,7 @@ export default function Dashboard() {
     weekAgo.setDate(weekAgo.getDate() - 7);
     const urgentIds = new Set(getUrgentCases().map(c => c.id));
     
-    return cases
+    return filteredCases
       .filter(c => {
         if (urgentIds.has(c.id)) return false;
         const created = new Date(c.created_date);
@@ -133,13 +144,13 @@ export default function Dashboard() {
   };
 
   const getReadyToSendCases = () => {
-    return cases
+    return filteredCases
       .filter(c => c.email_status === 'draft')
       .sort((a, b) => new Date(b.email_generated_at || 0) - new Date(a.email_generated_at || 0));
   };
 
   const getWaitingCases = () => {
-    return cases
+    return filteredCases
       .filter(c => ['awaiting_decision', 'decision_chase'].includes(c.stage))
       .sort((a, b) => new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date));
   };
@@ -154,23 +165,23 @@ export default function Dashboard() {
   const [displayLimit, setDisplayLimit] = useState(50);
   const navigate = useNavigate();
 
+  // Sync All Cases filters with main filters
+  React.useEffect(() => {
+    setTableFilters(prev => ({
+      ...prev,
+      triage: triageFilter,
+      timeline: timelineFilter
+    }));
+  }, [triageFilter, timelineFilter]);
+
   // Table helper functions
   const getFilteredAndSortedCases = () => {
-    let filtered = [...cases];
+    // Start with already filtered cases (from search + main filters)
+    let filtered = [...filteredCases];
 
-    if (tableFilters.triage !== 'all') {
-      filtered = filtered.filter(c => {
-        const triage = c.triage_rating || calculateTriageRating(c).rating;
-        return triage === tableFilters.triage;
-      });
-    }
-
+    // Apply email status filter (only in All Cases tab)
     if (tableFilters.emailStatus !== 'all') {
       filtered = filtered.filter(c => c.email_status === tableFilters.emailStatus);
-    }
-
-    if (tableFilters.timeline !== 'all') {
-      filtered = filtered.filter(c => c.timeline_urgency === tableFilters.timeline);
     }
 
     filtered.sort((a, b) => {
@@ -385,7 +396,7 @@ export default function Dashboard() {
             />
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Tabs value={filter} onValueChange={setFilter}>
               <TabsList className="bg-white/80">
                 <TabsTrigger value="all">All</TabsTrigger>
@@ -413,6 +424,17 @@ export default function Dashboard() {
                 <TabsTrigger value="standard" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-700">Standard</TabsTrigger>
               </TabsList>
             </Tabs>
+
+            {hasActiveFilters && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={clearAllFilters}
+                className="border-slate-300 text-slate-600 hover:bg-slate-100"
+              >
+                Clear Filters
+              </Button>
+            )}
 
             <div className="flex bg-white/80 rounded-lg p-1 border border-slate-200">
               <button
