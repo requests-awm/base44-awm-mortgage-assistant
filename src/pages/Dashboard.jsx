@@ -213,6 +213,10 @@ export default function Dashboard() {
           aVal = a.client_name || '';
           bVal = b.client_name || '';
           return tableSort.order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        case 'assigned_to':
+          aVal = a.assigned_to || 'zzz';
+          bVal = b.assigned_to || 'zzz';
+          return tableSort.order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
         case 'reference':
           aVal = a.reference || '';
           bVal = b.reference || '';
@@ -259,15 +263,17 @@ export default function Dashboard() {
   const exportToCSV = () => {
     const data = getFilteredAndSortedCases();
     const headers = [
-      'Client Name', 'Reference', 'Category', 'Purpose', 'Property Value', 
+      'Client Name', 'Assigned To', 'Reference', 'Category', 'Purpose', 'Property Value', 
       'Loan Amount', 'LTV', 'Income Type', 'Annual Income', 'Stage', 
-      'Triage', 'Email Status', 'Timeline', 'Days Until Deadline', 'Created Date'
+      'Triage', 'Email Status', 'Timeline', 'Days Until Deadline', 'Referral Source',
+      'Created By', 'Created Date'
     ];
 
     const rows = data.map(c => {
       const triage = c.triage_rating || calculateTriageRating(c).rating;
       return [
         c.client_name || '',
+        c.assigned_to || 'Unassigned',
         c.reference || '',
         c.category || '',
         c.purpose || '',
@@ -281,6 +287,8 @@ export default function Dashboard() {
         c.email_status || 'not_generated',
         c.timeline_urgency || 'standard',
         c.days_until_deadline || '',
+        c.referral_source || '',
+        c.created_by || '',
         c.created_date ? format(new Date(c.created_date), 'yyyy-MM-dd HH:mm:ss') : ''
       ];
     });
