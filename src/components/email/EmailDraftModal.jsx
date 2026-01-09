@@ -171,7 +171,8 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
       await base44.entities.MortgageCase.update(caseData.id, {
         email_status: 'sent',
         email_sent_at: new Date().toISOString(),
-        email_sent_by: user.email
+        email_sent_by: user.email,
+        last_activity_by: user.full_name || user.email
       });
 
       await base44.entities.AuditLog.create({
