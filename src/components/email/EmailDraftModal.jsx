@@ -1,25 +1,52 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw, Save, Send, X, Check } from 'lucide-react';
+import { Loader2, RefreshCw, Save, Send, X, Check, Copy, RotateCcw, Sparkles, ChevronDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   const [subject, setSubject] = useState(caseData?.email_subject || '');
   const [body, setBody] = useState(caseData?.email_draft || '');
   const [isDirty, setIsDirty] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(''); // 'saving', 'saved', ''
   const [isGenerating, setIsGenerating] = useState(false);
   const autoSaveTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
+
+  // Calculate email stats
+  const emailStats = useMemo(() => {
+    const charCount = subject.length + body.length;
+    const wordCount = body.split(/\s+/).filter(w => w.length > 0).length;
+    const readTimeMinutes = Math.ceil(wordCount / 200);
+    
+    // Simple tone detection
+    let tone = 'Professional';
+    const lowerBody = body.toLowerCase();
+    if (lowerBody.includes('delighted') || lowerBody.includes('pleased') || lowerBody.includes('warm')) {
+      tone = 'Friendly';
+    } else if (lowerBody.includes('must') || lowerBody.includes('urgently') || lowerBody.includes('soon')) {
+      tone = 'Urgent';
+    } else if (body.includes('hereby') || body.includes('pursuant') || lowerBody.includes('corporate')) {
+      tone = 'Formal';
+    }
+    
+    return { charCount, wordCount, readTimeMinutes, tone };
+  }, [subject, body]);
 
   // Auto-generate email when modal opens if no draft exists
   useEffect(() => {
@@ -32,13 +59,14 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
     }
   }, [isOpen, caseData?.id]);
 
-  const generateEmail = async () => {
-    console.log('[MODAL] Starting email generation for case:', caseData.id);
+  const generateEmail = async (options = {}) => {
+    console.log('[MODAL] Starting email generation for case:', caseData.id, options);
     setIsGenerating(true);
     try {
       console.log('[MODAL] Calling backend function...');
       const response = await base44.functions.invoke('generateIndicativeEmail', {
-        case_id: caseData.id
+        case_id: caseData.id,
+        ...options
       });
       
       console.log('[MODAL] Backend response:', response);
@@ -49,7 +77,14 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
         setBody(response.data.draft);
         setIsDirty(false);
         queryClient.invalidateQueries(['mortgageCase', caseData.id]);
-        toast.success(`Email generated (v${response.data.version})`);
+        
+        if (options.use_default) {
+          toast.success('Default template applied');
+        } else if (options.adjustment) {
+          toast.success(`Email adjusted: ${options.adjustment}`);
+        } else {
+          toast.success(`Email generated (v${response.data.version})`);
+        }
       } else {
         console.error('[MODAL] Generation failed:', response.data.error);
         throw new Error(response.data.error || 'Generation failed');
@@ -99,28 +134,18 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
     }
   };
 
-  const handleRegenerate = async () => {
-    setIsGenerating(true);
-    try {
-      const response = await base44.functions.invoke('generateIndicativeEmail', {
-        case_id: caseData.id
-      });
-      
-      if (response.data.success) {
-        setSubject(response.data.subject);
-        setBody(response.data.draft);
-        setIsDirty(false);
-        queryClient.invalidateQueries(['mortgageCase', caseData.id]);
-        toast.success(`Email regenerated (v${response.data.version})`);
-      } else {
-        throw new Error(response.data.error || 'Regeneration failed');
-      }
-    } catch (error) {
-      console.error('Regeneration error:', error);
-      toast.error('Failed to regenerate: ' + error.message);
-    } finally {
-      setIsGenerating(false);
-    }
+  const handleAdjustment = (adjustment) => {
+    generateEmail({ adjustment });
+  };
+
+  const handleUseDefault = () => {
+    generateEmail({ use_default: true });
+  };
+
+  const copyToClipboard = async () => {
+    const fullEmail = `Subject: ${subject}\n\n${body}`;
+    await navigator.clipboard.writeText(fullEmail);
+    toast.success('✓ Copied to clipboard!');
   };
 
   const saveMutation = useMutation({
@@ -167,8 +192,6 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
       toast.error('Failed to mark as sent: ' + error.message);
     }
   });
-
-  const characterCount = body.length;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -230,39 +253,97 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
             />
           </div>
 
+          {/* Email Stats */}
           <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t">
             <div className="flex items-center gap-4">
+              <span>{emailStats.charCount} characters</span>
+              <span>•</span>
+              <span>{emailStats.wordCount} words</span>
+              <span>•</span>
+              <span>{emailStats.readTimeMinutes} min read</span>
               {caseData?.email_generated_at && (
-                <span>
-                  Generated {format(new Date(caseData.email_generated_at), 'dd MMM yyyy HH:mm')}
-                </span>
+                <>
+                  <span>•</span>
+                  <span>
+                    Generated {format(new Date(caseData.email_generated_at), 'dd MMM HH:mm')}
+                  </span>
+                </>
               )}
-              <span>Version {caseData?.email_version || 1}</span>
             </div>
-            <span>{characterCount} characters</span>
+            <Badge variant="outline" className="text-xs">
+              Tone: {emailStats.tone}
+            </Badge>
           </div>
           </div>
         )}
 
         <DialogFooter className="flex flex-row gap-2 justify-between">
           <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Adjusting...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Adjust Tone & Focus
+                      <ChevronDown className="w-4 h-4 ml-1" />
+                    </>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel>Tone Options</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleAdjustment('formal')}>
+                  Make More Formal
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAdjustment('friendly')}>
+                  Make More Friendly
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAdjustment('urgent')}>
+                  Add Urgency
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Focus Options</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleAdjustment('savings')}>
+                  Emphasize Savings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAdjustment('speed')}>
+                  Highlight Speed
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAdjustment('experience')}>
+                  Stress Experience
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant="outline"
               size="sm"
-              onClick={handleRegenerate}
+              onClick={handleUseDefault}
               disabled={isGenerating}
             >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Regenerate with AI
-                </>
-              )}
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset to Default
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={copyToClipboard}
+              disabled={!body}
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copy
             </Button>
           </div>
 
