@@ -8,7 +8,7 @@ import { calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
 import { 
   Plus, Search, Filter, LayoutGrid, List, 
   FileText, Clock, CheckCircle, MessageSquare,
-  AlertTriangle, Building, TrendingUp, Users, Loader2
+  AlertTriangle, Building, TrendingUp, Users, Loader2, ChevronDown
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -34,10 +34,23 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem('dashboardActiveTab') || 'my-work';
   });
+  const [expandedSections, setExpandedSections] = useState({
+    urgent: true,
+    thisWeek: false,
+    readyToSend: true,
+    waiting: false
+  });
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     sessionStorage.setItem('dashboardActiveTab', tab);
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
   const { data: cases = [], isLoading } = useQuery({
@@ -85,6 +98,41 @@ export default function Dashboard() {
   // Group by stage for Kanban
   const getCasesByStages = (stages) => {
     return filteredCases.filter(c => stages.includes(c.stage));
+  };
+
+  // My Work section filters
+  const getUrgentCases = () => {
+    return cases
+      .filter(c => c.timeline_urgency === 'critical' || c.timeline_urgency === 'overdue')
+      .sort((a, b) => (a.days_until_deadline || 999) - (b.days_until_deadline || 999));
+  };
+
+  const getThisWeekCases = () => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const urgentIds = new Set(getUrgentCases().map(c => c.id));
+    
+    return cases
+      .filter(c => {
+        if (urgentIds.has(c.id)) return false;
+        const created = new Date(c.created_date);
+        const withinWeek = created > weekAgo;
+        const deadlineSoon = c.days_until_deadline && c.days_until_deadline <= 7 && c.days_until_deadline > 0;
+        return withinWeek || deadlineSoon;
+      })
+      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+  };
+
+  const getReadyToSendCases = () => {
+    return cases
+      .filter(c => c.email_status === 'draft')
+      .sort((a, b) => new Date(b.email_generated_at || 0) - new Date(a.email_generated_at || 0));
+  };
+
+  const getWaitingCases = () => {
+    return cases
+      .filter(c => ['awaiting_decision', 'decision_chase'].includes(c.stage))
+      .sort((a, b) => new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date));
   };
 
   if (isLoading) {
@@ -238,51 +286,111 @@ export default function Dashboard() {
 
         {/* My Work View */}
         <div id="my-work-view" style={{ display: activeTab === 'my-work' ? 'block' : 'none' }}>
-          {/* Kanban View */}
-          {view === 'kanban' && (
-            <div className="flex gap-5 overflow-x-auto pb-4">
-              <StageColumn
-                title="Pipeline"
-                icon={FileText}
-                cases={getCasesByStages(STAGE_GROUPS.pipeline)}
-              />
-              <StageColumn
-                title="Review & Delivery"
-                icon={Clock}
-                cases={getCasesByStages(STAGE_GROUPS.review)}
-              />
-              <StageColumn
-                title="Client Decision"
-                icon={MessageSquare}
-                cases={getCasesByStages(STAGE_GROUPS.active)}
-              />
-              <StageColumn
-                title="Broker Stage"
-                icon={Users}
-                cases={getCasesByStages(STAGE_GROUPS.broker)}
-              />
-              <StageColumn
-                title="Closed"
-                icon={CheckCircle}
-                cases={getCasesByStages(STAGE_GROUPS.closed)}
-              />
-            </div>
-          )}
-
-          {/* List View */}
-          {view === 'list' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredCases.map(c => (
-                <CaseCard key={c.id} mortgageCase={c} />
-              ))}
-              {filteredCases.length === 0 && (
-                <div className="col-span-full flex flex-col items-center justify-center py-16 text-slate-400">
-                  <FileText className="w-12 h-12 mb-3" />
-                  <p>No cases found</p>
+          <div className="space-y-8">
+            {/* URGENT Section */}
+            <div>
+              <button
+                onClick={() => toggleSection('urgent')}
+                className="flex items-center justify-between w-full mb-4 group"
+              >
+                <h2 className="text-lg font-semibold text-red-600 flex items-center gap-2">
+                  ⚠️ URGENT ({getUrgentCases().length})
+                  <ChevronDown 
+                    className={`w-5 h-5 transition-transform ${expandedSections.urgent ? '' : '-rotate-90'}`}
+                  />
+                </h2>
+              </button>
+              {expandedSections.urgent && (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {getUrgentCases().length === 0 ? (
+                    <p className="text-slate-400 col-span-full">No urgent cases</p>
+                  ) : (
+                    getUrgentCases().map(c => (
+                      <CaseCard key={c.id} mortgageCase={c} />
+                    ))
+                  )}
                 </div>
               )}
             </div>
-          )}
+
+            {/* THIS WEEK Section */}
+            <div>
+              <button
+                onClick={() => toggleSection('thisWeek')}
+                className="flex items-center justify-between w-full mb-4 group"
+              >
+                <h2 className="text-lg font-semibold text-slate-700 flex items-center gap-2">
+                  📅 THIS WEEK ({getThisWeekCases().length})
+                  <ChevronDown 
+                    className={`w-5 h-5 transition-transform ${expandedSections.thisWeek ? '' : '-rotate-90'}`}
+                  />
+                </h2>
+              </button>
+              {expandedSections.thisWeek && (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {getThisWeekCases().length === 0 ? (
+                    <p className="text-slate-400 col-span-full">No cases this week</p>
+                  ) : (
+                    getThisWeekCases().map(c => (
+                      <CaseCard key={c.id} mortgageCase={c} />
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* READY TO SEND Section */}
+            <div>
+              <button
+                onClick={() => toggleSection('readyToSend')}
+                className="flex items-center justify-between w-full mb-4 group"
+              >
+                <h2 className="text-lg font-semibold text-emerald-600 flex items-center gap-2">
+                  ✅ READY TO SEND ({getReadyToSendCases().length})
+                  <ChevronDown 
+                    className={`w-5 h-5 transition-transform ${expandedSections.readyToSend ? '' : '-rotate-90'}`}
+                  />
+                </h2>
+              </button>
+              {expandedSections.readyToSend && (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {getReadyToSendCases().length === 0 ? (
+                    <p className="text-slate-400 col-span-full">No drafts ready</p>
+                  ) : (
+                    getReadyToSendCases().map(c => (
+                      <CaseCard key={c.id} mortgageCase={c} />
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* WAITING ON CLIENT Section */}
+            <div>
+              <button
+                onClick={() => toggleSection('waiting')}
+                className="flex items-center justify-between w-full mb-4 group"
+              >
+                <h2 className="text-lg font-semibold text-slate-500 flex items-center gap-2">
+                  ⏸️ WAITING ({getWaitingCases().length})
+                  <ChevronDown 
+                    className={`w-5 h-5 transition-transform ${expandedSections.waiting ? '' : '-rotate-90'}`}
+                  />
+                </h2>
+              </button>
+              {expandedSections.waiting && (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {getWaitingCases().length === 0 ? (
+                    <p className="text-slate-400 col-span-full">No cases waiting</p>
+                  ) : (
+                    getWaitingCases().map(c => (
+                      <CaseCard key={c.id} mortgageCase={c} />
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Pipeline View */}
