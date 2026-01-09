@@ -41,6 +41,7 @@ import DeliveryScheduler from '@/components/case/DeliveryScheduler';
 import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
 import EditCaseDialog from '@/components/case/EditCaseDialog';
 import { useNavigate } from 'react-router-dom';
+import EmailDraftModal from '@/components/email/EmailDraftModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -89,6 +90,7 @@ export default function CaseDetail() {
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState('confidence');
   const [sortOrder, setSortOrder] = useState('desc');
 
@@ -426,6 +428,16 @@ export default function CaseDetail() {
                   </Button>
                 </a>
               )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEmailModalOpen(true)}
+                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+              >
+                <Mail className="w-4 h-4 mr-1" />
+                Email
+              </Button>
 
               <Button
                 variant="outline"
@@ -1183,7 +1195,14 @@ export default function CaseDetail() {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-}
+        </AlertDialog>
+
+        {/* Email Draft Modal */}
+        <EmailDraftModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        caseData={caseData}
+        />
+        </div>
+        );
+        }
