@@ -772,6 +772,9 @@ export default function Dashboard() {
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('client_name')}>
                       <div className="flex items-center gap-1">Client Name <ArrowUpDown className="w-3 h-3" /></div>
                     </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 w-[150px]" onClick={() => handleSort('assigned_to')}>
+                      <div className="flex items-center gap-1">Assigned To <ArrowUpDown className="w-3 h-3" /></div>
+                    </th>
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('reference')}>
                       <div className="flex items-center gap-1">Case Ref <ArrowUpDown className="w-3 h-3" /></div>
                     </th>
@@ -797,6 +800,7 @@ export default function Dashboard() {
                     return (
                       <tr key={c.id} onClick={() => navigate(createPageUrl(`CaseDetail?id=${c.id}`))} className={`border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
                         <td className="px-4 py-3"><div className="font-semibold text-[14px] text-slate-900">{c.client_name}</div></td>
+                        <td className="px-4 py-3"><div className="text-[14px] text-slate-700">{c.assigned_to || <span className="text-slate-400">Unassigned</span>}</div></td>
                         <td className="px-4 py-3"><div className="text-[13px] text-slate-500">{c.reference}</div></td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2 text-[14px] text-slate-700">

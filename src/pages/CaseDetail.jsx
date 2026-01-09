@@ -42,6 +42,7 @@ import { TriageBadge, calculateTriageRating } from '@/components/dashboard/Triag
 import EditCaseDialog from '@/components/case/EditCaseDialog';
 import { useNavigate } from 'react-router-dom';
 import EmailDraftModal from '@/components/email/EmailDraftModal';
+import CaseInfoCard from '@/components/case/CaseInfoCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1121,6 +1122,9 @@ export default function CaseDetail() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Case Information */}
+            <CaseInfoCard caseData={caseData} />
+
             {/* Client Portal Link */}
             {caseData.client_email && (
               <Card className="border-0 shadow-sm bg-gradient-to-br from-indigo-50 to-blue-50">
