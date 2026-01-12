@@ -122,8 +122,8 @@ export default function CaseCard({ mortgageCase, compact = false }) {
 
   return (
     <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
-      <Card className="hover:shadow-[0_2px_8px_rgba(14,27,42,0.12)] transition-shadow duration-200 cursor-pointer border border-slate-200 bg-white group">
-        <CardContent className="p-4">
+      <Card className="border border-[#E6E9EE] rounded-lg bg-white group cursor-pointer transition-all duration-200 hover:border-[#D1B36A] hover:shadow-[0_2px_8px_rgba(14,27,42,0.12)]">
+        <CardContent className="p-5">
           {/* TOP: Client Name & Asana */}
           <div className="flex items-start justify-between gap-3 mb-1">
             <h3 className="font-semibold text-[16px] text-slate-900 leading-tight">{mortgageCase.client_name}</h3>
