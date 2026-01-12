@@ -109,13 +109,13 @@ export default function CaseCard({ mortgageCase, compact = false }) {
       : '';
 
     if (mortgageCase.timeline_urgency === 'overdue') {
-      return <div className="flex items-center gap-1.5 text-sm text-red-600 font-medium">⏰ OVERDUE - {daysText} past deadline</div>;
+      return <div className="flex items-center gap-1.5 text-sm text-red-600 font-medium">OVERDUE - {daysText} past deadline</div>;
     }
     if (mortgageCase.timeline_urgency === 'critical') {
-      return <div className="flex items-center gap-1.5 text-sm text-red-600 font-medium">⏰ URGENT - Expires in {daysText}</div>;
+      return <div className="flex items-center gap-1.5 text-sm text-red-600 font-medium">URGENT - Expires in {daysText}</div>;
     }
     if (mortgageCase.timeline_urgency === 'soon') {
-      return <div className="flex items-center gap-1.5 text-sm text-amber-600 font-medium">⏰ Soon - {daysText}</div>;
+      return <div className="flex items-center gap-1.5 text-sm text-amber-600 font-medium">Soon - {daysText}</div>;
     }
     return null;
   };
@@ -169,16 +169,16 @@ export default function CaseCard({ mortgageCase, compact = false }) {
             {/* Line 3: Email Status */}
             <div className="text-[14px]">
               {mortgageCase.email_status === 'draft' && (
-                <span className="text-blue-600">✉️ Draft Ready</span>
+                <span className="text-blue-600">Draft Ready</span>
               )}
               {mortgageCase.email_status === 'scheduled' && mortgageCase.email_scheduled_send_time && (
-                <span className="text-[#D1B36A]">📅 Scheduled {format(new Date(mortgageCase.email_scheduled_send_time), 'dd MMM')}</span>
+                <span className="text-[#D1B36A]">Scheduled {format(new Date(mortgageCase.email_scheduled_send_time), 'dd MMM')}</span>
               )}
               {mortgageCase.email_status === 'sent' && mortgageCase.email_sent_at && (
-                <span className="text-emerald-600">✅ Sent {format(new Date(mortgageCase.email_sent_at), 'dd MMM')}</span>
+                <span className="text-emerald-600">Sent {format(new Date(mortgageCase.email_sent_at), 'dd MMM')}</span>
               )}
               {mortgageCase.email_status === 'failed' && (
-                <span className="text-red-600">⚠️ Draft Failed</span>
+                <span className="text-red-600">Draft Failed</span>
               )}
               {mortgageCase.email_status === 'not_generated' && (
                 <span className="text-slate-400">Draft pending</span>
@@ -193,7 +193,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
             <> • {PURPOSE_LABELS[mortgageCase.purpose] || mortgageCase.purpose}</>
             {mortgageCase.referring_team_member && (
               <div className="mt-1 text-slate-400">
-                👤 {mortgageCase.referring_team_member}
+                {mortgageCase.referring_team_member}
               </div>
             )}
           </div>
