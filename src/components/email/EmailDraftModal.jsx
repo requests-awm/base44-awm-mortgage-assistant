@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw, Save, Send, X, Check, Copy, RotateCcw, Sparkles, ChevronDown } from 'lucide-react';
+import { Loader2, RefreshCw, Save, Send, X, Check, Copy, RotateCcw, Sparkles, ChevronDown, Calendar } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, addHours, addDays } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,8 +25,16 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   const [isDirty, setIsDirty] = useState(false);
   const [saveStatus, setSaveStatus] = useState(''); // 'saving', 'saved', ''
   const [isGenerating, setIsGenerating] = useState(false);
+  const [sendMode, setSendMode] = useState('manual'); // 'manual' or 'scheduled'
+  const [scheduledDateTime, setScheduledDateTime] = useState(() => {
+    const tomorrow9am = addDays(new Date(), 1);
+    tomorrow9am.setHours(9, 0, 0, 0);
+    return format(tomorrow9am, "yyyy-MM-dd'T'HH:mm");
+  });
   const autoSaveTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
+
+  const isScheduled = caseData?.email_status === 'scheduled';
 
   // Calculate email stats
   const emailStats = useMemo(() => {
@@ -194,6 +202,82 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
     }
   });
 
+  const scheduleEmailMutation = useMutation({
+    mutationFn: async () => {
+      const scheduledTime = new Date(scheduledDateTime);
+      const now = new Date();
+      const oneHourFromNow = addHours(now, 1);
+
+      if (scheduledTime < oneHourFromNow) {
+        throw new Error('Schedule time must be at least 1 hour in the future');
+      }
+
+      if (!subject || !body) {
+        throw new Error('Email must have subject and body');
+      }
+
+      const user = await base44.auth.me();
+      await base44.entities.MortgageCase.update(caseData.id, {
+        email_subject: subject,
+        email_draft: body,
+        email_scheduled_send_time: scheduledTime.toISOString(),
+        email_status: 'scheduled',
+        zapier_trigger_pending: true,
+        last_activity_by: user.full_name || user.email
+      });
+
+      await base44.entities.AuditLog.create({
+        case_id: caseData.id,
+        action: `Email scheduled for ${format(scheduledTime, 'dd MMM yyyy HH:mm')}`,
+        action_category: 'delivery',
+        actor: 'user',
+        actor_email: user.email,
+        timestamp: new Date().toISOString()
+      });
+
+      return scheduledTime;
+    },
+    onSuccess: (scheduledTime) => {
+      queryClient.invalidateQueries(['mortgageCase', caseData.id]);
+      queryClient.invalidateQueries(['mortgageCases']);
+      toast.success(`✅ Email scheduled for ${format(scheduledTime, 'EEEE, dd MMM \'at\' HH:mm')}`);
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
+
+  const cancelScheduleMutation = useMutation({
+    mutationFn: async () => {
+      const user = await base44.auth.me();
+      await base44.entities.MortgageCase.update(caseData.id, {
+        email_status: 'draft',
+        zapier_trigger_pending: false,
+        email_scheduled_send_time: null,
+        last_activity_by: user.full_name || user.email
+      });
+
+      await base44.entities.AuditLog.create({
+        case_id: caseData.id,
+        action: 'Email schedule cancelled',
+        action_category: 'delivery',
+        actor: 'user',
+        actor_email: user.email,
+        timestamp: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['mortgageCase', caseData.id]);
+      queryClient.invalidateQueries(['mortgageCases']);
+      toast.success('Schedule cancelled. Email is now a draft.');
+      setSendMode('manual');
+    },
+    onError: (error) => {
+      toast.error('Failed to cancel schedule: ' + error.message);
+    }
+  });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[98vw] max-w-[1400px] max-h-[92vh] overflow-y-auto overflow-x-hidden p-10">
@@ -281,6 +365,65 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
               {emailStats.tone}
             </Badge>
           </div>
+
+          {/* Send Options Section */}
+          <div className="pt-6 border-t border-slate-200 space-y-4">
+            <h3 className="text-sm font-semibold text-slate-700">Send Options</h3>
+            
+            <div className="space-y-3">
+              {/* Manual Send Option */}
+              <label className="flex items-start gap-3 p-4 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                <input
+                  type="radio"
+                  name="sendMode"
+                  value="manual"
+                  checked={sendMode === 'manual'}
+                  onChange={(e) => setSendMode(e.target.value)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-slate-900">Manual Send</p>
+                  <p className="text-sm text-slate-500">Copy email to Gmail and send manually</p>
+                </div>
+              </label>
+
+              {/* Scheduled Send Option */}
+              <label className="flex items-start gap-3 p-4 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                <input
+                  type="radio"
+                  name="sendMode"
+                  value="scheduled"
+                  checked={sendMode === 'scheduled'}
+                  onChange={(e) => setSendMode(e.target.value)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-slate-900">Schedule Send via Zapier</p>
+                  <p className="text-sm text-slate-500 mb-3">Automatically send at scheduled time</p>
+                  
+                  {sendMode === 'scheduled' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="scheduledDateTime" className="text-sm">Schedule for:</Label>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-slate-400" />
+                        <Input
+                          id="scheduledDateTime"
+                          type="datetime-local"
+                          value={scheduledDateTime}
+                          onChange={(e) => setScheduledDateTime(e.target.value)}
+                          min={format(addHours(new Date(), 1), "yyyy-MM-dd'T'HH:mm")}
+                          max={format(addDays(new Date(), 30), "yyyy-MM-dd'T'HH:mm")}
+                          step="900"
+                          className="flex-1"
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500">Minimum 1 hour from now, business hours recommended (9am-5pm)</p>
+                    </div>
+                  )}
+                </div>
+              </label>
+            </div>
+          </div>
           </div>
         )}
 
@@ -355,6 +498,27 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
           </div>
 
           <div className="flex gap-3">
+            {isScheduled && (
+              <Button
+                variant="outline"
+                className="h-10 text-[15px] border-red-200 text-red-600 hover:bg-red-50"
+                onClick={() => cancelScheduleMutation.mutate()}
+                disabled={cancelScheduleMutation.isPending}
+              >
+                {cancelScheduleMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  <>
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel Schedule
+                  </>
+                )}
+              </Button>
+            )}
+
             <Button
               variant="outline"
               className="h-10 text-[15px]"
@@ -374,23 +538,43 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
               )}
             </Button>
 
-            <Button
-              className="h-10 text-[15px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-6"
-              onClick={() => markSentMutation.mutate()}
-              disabled={markSentMutation.isPending || isGenerating || !body}
-            >
-              {markSentMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Marking...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Mark as Sent
-                </>
-              )}
-            </Button>
+            {sendMode === 'manual' ? (
+              <Button
+                className="h-10 text-[15px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                onClick={() => markSentMutation.mutate()}
+                disabled={markSentMutation.isPending || isGenerating || !body}
+              >
+                {markSentMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Marking...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Mark as Sent
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                className="h-10 text-[15px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                onClick={() => scheduleEmailMutation.mutate()}
+                disabled={scheduleEmailMutation.isPending || isGenerating || !body || !subject}
+              >
+                {scheduleEmailMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Scheduling...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Schedule Email →
+                  </>
+                )}
+              </Button>
+            )}
 
             <Button variant="ghost" className="h-10 text-[15px]" onClick={onClose}>
               <X className="w-4 h-4 mr-2" />
