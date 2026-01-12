@@ -37,7 +37,6 @@ const STAGE_GROUPS = {
 export default function Dashboard() {
   const [view, setView] = useState('kanban');
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('all');
   const [triageFilter, setTriageFilter] = useState('all');
   const [timelineFilter, setTimelineFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
@@ -79,10 +78,6 @@ export default function Dashboard() {
       c.client_name?.toLowerCase().includes(search.toLowerCase()) ||
       c.reference?.toLowerCase().includes(search.toLowerCase());
     
-    let matchesFilter = true;
-    if (filter === 'paused') matchesFilter = c.agent_paused;
-    else if (filter === 'active') matchesFilter = !['completed', 'withdrawn', 'unsuitable'].includes(c.stage);
-    
     // Triage filter
     let matchesTriage = true;
     if (triageFilter !== 'all') {
@@ -102,7 +97,7 @@ export default function Dashboard() {
       matchesTeam = c.referring_team === teamFilter;
     }
     
-    return matchesSearch && matchesFilter && matchesTriage && matchesTimeline && matchesTeam;
+    return matchesSearch && matchesTriage && matchesTimeline && matchesTeam;
   });
 
   // Calculate metrics (use filteredCases to reflect search/filters)
@@ -117,11 +112,10 @@ export default function Dashboard() {
   const needingReview = filteredCases.filter(c => c.stage === 'human_review');
 
   // Check if any filters are active
-  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || teamFilter !== 'all';
+  const hasActiveFilters = search !== '' || triageFilter !== 'all' || timelineFilter !== 'all' || teamFilter !== 'all';
 
   const clearAllFilters = () => {
     setSearch('');
-    setFilter('all');
     setTriageFilter('all');
     setTimelineFilter('all');
     setTeamFilter('all');
@@ -419,57 +413,64 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3 flex-wrap">
-            <Tabs value={filter} onValueChange={setFilter}>
-              <TabsList className="bg-transparent gap-3">
-                <TabsTrigger value="all" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">All</TabsTrigger>
-                <TabsTrigger value="active" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Active</TabsTrigger>
-                <TabsTrigger value="paused" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Paused</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <Select value={triageFilter} onValueChange={setTriageFilter}>
+              <SelectTrigger className={`w-[180px] border-none bg-transparent ${triageFilter !== 'all' ? 'text-[#0E1B2A] font-semibold' : 'text-[#9CA3AF]'}`}>
+                <div className="flex items-center gap-2">
+                  {triageFilter !== 'all' && <span className="w-1.5 h-1.5 rounded-full bg-[#D1B36A]" />}
+                  <SelectValue placeholder="Complexity: All" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-white border-[#0E1B2A]">
+                <SelectItem value="all" className="hover:bg-[#D1B36A]/10">All Complexity</SelectItem>
+                <SelectItem value="blue" className="hover:bg-[#D1B36A]/10">Quick Win</SelectItem>
+                <SelectItem value="green" className="hover:bg-[#D1B36A]/10">Good Case</SelectItem>
+                <SelectItem value="yellow" className="hover:bg-[#D1B36A]/10">Needs Attention</SelectItem>
+                <SelectItem value="red" className="hover:bg-[#D1B36A]/10">Complex</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <Tabs value={triageFilter} onValueChange={setTriageFilter}>
-              <TabsList className="bg-transparent gap-3">
-                <TabsTrigger value="all" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">All Complexity</TabsTrigger>
-                <TabsTrigger value="blue" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Quick Win</TabsTrigger>
-                <TabsTrigger value="green" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Good Case</TabsTrigger>
-                <TabsTrigger value="yellow" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Needs Attention</TabsTrigger>
-                <TabsTrigger value="red" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Complex</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <Tabs value={timelineFilter} onValueChange={setTimelineFilter}>
-              <TabsList className="bg-transparent gap-3">
-                <TabsTrigger value="all" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">All Timeline</TabsTrigger>
-                <TabsTrigger value="overdue" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Overdue</TabsTrigger>
-                <TabsTrigger value="critical" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Critical</TabsTrigger>
-                <TabsTrigger value="soon" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Soon</TabsTrigger>
-                <TabsTrigger value="standard" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Standard</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <Select value={timelineFilter} onValueChange={setTimelineFilter}>
+              <SelectTrigger className={`w-[180px] border-none bg-transparent ${timelineFilter !== 'all' ? 'text-[#0E1B2A] font-semibold' : 'text-[#9CA3AF]'}`}>
+                <div className="flex items-center gap-2">
+                  {timelineFilter !== 'all' && <span className="w-1.5 h-1.5 rounded-full bg-[#D1B36A]" />}
+                  <SelectValue placeholder="Timeline: All" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-white border-[#0E1B2A]">
+                <SelectItem value="all" className="hover:bg-[#D1B36A]/10">All Timeline</SelectItem>
+                <SelectItem value="overdue" className="hover:bg-[#D1B36A]/10">Overdue</SelectItem>
+                <SelectItem value="critical" className="hover:bg-[#D1B36A]/10">Critical</SelectItem>
+                <SelectItem value="soon" className="hover:bg-[#D1B36A]/10">Soon</SelectItem>
+                <SelectItem value="standard" className="hover:bg-[#D1B36A]/10">Standard</SelectItem>
+              </SelectContent>
+            </Select>
 
             <Select value={teamFilter} onValueChange={setTeamFilter}>
-              <SelectTrigger className="w-[200px] bg-white border-[#E6E9EE]">
-                <SelectValue placeholder="All Teams" />
+              <SelectTrigger className={`w-[200px] border-none bg-transparent ${teamFilter !== 'all' ? 'text-[#0E1B2A] font-semibold' : 'text-[#9CA3AF]'}`}>
+                <div className="flex items-center gap-2">
+                  {teamFilter !== 'all' && <span className="w-1.5 h-1.5 rounded-full bg-[#D1B36A]" />}
+                  <SelectValue placeholder="All Teams" />
+                </div>
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Teams</SelectItem>
-                <SelectItem value="Team Solo">Team Solo</SelectItem>
-                <SelectItem value="Team Royal">Team Royal</SelectItem>
-                <SelectItem value="Team Blue">Team Blue</SelectItem>
-                <SelectItem value="Team Hurricane Catriona">Team Hurricane Catriona</SelectItem>
-                <SelectItem value="Team Quest">Team Quest</SelectItem>
-                <SelectItem value="Chambers Wealth">Chambers Wealth</SelectItem>
-                <SelectItem value="Cape Berkshire Asset Management">Cape Berkshire</SelectItem>
-                <SelectItem value="External / Other">External</SelectItem>
+              <SelectContent className="bg-white border-[#0E1B2A]">
+                <SelectItem value="all" className="hover:bg-[#D1B36A]/10">All Teams</SelectItem>
+                <SelectItem value="Team Solo" className="hover:bg-[#D1B36A]/10">Team Solo</SelectItem>
+                <SelectItem value="Team Royal" className="hover:bg-[#D1B36A]/10">Team Royal</SelectItem>
+                <SelectItem value="Team Blue" className="hover:bg-[#D1B36A]/10">Team Blue</SelectItem>
+                <SelectItem value="Team Hurricane Catriona" className="hover:bg-[#D1B36A]/10">Team Hurricane Catriona</SelectItem>
+                <SelectItem value="Team Quest" className="hover:bg-[#D1B36A]/10">Team Quest</SelectItem>
+                <SelectItem value="Chambers Wealth" className="hover:bg-[#D1B36A]/10">Chambers Wealth</SelectItem>
+                <SelectItem value="Cape Berkshire Asset Management" className="hover:bg-[#D1B36A]/10">Cape Berkshire</SelectItem>
+                <SelectItem value="External / Other" className="hover:bg-[#D1B36A]/10">External</SelectItem>
               </SelectContent>
             </Select>
 
             {hasActiveFilters && (
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 size="sm"
                 onClick={clearAllFilters}
-                className="border-slate-300 text-slate-600 hover:bg-slate-100"
+                className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               >
                 Clear Filters
               </Button>
