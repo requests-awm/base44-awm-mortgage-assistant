@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { TriageBadge, calculateTriageRating } from '@/components/dashboard/TriageBadge.jsx';
 import { TimelineBadge } from '@/components/dashboard/TimelineBadge.jsx';
-import UserAvatar from '@/components/dashboard/UserAvatar';
+
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700', icon: FileText },
@@ -124,11 +124,10 @@ export default function CaseCard({ mortgageCase, compact = false }) {
     <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
       <Card className="hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer border border-slate-200 bg-white group">
         <CardContent className="p-4">
-          {/* TOP: Client Name, User Avatar & Asana */}
+          {/* TOP: Client Name & Asana */}
           <div className="flex items-start justify-between gap-3 mb-1">
             <h3 className="font-semibold text-[16px] text-slate-900 leading-tight">{mortgageCase.client_name}</h3>
             <div className="flex items-center gap-2">
-              <UserAvatar assignedTo={mortgageCase.assigned_to} size="default" />
               {mortgageCase.asana_task_url && (
                 <a
                   href={mortgageCase.asana_task_url}
@@ -182,7 +181,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
                 <span className="text-red-600">⚠️ Draft Failed</span>
               )}
               {mortgageCase.email_status === 'not_generated' && (
-                <span className="text-slate-400">✉️ No draft yet</span>
+                <span className="text-slate-400">Draft pending</span>
               )}
             </div>
           </div>

@@ -11,29 +11,20 @@ export default function MetricCard({
   trendValue,
   color = 'slate'
 }) {
-  const colorClasses = {
-    slate: 'bg-[#12243A] text-[#D1B36A]',
-    emerald: 'bg-[#12243A] text-[#D1B36A]',
-    blue: 'bg-[#12243A] text-[#D1B36A]',
-    amber: 'bg-[#12243A] text-[#D1B36A]',
-    purple: 'bg-[#12243A] text-[#D1B36A]',
-    red: 'bg-[#12243A] text-[#D1B36A]'
-  };
-
   return (
-    <Card className="border border-[#E6E9EE] shadow-sm bg-white">
+    <Card className="border-0 shadow-sm bg-[#12243A]">
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-[#6B7280]">{title}</p>
-            <p className="text-2xl font-bold text-[#1F2933] mt-1">{value}</p>
+            <p className="text-sm font-medium text-white/80">{title}</p>
+            <p className="text-2xl font-bold text-white mt-1">{value}</p>
             {subtitle && (
-              <p className="text-xs text-[#6B7280] mt-1">{subtitle}</p>
+              <p className="text-xs text-white/60 mt-1">{subtitle}</p>
             )}
           </div>
           {Icon && (
-            <div className={`p-2.5 rounded-xl ${colorClasses[color]}`}>
-              <Icon className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl bg-[#D1B36A]/20">
+              <Icon className="w-5 h-5 text-[#D1B36A]" />
             </div>
           )}
         </div>

@@ -420,35 +420,35 @@ export default function Dashboard() {
           
           <div className="flex items-center gap-3 flex-wrap">
             <Tabs value={filter} onValueChange={setFilter}>
-              <TabsList className="bg-white/80">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="paused">Paused</TabsTrigger>
+              <TabsList className="bg-white border border-[#E6E9EE]">
+                <TabsTrigger value="all" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">All</TabsTrigger>
+                <TabsTrigger value="active" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Active</TabsTrigger>
+                <TabsTrigger value="paused" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Paused</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Tabs value={triageFilter} onValueChange={setTriageFilter}>
-              <TabsList className="bg-white/80">
-                <TabsTrigger value="all">All Complexity</TabsTrigger>
-                <TabsTrigger value="blue" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">Quick Win</TabsTrigger>
-                <TabsTrigger value="green" className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700">Good Case</TabsTrigger>
-                <TabsTrigger value="yellow" className="data-[state=active]:bg-[#D1B36A]/20 data-[state=active]:text-[#0E1B2A]">Needs Attention</TabsTrigger>
-                <TabsTrigger value="red" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">Complex</TabsTrigger>
+              <TabsList className="bg-white border border-[#E6E9EE]">
+                <TabsTrigger value="all" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">All Complexity</TabsTrigger>
+                <TabsTrigger value="blue" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Quick Win</TabsTrigger>
+                <TabsTrigger value="green" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Good Case</TabsTrigger>
+                <TabsTrigger value="yellow" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Needs Attention</TabsTrigger>
+                <TabsTrigger value="red" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Complex</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Tabs value={timelineFilter} onValueChange={setTimelineFilter}>
-              <TabsList className="bg-white/80">
-                <TabsTrigger value="all">All Timeline</TabsTrigger>
-                <TabsTrigger value="overdue" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">Overdue</TabsTrigger>
-                <TabsTrigger value="critical" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">Critical</TabsTrigger>
-                <TabsTrigger value="soon" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-700">Soon</TabsTrigger>
-                <TabsTrigger value="standard" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-700">Standard</TabsTrigger>
+              <TabsList className="bg-white border border-[#E6E9EE]">
+                <TabsTrigger value="all" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">All Timeline</TabsTrigger>
+                <TabsTrigger value="overdue" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Overdue</TabsTrigger>
+                <TabsTrigger value="critical" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Critical</TabsTrigger>
+                <TabsTrigger value="soon" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Soon</TabsTrigger>
+                <TabsTrigger value="standard" className="data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#0E1B2A]">Standard</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Select value={teamFilter} onValueChange={setTeamFilter}>
-              <SelectTrigger className="w-[200px] bg-white/80">
+              <SelectTrigger className="w-[200px] bg-white border-[#E6E9EE]">
                 <SelectValue placeholder="All Teams" />
               </SelectTrigger>
               <SelectContent>
@@ -527,7 +527,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('thisWeek')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-semibold text-slate-700 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-[#0E1B2A] flex items-center gap-2">
                   📅 THIS WEEK ({getThisWeekCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.thisWeek ? '' : '-rotate-90'}`}
@@ -553,7 +553,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('readyToSend')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-semibold text-emerald-600 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-[#0E1B2A] flex items-center gap-2">
                   ✅ READY TO SEND ({getReadyToSendCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.readyToSend ? '' : '-rotate-90'}`}
@@ -579,7 +579,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('waiting')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-semibold text-slate-500 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-[#0E1B2A] flex items-center gap-2">
                   ⏸️ WAITING ({getWaitingCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.waiting ? '' : '-rotate-90'}`}
