@@ -123,6 +123,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     
     if (stepNum === 1) {
       if (!formData.client_name) newErrors.client_name = 'Required';
+      if (!formData.asana_task_gid) newErrors.asana_task_gid = 'Required';
       if (!formData.property_value) newErrors.property_value = 'Required';
       if (!formData.loan_amount) newErrors.loan_amount = 'Required';
       if (!formData.category) newErrors.category = 'Required';
@@ -195,9 +196,11 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   return (
     <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-semibold text-slate-900">New Mortgage Case</CardTitle>
+        <CardTitle className="text-xl font-semibold text-slate-900">
+          {step === 1 ? 'Case Details' : 'Income & Timeline Assessment'}
+        </CardTitle>
         <CardDescription className="text-slate-500">
-          Log handover details from adviser notes
+          {step === 1 ? 'Capture client details from Asana handover' : 'Financial assessment for triage scoring'}
         </CardDescription>
         
         {/* Progress Steps */}
@@ -283,14 +286,18 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="asana_task_gid">Asana Task ID (Optional)</Label>
+                <Label htmlFor="asana_task_gid">Asana Task ID (Required) <span className="text-red-500">*</span></Label>
                 <Input
                   id="asana_task_gid"
                   value={formData.asana_task_gid}
                   onChange={(e) => updateField('asana_task_gid', e.target.value)}
-                  placeholder="Paste Asana task ID here (e.g., 1234567890123456)"
+                  placeholder="e.g., 1234567890"
+                  className={errors.asana_task_gid ? 'border-red-300' : ''}
                 />
-                <p className="text-xs text-slate-500">Find this in your Asana task URL after /0/0/</p>
+                <p className="text-xs text-slate-500">Copy the task ID from Asana URL - this links the case back to Asana</p>
+                {errors.asana_task_gid && (
+                  <p className="text-xs text-red-500">{errors.asana_task_gid}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -502,7 +509,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="client_deadline">Client Deadline (Optional)</Label>
+                <Label htmlFor="client_deadline">Client Deadline (if known)</Label>
                 <Input
                   id="client_deadline"
                   type="date"
@@ -511,7 +518,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   placeholder="Select date if time-sensitive"
                 />
                 <p className="text-xs text-slate-500">
-                  Rate expiry or completion deadline from adviser
+                  Rate expiry date, offer deadline, or completion target from adviser
                 </p>
               </div>
 
@@ -567,7 +574,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
         <div className="flex items-center justify-between mt-8 pt-6 border-t">
           {step > 1 ? (
             <Button variant="ghost" onClick={prevStep} disabled={isSubmitting}>
-              Back
+              ← Back
             </Button>
           ) : (
             <div />
@@ -575,8 +582,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
           
           {step < 2 ? (
             <Button onClick={nextStep} className="bg-slate-900 hover:bg-slate-800">
-              Continue to Assessment
-              <ArrowRight className="w-4 h-4 ml-2" />
+              Continue to Assessment →
             </Button>
           ) : (
             <Button 
@@ -595,8 +601,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Create Case & Generate Email
+                  Create Case →
                 </>
               )}
             </Button>
