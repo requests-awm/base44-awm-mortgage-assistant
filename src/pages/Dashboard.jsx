@@ -40,7 +40,6 @@ export default function Dashboard() {
   const [filter, setFilter] = useState('all');
   const [triageFilter, setTriageFilter] = useState('all');
   const [timelineFilter, setTimelineFilter] = useState('all');
-  const [assignmentFilter, setAssignmentFilter] = useState('my-cases');
   const [teamFilter, setTeamFilter] = useState('all');
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem('dashboardActiveTab') || 'my-work';
@@ -97,22 +96,13 @@ export default function Dashboard() {
       matchesTimeline = c.timeline_urgency === timelineFilter;
     }
 
-    // Assignment filter
-    let matchesAssignment = true;
-    if (assignmentFilter === 'my-cases') {
-      const userIdentifier = currentUser?.full_name || currentUser?.email;
-      matchesAssignment = c.assigned_to === userIdentifier;
-    } else if (assignmentFilter === 'unassigned') {
-      matchesAssignment = !c.assigned_to;
-    }
-
     // Team filter
     let matchesTeam = true;
     if (teamFilter !== 'all') {
       matchesTeam = c.referring_team === teamFilter;
     }
     
-    return matchesSearch && matchesFilter && matchesTriage && matchesTimeline && matchesAssignment && matchesTeam;
+    return matchesSearch && matchesFilter && matchesTriage && matchesTimeline && matchesTeam;
   });
 
   // Calculate metrics (use filteredCases to reflect search/filters)
@@ -126,21 +116,14 @@ export default function Dashboard() {
   });
   const needingReview = filteredCases.filter(c => c.stage === 'human_review');
 
-  // Calculate my active cases metric
-  const myActiveCases = cases.filter(c => {
-    const userIdentifier = currentUser?.full_name || currentUser?.email;
-    return c.assigned_to === userIdentifier && !['completed', 'withdrawn', 'unsuitable'].includes(c.stage);
-  });
-
   // Check if any filters are active
-  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || assignmentFilter !== 'my-cases' || teamFilter !== 'all';
+  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || teamFilter !== 'all';
 
   const clearAllFilters = () => {
     setSearch('');
     setFilter('all');
     setTriageFilter('all');
     setTimelineFilter('all');
-    setAssignmentFilter('my-cases');
     setTeamFilter('all');
     setTableFilters({ triage: 'all', emailStatus: 'all', timeline: 'all' });
   };
@@ -221,10 +204,6 @@ export default function Dashboard() {
           aVal = a.client_name || '';
           bVal = b.client_name || '';
           return tableSort.order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-        case 'assigned_to':
-          aVal = a.assigned_to || 'zzz';
-          bVal = b.assigned_to || 'zzz';
-          return tableSort.order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
         case 'referring_team_member':
           aVal = a.referring_team_member || 'zzz';
           bVal = b.referring_team_member || 'zzz';
@@ -275,7 +254,7 @@ export default function Dashboard() {
   const exportToCSV = () => {
     const data = getFilteredAndSortedCases();
     const headers = [
-      'Client Name', 'Assigned To', 'Referred By', 'Referring Team', 'Reference', 'Category', 'Purpose', 'Property Value', 
+      'Client Name', 'Referred By', 'Referring Team', 'Reference', 'Category', 'Purpose', 'Property Value', 
       'Loan Amount', 'LTV', 'Income Type', 'Annual Income', 'Stage', 
       'Triage', 'Email Status', 'Timeline', 'Days Until Deadline', 'Referral Source',
       'Created By', 'Created Date'
@@ -285,7 +264,6 @@ export default function Dashboard() {
       const triage = c.triage_rating || calculateTriageRating(c).rating;
       return [
         c.client_name || '',
-        c.assigned_to || 'Unassigned',
         c.referring_team_member || '',
         c.referring_team || '',
         c.reference || '',
@@ -363,14 +341,7 @@ export default function Dashboard() {
         </div>
 
         {/* Metrics Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <MetricCard
-            title="My Active Cases"
-            value={myActiveCases.length}
-            subtitle="Assigned to me"
-            icon={Users}
-            color="indigo"
-          />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <MetricCard
             title="Active Cases"
             value={activeCases.length}
@@ -448,17 +419,6 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">Show:</span>
-              <Tabs value={assignmentFilter} onValueChange={setAssignmentFilter}>
-                <TabsList className="bg-white/80">
-                  <TabsTrigger value="my-cases">My Cases</TabsTrigger>
-                  <TabsTrigger value="all-cases">All Cases</TabsTrigger>
-                  <TabsTrigger value="unassigned">Unassigned</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-
             <Tabs value={filter} onValueChange={setFilter}>
               <TabsList className="bg-white/80">
                 <TabsTrigger value="all">All</TabsTrigger>
@@ -803,9 +763,6 @@ export default function Dashboard() {
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('client_name')}>
                       <div className="flex items-center gap-1">Client Name <ArrowUpDown className="w-3 h-3" /></div>
                     </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 w-[150px]" onClick={() => handleSort('assigned_to')}>
-                      <div className="flex items-center gap-1">Assigned To <ArrowUpDown className="w-3 h-3" /></div>
-                    </th>
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 w-[180px]" onClick={() => handleSort('referring_team_member')}>
                       <div className="flex items-center gap-1">Referred By <ArrowUpDown className="w-3 h-3" /></div>
                     </th>
@@ -834,7 +791,6 @@ export default function Dashboard() {
                     return (
                       <tr key={c.id} onClick={() => navigate(createPageUrl(`CaseDetail?id=${c.id}`))} className={`border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
                         <td className="px-4 py-3"><div className="font-semibold text-[14px] text-slate-900">{c.client_name}</div></td>
-                        <td className="px-4 py-3"><div className="text-[14px] text-slate-700">{c.assigned_to || <span className="text-slate-400">Unassigned</span>}</div></td>
                         <td className="px-4 py-3">
                           {c.referring_team_member ? (
                             <div className="text-[13px] text-slate-700">
