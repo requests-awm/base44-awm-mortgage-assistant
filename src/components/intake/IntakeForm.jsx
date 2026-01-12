@@ -157,6 +157,12 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     e?.preventDefault();
     console.log('[IntakeForm] handleSubmit called');
     
+    // Validate step 2 before submitting
+    if (!validateStep(2)) {
+      console.log('[IntakeForm] Validation failed');
+      return;
+    }
+    
     const ltv = formData.property_value && formData.loan_amount 
       ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
       : null;
