@@ -463,7 +463,7 @@ export default function CaseDetail() {
                 {stage.label}
               </Badge>
               
-              {/* Run Analysis Button - show if no report yet */}
+              {/* Run Analysis Button - show if no analysis yet */}
               {!caseData.indicative_report && !['market_analysis', 'human_review'].includes(caseData.stage) && (
                 <Button
                   variant="default"
@@ -475,12 +475,12 @@ export default function CaseDetail() {
                   {runAnalysisMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      Running...
+                      Analyzing...
                     </>
                   ) : (
                     <>
                       <Building className="w-4 h-4 mr-1" />
-                      Run Analysis
+                      Generate AI Analysis
                     </>
                   )}
                 </Button>
@@ -519,14 +519,14 @@ export default function CaseDetail() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-blue-900 flex items-center gap-2">
-                    Generating Indicative Report
+                    Running AI Analysis
                     <span className="inline-flex items-center gap-1 text-xs font-normal text-blue-700">
                       <Clock className="w-3 h-3" />
                       30-60 seconds
                     </span>
                   </h3>
                   <p className="text-sm text-blue-700 mt-1">
-                    Analyzing market position, checking lender eligibility, and preparing report...
+                    AI is analyzing lender matches, checking eligibility criteria, and building recommendations...
                   </p>
                   <Button 
                     variant="ghost" 
@@ -549,8 +549,8 @@ export default function CaseDetail() {
             <Tabs defaultValue="overview">
               <TabsList className="bg-white/80 mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="report">Indicative Report</TabsTrigger>
-                <TabsTrigger value="draft">Draft & Schedule</TabsTrigger>
+                <TabsTrigger value="report">AI Analysis</TabsTrigger>
+                <TabsTrigger value="draft">Email Draft</TabsTrigger>
                 <TabsTrigger value="underwriting">Underwriting</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
@@ -979,9 +979,9 @@ export default function CaseDetail() {
                           <Eye className="w-5 h-5 text-purple-600" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-purple-900">Report Ready for Review</h3>
+                          <h3 className="font-semibold text-purple-900">AI Analysis Complete</h3>
                           <p className="text-sm text-purple-700 mt-1">
-                            Go to "Draft & Schedule" tab to review, edit, and approve for client delivery
+                            Review the AI analysis, then go to "Email Draft" tab to prepare client communication
                           </p>
                         </div>
                       </div>
@@ -998,9 +998,9 @@ export default function CaseDetail() {
                           <Send className="w-5 h-5 text-blue-600" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-blue-900">Ready to Send to Client</h3>
+                          <h3 className="font-semibold text-blue-900">Ready to Send Email</h3>
                           <p className="text-sm text-blue-700 mt-1">
-                            Report approved. Send to {caseData.client_email}
+                            Email approved. Send to {caseData.client_email}
                           </p>
                           <Button 
                             onClick={() => sendReportMutation.mutate()}
@@ -1015,7 +1015,7 @@ export default function CaseDetail() {
                             ) : (
                               <>
                                 <Send className="w-4 h-4 mr-2" />
-                                Send Report to Client
+                                Send Email to Client
                               </>
                             )}
                           </Button>
@@ -1038,7 +1038,7 @@ export default function CaseDetail() {
                             {caseData.stage === 'decision_chase' ? 'Following Up with Client' : 'Awaiting Client Decision'}
                           </h3>
                           <p className="text-sm text-amber-700 mt-1">
-                            Report delivered {caseData.delivered_at && formatDistanceToNow(new Date(caseData.delivered_at), { addSuffix: true })}
+                            Email delivered {caseData.delivered_at && formatDistanceToNow(new Date(caseData.delivered_at), { addSuffix: true })}
                           </p>
                           {caseData.chase_count > 0 && (
                             <p className="text-xs text-amber-600 mt-2">
@@ -1059,9 +1059,9 @@ export default function CaseDetail() {
                   <Card className="border-0 shadow-sm">
                     <CardContent className="p-12 text-center">
                       <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                      <h3 className="font-medium text-slate-900 mb-1">No Report Yet</h3>
+                      <h3 className="font-medium text-slate-900 mb-1">No AI Analysis Yet</h3>
                       <p className="text-sm text-slate-500">
-                        The indicative report will appear here once generated
+                        AI analysis with lender matches and eligibility checks will appear here once generated
                       </p>
                     </CardContent>
                   </Card>
