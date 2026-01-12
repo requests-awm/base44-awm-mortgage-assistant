@@ -233,7 +233,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
       <CardContent>
         <AnimatePresence mode="wait">
-          {/* Step 1: Client Details */}
+          {/* Step 1: Case Details */}
           {step === 1 && (
             <motion.div
               key="step1"
@@ -242,46 +242,8 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               exit={{ opacity: 0, x: -20 }}
               className="space-y-5"
             >
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                <div>
-                  <Label className="text-sm font-medium">Existing AWM Client?</Label>
-                  <p className="text-xs text-slate-500 mt-0.5">Link to Insightly if yes</p>
-                </div>
-                <Switch
-                  checked={formData.is_existing_client}
-                  onCheckedChange={(v) => updateField('is_existing_client', v)}
-                />
-              </div>
-
-              {formData.is_existing_client && (
-                <div className="space-y-2">
-                  <Label htmlFor="insightly_id">Insightly ID</Label>
-                  <Input
-                    id="insightly_id"
-                    value={formData.insightly_id}
-                    onChange={(e) => updateField('insightly_id', e.target.value)}
-                    placeholder="e.g., INS-12345"
-                    className={errors.insightly_id ? 'border-red-300' : ''}
-                  />
-                  {errors.insightly_id && (
-                    <p className="text-xs text-red-500">{errors.insightly_id}</p>
-                  )}
-                </div>
-              )}
-
               <div className="space-y-2">
-                <Label htmlFor="asana_task_gid">Asana Task ID (Optional)</Label>
-                <Input
-                  id="asana_task_gid"
-                  value={formData.asana_task_gid}
-                  onChange={(e) => updateField('asana_task_gid', e.target.value)}
-                  placeholder="Paste Asana task ID here (e.g., 1234567890123456)"
-                />
-                <p className="text-xs text-slate-500">Find this in your Asana task URL after /0/0/</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="client_name">Client Name</Label>
+                <Label htmlFor="client_name">Client Full Name</Label>
                 <Input
                   id="client_name"
                   value={formData.client_name}
@@ -296,7 +258,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="client_email">Email</Label>
+                  <Label htmlFor="client_email">Email Address</Label>
                   <Input
                     id="client_email"
                     type="email"
@@ -306,7 +268,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="client_phone">Phone</Label>
+                  <Label htmlFor="client_phone">Phone Number</Label>
                   <Input
                     id="client_phone"
                     value={formData.client_phone}
@@ -317,26 +279,22 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="referral_source">How did you find us? (Optional)</Label>
-                <Select value={formData.referral_source || ''} onValueChange={(v) => updateField('referral_source', v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Existing Client">Existing Client</SelectItem>
-                    <SelectItem value="Referral - Friend/Family">Referral - Friend/Family</SelectItem>
-                    <SelectItem value="Google Search">Google Search</SelectItem>
-                    <SelectItem value="Social Media">Social Media</SelectItem>
-                    <SelectItem value="Estate Agent Partner">Estate Agent Partner</SelectItem>
-                    <SelectItem value="Financial Adviser Partner">Financial Adviser Partner</SelectItem>
-                    <SelectItem value="Previous Client">Previous Client</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="asana_task_gid">Asana Task ID (Required)</Label>
+                <Input
+                  id="asana_task_gid"
+                  value={formData.asana_task_gid}
+                  onChange={(e) => updateField('asana_task_gid', e.target.value)}
+                  placeholder="e.g., 1234567890"
+                  className={errors.asana_task_gid ? 'border-red-300' : ''}
+                />
+                <p className="text-xs text-slate-500">Copy the task ID from Asana URL - this links the case back to Asana</p>
+                {errors.asana_task_gid && (
+                  <p className="text-xs text-red-500">{errors.asana_task_gid}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="referring_team_member">Referred By (Internal Team) - Optional</Label>
+                <Label htmlFor="referring_team_member">Referred By</Label>
                 <Select value={formData.referring_team_member || ''} onValueChange={(v) => {
                   updateField('referring_team_member', v);
                   // Auto-extract team
