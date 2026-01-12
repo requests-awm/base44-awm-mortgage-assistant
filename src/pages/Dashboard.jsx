@@ -40,7 +40,7 @@ export default function Dashboard() {
   const [filter, setFilter] = useState('all');
   const [triageFilter, setTriageFilter] = useState('all');
   const [timelineFilter, setTimelineFilter] = useState('all');
-  const [assignmentFilter, setAssignmentFilter] = useState('my-cases');
+  const [assignmentFilter, setAssignmentFilter] = useState('all-cases');
   const [teamFilter, setTeamFilter] = useState('all');
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem('dashboardActiveTab') || 'my-work';
@@ -97,14 +97,8 @@ export default function Dashboard() {
       matchesTimeline = c.timeline_urgency === timelineFilter;
     }
 
-    // Assignment filter
+    // Assignment filter - now always shows all cases
     let matchesAssignment = true;
-    if (assignmentFilter === 'my-cases') {
-      const userIdentifier = currentUser?.full_name || currentUser?.email;
-      matchesAssignment = c.assigned_to === userIdentifier;
-    } else if (assignmentFilter === 'unassigned') {
-      matchesAssignment = !c.assigned_to;
-    }
 
     // Team filter
     let matchesTeam = true;
@@ -133,14 +127,13 @@ export default function Dashboard() {
   });
 
   // Check if any filters are active
-  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || assignmentFilter !== 'my-cases' || teamFilter !== 'all';
+  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || teamFilter !== 'all';
 
   const clearAllFilters = () => {
     setSearch('');
     setFilter('all');
     setTriageFilter('all');
     setTimelineFilter('all');
-    setAssignmentFilter('my-cases');
     setTeamFilter('all');
     setTableFilters({ triage: 'all', emailStatus: 'all', timeline: 'all' });
   };
@@ -363,14 +356,7 @@ export default function Dashboard() {
         </div>
 
         {/* Metrics Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <MetricCard
-            title="My Active Cases"
-            value={myActiveCases.length}
-            subtitle="Assigned to me"
-            icon={Users}
-            color="indigo"
-          />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <MetricCard
             title="Active Cases"
             value={activeCases.length}
@@ -448,17 +434,6 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">Show:</span>
-              <Tabs value={assignmentFilter} onValueChange={setAssignmentFilter}>
-                <TabsList className="bg-white/80">
-                  <TabsTrigger value="my-cases">My Cases</TabsTrigger>
-                  <TabsTrigger value="all-cases">All Cases</TabsTrigger>
-                  <TabsTrigger value="unassigned">Unassigned</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-
             <Tabs value={filter} onValueChange={setFilter}>
               <TabsList className="bg-white/80">
                 <TabsTrigger value="all">All</TabsTrigger>

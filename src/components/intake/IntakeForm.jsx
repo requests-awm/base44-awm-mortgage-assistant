@@ -123,23 +123,21 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     
     if (stepNum === 1) {
       if (!formData.client_name) newErrors.client_name = 'Required';
-      if (formData.is_existing_client && !formData.insightly_id) {
-        newErrors.insightly_id = 'Required for existing clients';
-      }
-    }
-    
-    if (stepNum === 2) {
-      if (!formData.category) newErrors.category = 'Required';
-      if (!formData.purpose) newErrors.purpose = 'Required';
-    }
-    
-    if (stepNum === 3) {
       if (!formData.property_value) newErrors.property_value = 'Required';
       if (!formData.loan_amount) newErrors.loan_amount = 'Required';
+      if (!formData.category) newErrors.category = 'Required';
+      if (!formData.purpose) newErrors.purpose = 'Required';
+      if (!formData.referring_team_member) newErrors.referring_team_member = 'Required';
+      
       if (formData.loan_amount && formData.property_value) {
         const ltv = (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100;
         if (ltv > 100) newErrors.loan_amount = 'Loan exceeds property value';
       }
+    }
+    
+    if (stepNum === 2) {
+      if (!formData.annual_income) newErrors.annual_income = 'Required';
+      if (!formData.income_type) newErrors.income_type = 'Required';
     }
 
     setErrors(newErrors);
@@ -148,7 +146,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
   const nextStep = () => {
     if (validateStep(step)) {
-      setStep(prev => Math.min(prev + 1, 4));
+      setStep(prev => Math.min(prev + 1, 2));
     }
   };
 
@@ -190,18 +188,16 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   const ltv = calculateLTV();
 
   const stepConfig = [
-    { num: 1, label: 'Client', icon: User },
-    { num: 2, label: 'Mortgage', icon: Building },
-    { num: 3, label: 'Financials', icon: Banknote },
-    { num: 4, label: 'Timing', icon: Clock }
+    { num: 1, label: 'Case Details', icon: Building },
+    { num: 2, label: 'Income & Timeline', icon: Clock }
   ];
 
   return (
     <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-semibold text-slate-900">Mortgage Intake</CardTitle>
+        <CardTitle className="text-xl font-semibold text-slate-900">New Mortgage Case</CardTitle>
         <CardDescription className="text-slate-500">
-          Capture opportunity details for agent processing
+          Log handover details from adviser notes
         </CardDescription>
         
         {/* Progress Steps */}
@@ -241,7 +237,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
       <CardContent>
         <AnimatePresence mode="wait">
-          {/* Step 1: Client Details */}
+          {/* Step 1: Case Details */}
           {step === 1 && (
             <motion.div
               key="step1"
@@ -250,46 +246,8 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               exit={{ opacity: 0, x: -20 }}
               className="space-y-5"
             >
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                <div>
-                  <Label className="text-sm font-medium">Existing AWM Client?</Label>
-                  <p className="text-xs text-slate-500 mt-0.5">Link to Insightly if yes</p>
-                </div>
-                <Switch
-                  checked={formData.is_existing_client}
-                  onCheckedChange={(v) => updateField('is_existing_client', v)}
-                />
-              </div>
-
-              {formData.is_existing_client && (
-                <div className="space-y-2">
-                  <Label htmlFor="insightly_id">Insightly ID</Label>
-                  <Input
-                    id="insightly_id"
-                    value={formData.insightly_id}
-                    onChange={(e) => updateField('insightly_id', e.target.value)}
-                    placeholder="e.g., INS-12345"
-                    className={errors.insightly_id ? 'border-red-300' : ''}
-                  />
-                  {errors.insightly_id && (
-                    <p className="text-xs text-red-500">{errors.insightly_id}</p>
-                  )}
-                </div>
-              )}
-
               <div className="space-y-2">
-                <Label htmlFor="asana_task_gid">Asana Task ID (Optional)</Label>
-                <Input
-                  id="asana_task_gid"
-                  value={formData.asana_task_gid}
-                  onChange={(e) => updateField('asana_task_gid', e.target.value)}
-                  placeholder="Paste Asana task ID here (e.g., 1234567890123456)"
-                />
-                <p className="text-xs text-slate-500">Find this in your Asana task URL after /0/0/</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="client_name">Client Name</Label>
+                <Label htmlFor="client_name">Client Name (from Asana/handover)</Label>
                 <Input
                   id="client_name"
                   value={formData.client_name}
@@ -304,7 +262,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="client_email">Email</Label>
+                  <Label htmlFor="client_email">Email Address</Label>
                   <Input
                     id="client_email"
                     type="email"
@@ -314,7 +272,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="client_phone">Phone</Label>
+                  <Label htmlFor="client_phone">Phone Number</Label>
                   <Input
                     id="client_phone"
                     value={formData.client_phone}
@@ -325,26 +283,18 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="referral_source">How did you find us? (Optional)</Label>
-                <Select value={formData.referral_source || ''} onValueChange={(v) => updateField('referral_source', v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Existing Client">Existing Client</SelectItem>
-                    <SelectItem value="Referral - Friend/Family">Referral - Friend/Family</SelectItem>
-                    <SelectItem value="Google Search">Google Search</SelectItem>
-                    <SelectItem value="Social Media">Social Media</SelectItem>
-                    <SelectItem value="Estate Agent Partner">Estate Agent Partner</SelectItem>
-                    <SelectItem value="Financial Adviser Partner">Financial Adviser Partner</SelectItem>
-                    <SelectItem value="Previous Client">Previous Client</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="asana_task_gid">Asana Task ID (Optional)</Label>
+                <Input
+                  id="asana_task_gid"
+                  value={formData.asana_task_gid}
+                  onChange={(e) => updateField('asana_task_gid', e.target.value)}
+                  placeholder="Paste Asana task ID here (e.g., 1234567890123456)"
+                />
+                <p className="text-xs text-slate-500">Find this in your Asana task URL after /0/0/</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="referring_team_member">Referred By (Internal Team) - Optional</Label>
+                <Label htmlFor="referring_team_member">Referred By (Which Adviser) <span className="text-red-500">*</span></Label>
                 <Select value={formData.referring_team_member || ''} onValueChange={(v) => {
                   updateField('referring_team_member', v);
                   // Auto-extract team
@@ -418,71 +368,16 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     <SelectItem value="External Referral (not internal team)">External Referral (not internal team)</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-slate-500">Which team member or adviser referred this client?</p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Step 2: Mortgage Type */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-5"
-            >
-              <div className="space-y-2">
-                <Label>Mortgage Category</Label>
-                <Select value={formData.category} onValueChange={(v) => updateField('category', v)}>
-                  <SelectTrigger className={errors.category ? 'border-red-300' : ''}>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map(c => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.category && <p className="text-xs text-red-500">{errors.category}</p>}
+                <p className="text-xs text-slate-500">Which team member or adviser handed this case over?</p>
+                {errors.referring_team_member && (
+                  <p className="text-xs text-red-500">{errors.referring_team_member}</p>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Purpose</Label>
-                <Select value={formData.purpose} onValueChange={(v) => updateField('purpose', v)}>
-                  <SelectTrigger className={errors.purpose ? 'border-red-300' : ''}>
-                    <SelectValue placeholder="Select purpose" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PURPOSES.map(p => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.purpose && <p className="text-xs text-red-500">{errors.purpose}</p>}
-              </div>
-
-
-
-              {/* Current Mortgage Details - Only for Remortgage */}
-              {formData.purpose === 'remortgage' && (
-                <RemortgageFields formData={formData} updateField={updateField} />
-              )}
-            </motion.div>
-          )}
-
-          {/* Step 3: Financials */}
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-5"
-            >
+              <div className="grid grid-cols-2 gap-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="property_value">Property Value (£)</Label>
+                  <Label htmlFor="property_value">Property Value (£) <span className="text-red-500">*</span></Label>
                   <Input
                     id="property_value"
                     type="number"
@@ -496,7 +391,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="loan_amount">Loan Amount (£)</Label>
+                  <Label htmlFor="loan_amount">Loan Amount (£) <span className="text-red-500">*</span></Label>
                   <Input
                     id="loan_amount"
                     type="number"
@@ -531,10 +426,72 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               )}
 
               <div className="space-y-2">
-                <Label>Income Type</Label>
+                <Label>Category <span className="text-red-500">*</span></Label>
+                <Select value={formData.category} onValueChange={(v) => updateField('category', v)}>
+                  <SelectTrigger className={errors.category ? 'border-red-300' : ''}>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map(c => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.category && <p className="text-xs text-red-500">{errors.category}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Purpose <span className="text-red-500">*</span></Label>
+                <Select value={formData.purpose} onValueChange={(v) => updateField('purpose', v)}>
+                  <SelectTrigger className={errors.purpose ? 'border-red-300' : ''}>
+                    <SelectValue placeholder="Select purpose" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PURPOSES.map(p => (
+                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.purpose && <p className="text-xs text-red-500">{errors.purpose}</p>}
+              </div>
+
+              {/* Current Mortgage Details - Only for Remortgage or Rate Expiry */}
+              {(formData.purpose === 'remortgage' || formData.purpose === 'rate_expiry') && (
+                <RemortgageFields formData={formData} updateField={updateField} />
+              )}
+            </motion.div>
+          )}
+
+          {/* Step 2: Income & Timeline */}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-5"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="annual_income">Annual Income (£) <span className="text-red-500">*</span></Label>
+                <Input
+                  id="annual_income"
+                  type="number"
+                  value={formData.annual_income}
+                  onChange={(e) => updateField('annual_income', e.target.value)}
+                  placeholder="Gross annual"
+                  className={errors.annual_income ? 'border-red-300' : ''}
+                />
+                <p className="text-xs text-slate-500">From adviser's fact-find or estimated</p>
+                {errors.annual_income && (
+                  <p className="text-xs text-red-500">{errors.annual_income}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Employment Type <span className="text-red-500">*</span></Label>
                 <Select value={formData.income_type} onValueChange={(v) => updateField('income_type', v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select income type" />
+                  <SelectTrigger className={errors.income_type ? 'border-red-300' : ''}>
+                    <SelectValue placeholder="Select employment type" />
                   </SelectTrigger>
                   <SelectContent>
                     {INCOME_TYPES.map(t => (
@@ -542,21 +499,25 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.income_type && <p className="text-xs text-red-500">{errors.income_type}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="annual_income">Annual Income (£) - Optional</Label>
+                <Label htmlFor="client_deadline">Client Deadline (Optional)</Label>
                 <Input
-                  id="annual_income"
-                  type="number"
-                  value={formData.annual_income}
-                  onChange={(e) => updateField('annual_income', e.target.value)}
-                  placeholder="Gross annual"
+                  id="client_deadline"
+                  type="date"
+                  value={formData.client_deadline}
+                  onChange={(e) => updateField('client_deadline', e.target.value)}
+                  placeholder="Select date if time-sensitive"
                 />
+                <p className="text-xs text-slate-500">
+                  Rate expiry or completion deadline from adviser
+                </p>
               </div>
 
               {/* Live Triage Feedback */}
-              {triageFeedback && ltv && (
+              {triageFeedback && (
                 <div 
                   className="p-4 rounded-lg bg-white border-l-[5px] transition-all"
                   style={{ 
@@ -593,60 +554,10 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   </div>
                 </div>
               )}
-            </motion.div>
-          )}
-
-          {/* Step 4: Timing & Notes */}
-          {step === 4 && (
-            <motion.div
-              key="step4"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-5"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="client_deadline">Client Deadline (Optional)</Label>
-                <Input
-                  id="client_deadline"
-                  type="date"
-                  value={formData.client_deadline}
-                  onChange={(e) => updateField('client_deadline', e.target.value)}
-                  placeholder="Select date if time-sensitive"
-                />
-                <p className="text-xs text-slate-500">
-                  e.g., Rate expiry date, offer deadline, completion date
-                </p>
-              </div>
-
-              {formData.purpose === 'rate_expiry' && (
-                <div className="space-y-2">
-                  <Label htmlFor="rate_expiry_date">Rate Expiry Date</Label>
-                  <Input
-                    id="rate_expiry_date"
-                    type="date"
-                    value={formData.rate_expiry_date}
-                    onChange={(e) => updateField('rate_expiry_date', e.target.value)}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes (optional)</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => updateField('notes', e.target.value)}
-                  placeholder="Any relevant context, special circumstances..."
-                  rows={4}
-                />
-              </div>
-
-              <Alert className="bg-slate-50 border-slate-200">
-                <AlertTriangle className="h-4 w-4 text-slate-600" />
-                <AlertDescription className="text-slate-600 text-sm">
-                  This will create a case for agent processing. The agent will validate data, 
-                  analyse the market, and prepare indicative options before human review.
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertTriangle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-700 text-sm">
+                  This will create a case and generate an AI email draft ready for review
                 </AlertDescription>
               </Alert>
             </motion.div>
@@ -663,9 +574,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
             <div />
           )}
           
-          {step < 4 ? (
+          {step < 2 ? (
             <Button onClick={nextStep} className="bg-slate-900 hover:bg-slate-800">
-              Continue
+              Continue to Assessment
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
@@ -686,7 +597,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               ) : (
                 <>
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Create Case
+                  Create Case & Generate Email
                 </>
               )}
             </Button>
