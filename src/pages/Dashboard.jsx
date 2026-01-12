@@ -120,11 +120,7 @@ export default function Dashboard() {
   });
   const needingReview = filteredCases.filter(c => c.stage === 'human_review');
 
-  // Calculate my active cases metric
-  const myActiveCases = cases.filter(c => {
-    const userIdentifier = currentUser?.full_name || currentUser?.email;
-    return c.assigned_to === userIdentifier && !['completed', 'withdrawn', 'unsuitable'].includes(c.stage);
-  });
+
 
   // Check if any filters are active
   const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || teamFilter !== 'all';
