@@ -323,12 +323,10 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   };
                   updateField('referring_team', teamMap[v] || '');
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className={errors.referring_team_member ? 'border-red-300' : ''}>
                     <SelectValue placeholder="Select team member" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null} className="text-slate-400">None</SelectItem>
-
                     <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50">Team Solo</div>
                     <SelectItem value="Mark Insley (Adviser)">Mark Insley (Adviser)</SelectItem>
                     <SelectItem value="Bongiwe Sithebe">Bongiwe Sithebe</SelectItem>
