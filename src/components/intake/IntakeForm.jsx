@@ -36,12 +36,14 @@ const INCOME_TYPES = [
 export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    is_existing_client: initialData.is_existing_client ?? true,
-    insightly_id: initialData.insightly_id || '',
     asana_task_gid: initialData.asana_task_gid || '',
     client_name: initialData.client_name || '',
     client_email: initialData.client_email || '',
     client_phone: initialData.client_phone || '',
+    referring_team_member: initialData.referring_team_member || '',
+    referring_team: initialData.referring_team || '',
+    property_value: initialData.property_value || '',
+    loan_amount: initialData.loan_amount || '',
     category: initialData.category || '',
     purpose: initialData.purpose || '',
     existing_lender: initialData.existing_lender || '',
@@ -50,16 +52,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     existing_product_end_date: initialData.existing_product_end_date || '',
     existing_monthly_payment: initialData.existing_monthly_payment || '',
     switching_reason: initialData.switching_reason || '',
-    property_value: initialData.property_value || '',
-    loan_amount: initialData.loan_amount || '',
-    income_type: initialData.income_type || '',
     annual_income: initialData.annual_income || '',
-    client_deadline: initialData.client_deadline || '',
-    rate_expiry_date: initialData.rate_expiry_date || '',
-    referral_source: initialData.referral_source || '',
-    referring_team_member: initialData.referring_team_member || '',
-    referring_team: initialData.referring_team || '',
-    notes: initialData.notes || ''
+    income_type: initialData.income_type || '',
+    client_deadline: initialData.client_deadline || ''
   });
 
   const [errors, setErrors] = useState({});
@@ -123,23 +118,22 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     
     if (stepNum === 1) {
       if (!formData.client_name) newErrors.client_name = 'Required';
-      if (formData.is_existing_client && !formData.insightly_id) {
-        newErrors.insightly_id = 'Required for existing clients';
-      }
-    }
-    
-    if (stepNum === 2) {
-      if (!formData.category) newErrors.category = 'Required';
-      if (!formData.purpose) newErrors.purpose = 'Required';
-    }
-    
-    if (stepNum === 3) {
+      if (!formData.asana_task_gid) newErrors.asana_task_gid = 'Required';
+      if (!formData.referring_team_member) newErrors.referring_team_member = 'Required';
       if (!formData.property_value) newErrors.property_value = 'Required';
       if (!formData.loan_amount) newErrors.loan_amount = 'Required';
+      if (!formData.category) newErrors.category = 'Required';
+      if (!formData.purpose) newErrors.purpose = 'Required';
+      
       if (formData.loan_amount && formData.property_value) {
         const ltv = (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100;
         if (ltv > 100) newErrors.loan_amount = 'Loan exceeds property value';
       }
+    }
+    
+    if (stepNum === 2) {
+      if (!formData.annual_income) newErrors.annual_income = 'Required';
+      if (!formData.income_type) newErrors.income_type = 'Required';
     }
 
     setErrors(newErrors);
@@ -148,7 +142,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
   const nextStep = () => {
     if (validateStep(step)) {
-      setStep(prev => Math.min(prev + 1, 4));
+      setStep(prev => Math.min(prev + 1, 2));
     }
   };
 
@@ -190,10 +184,8 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   const ltv = calculateLTV();
 
   const stepConfig = [
-    { num: 1, label: 'Client', icon: User },
-    { num: 2, label: 'Mortgage', icon: Building },
-    { num: 3, label: 'Financials', icon: Banknote },
-    { num: 4, label: 'Timing', icon: Clock }
+    { num: 1, label: 'Case Details', icon: Building },
+    { num: 2, label: 'Income & Timeline', icon: Banknote }
   ];
 
   return (
@@ -201,7 +193,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
       <CardHeader className="pb-4">
         <CardTitle className="text-xl font-semibold text-slate-900">Mortgage Intake</CardTitle>
         <CardDescription className="text-slate-500">
-          Capture opportunity details for agent processing
+          {step === 1 ? 'Capture client details from Asana handover' : 'Financial assessment for triage scoring'}
         </CardDescription>
         
         {/* Progress Steps */}
@@ -663,10 +655,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
             <div />
           )}
           
-          {step < 4 ? (
+          {step < 2 ? (
             <Button onClick={nextStep} className="bg-slate-900 hover:bg-slate-800">
-              Continue
-              <ArrowRight className="w-4 h-4 ml-2" />
+              Continue to Assessment →
             </Button>
           ) : (
             <Button 
@@ -685,12 +676,16 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Create Case
+                  Create Case →
                 </>
               )}
             </Button>
           )}
+        </div>
+        
+        {/* Progress Text */}
+        <div className="text-center mt-4">
+          <p className="text-xs text-slate-500">Step {step} of 2</p>
         </div>
       </CardContent>
     </Card>
