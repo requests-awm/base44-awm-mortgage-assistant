@@ -73,32 +73,41 @@ export default function NewCase() {
         // Continue with case creation even if matching fails
       }
       
+      const userIdentifier = user?.full_name || user?.email;
+      console.log('[NewCase] Creating case for user:', userIdentifier);
+
       const caseData = {
         ...data,
         reference,
-        stage: data.intake_type === 'referral' ? 'data_completion' : 'intake_received',
-        referred_by: user?.email,
-        created_by: user?.full_name || user?.email,
-        assigned_to: user?.full_name || user?.email,
-        last_activity_by: user?.full_name || user?.email,
-        data_complete: data.intake_type !== 'referral',
+        stage: 'intake_received',
+        created_by: userIdentifier,
+        assigned_to: userIdentifier,
+        last_activity_by: userIdentifier,
+        data_complete: true,
         stage_entered_at: new Date().toISOString(),
         triage_rating: rating,
         triage_factors: factors,
         triage_last_calculated: timestamp,
         timeline_urgency: timelineData.urgency,
         days_until_deadline: timelineData.days_left,
+        email_status: 'not_generated',
         ...lenderMatchData
       };
 
+      console.log('[NewCase] Case data:', { 
+        created_by: caseData.created_by, 
+        assigned_to: caseData.assigned_to,
+        referring_team_member: caseData.referring_team_member,
+        referring_team: caseData.referring_team
+      });
+
       const newCase = await base44.entities.MortgageCase.create(caseData);
+      console.log('[NewCase] Case created:', newCase.id);
 
       // Create audit log
       await base44.entities.AuditLog.create({
         case_id: newCase.id,
-        action: data.intake_type === 'referral' 
-          ? 'Mortgage referral logged' 
-          : 'Mortgage intake completed',
+        action: 'Mortgage intake completed',
         action_category: 'intake',
         actor: 'user',
         actor_email: user?.email,
@@ -142,9 +151,7 @@ export default function NewCase() {
             Reference: <span className="font-mono font-semibold">{createdCase.reference}</span>
           </p>
           <p className="text-sm text-slate-500 mb-8">
-            {createdCase.stage === 'data_completion' 
-              ? 'The mortgage team will complete the intake and begin processing.'
-              : 'The agent will now validate data and begin market analysis.'}
+            Case created successfully. You can now review and process it.
           </p>
           <div className="flex gap-3 justify-center">
             <Link to={createPageUrl('Dashboard')}>
