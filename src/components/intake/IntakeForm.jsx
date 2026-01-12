@@ -118,7 +118,6 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     
     if (stepNum === 1) {
       if (!formData.client_name) newErrors.client_name = 'Required';
-      if (!formData.asana_task_gid) newErrors.asana_task_gid = 'Required';
       if (!formData.referring_team_member) newErrors.referring_team_member = 'Required';
       if (!formData.property_value) newErrors.property_value = 'Required';
       if (!formData.loan_amount) newErrors.loan_amount = 'Required';
@@ -243,7 +242,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               className="space-y-5"
             >
               <div className="space-y-2">
-                <Label htmlFor="client_name">Client Full Name</Label>
+                <Label htmlFor="client_name">Client Name (from Asana/handover)</Label>
                 <Input
                   id="client_name"
                   value={formData.client_name}
@@ -279,15 +278,15 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="asana_task_gid">Asana Task ID (Required)</Label>
+                <Label htmlFor="asana_task_gid">Asana Task ID</Label>
                 <Input
                   id="asana_task_gid"
                   value={formData.asana_task_gid}
                   onChange={(e) => updateField('asana_task_gid', e.target.value)}
-                  placeholder="e.g., 1234567890"
+                  placeholder="e.g., 1234567890 (optional)"
                   className={errors.asana_task_gid ? 'border-red-300' : ''}
                 />
-                <p className="text-xs text-slate-500">Copy the task ID from Asana URL - this links the case back to Asana</p>
+                <p className="text-xs text-slate-500">Links case back to Asana task</p>
                 {errors.asana_task_gid && (
                   <p className="text-xs text-red-500">{errors.asana_task_gid}</p>
                 )}
@@ -482,6 +481,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   placeholder="Gross annual income"
                   className={errors.annual_income ? 'border-red-300' : ''}
                 />
+                <p className="text-xs text-slate-500">From adviser's fact-find or estimated</p>
                 {errors.annual_income && (
                   <p className="text-xs text-red-500">{errors.annual_income}</p>
                 )}
@@ -511,7 +511,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   onChange={(e) => updateField('client_deadline', e.target.value)}
                 />
                 <p className="text-xs text-slate-500">
-                  Rate expiry date, offer deadline, or completion target from adviser
+                  Rate expiry or completion deadline from adviser
                 </p>
               </div>
 
@@ -596,7 +596,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                 </>
               ) : (
                 <>
-                  Create Case →
+                  Create Case & Generate Email →
                 </>
               )}
             </Button>
