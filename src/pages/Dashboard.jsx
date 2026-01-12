@@ -373,33 +373,33 @@ export default function Dashboard() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1 mb-6 border-b border-[#E6E9EE]">
+        <div className="flex items-center gap-8 mb-7 border-b border-[#E6E9EE]">
           <button
             onClick={() => handleTabChange('my-work')}
-            className={`px-5 py-3 text-[16px] transition-all border-b-[3px] ${
+            className={`pb-3 text-[20px] font-bold transition-all border-b-[4px] ${
               activeTab === 'my-work'
-                ? 'text-[#0E1B2A] font-semibold border-[#D1B36A]'
-                : 'text-[#6B7280] font-normal border-transparent hover:text-[#D1B36A]'
+                ? 'text-[#D1B36A] border-[#D1B36A]'
+                : 'text-[#0E1B2A] border-transparent'
             }`}
           >
             My Work
           </button>
           <button
             onClick={() => handleTabChange('pipeline')}
-            className={`px-5 py-3 text-[16px] transition-all border-b-[3px] ${
+            className={`pb-3 text-[20px] font-bold transition-all border-b-[4px] ${
               activeTab === 'pipeline'
-                ? 'text-[#0E1B2A] font-semibold border-[#D1B36A]'
-                : 'text-[#6B7280] font-normal border-transparent hover:text-[#D1B36A]'
+                ? 'text-[#D1B36A] border-[#D1B36A]'
+                : 'text-[#0E1B2A] border-transparent'
             }`}
           >
             Pipeline
           </button>
           <button
             onClick={() => handleTabChange('all-cases')}
-            className={`px-5 py-3 text-[16px] transition-all border-b-[3px] ${
+            className={`pb-3 text-[20px] font-bold transition-all border-b-[4px] ${
               activeTab === 'all-cases'
-                ? 'text-[#0E1B2A] font-semibold border-[#D1B36A]'
-                : 'text-[#6B7280] font-normal border-transparent hover:text-[#D1B36A]'
+                ? 'text-[#D1B36A] border-[#D1B36A]'
+                : 'text-[#0E1B2A] border-transparent'
             }`}
           >
             All Cases
@@ -420,30 +420,30 @@ export default function Dashboard() {
           
           <div className="flex items-center gap-3 flex-wrap">
             <Tabs value={filter} onValueChange={setFilter}>
-              <TabsList className="bg-transparent gap-2">
-                <TabsTrigger value="all" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">All</TabsTrigger>
-                <TabsTrigger value="active" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Active</TabsTrigger>
-                <TabsTrigger value="paused" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Paused</TabsTrigger>
+              <TabsList className="bg-transparent gap-3">
+                <TabsTrigger value="all" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">All</TabsTrigger>
+                <TabsTrigger value="active" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Active</TabsTrigger>
+                <TabsTrigger value="paused" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Paused</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Tabs value={triageFilter} onValueChange={setTriageFilter}>
-              <TabsList className="bg-transparent gap-2">
-                <TabsTrigger value="all" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">All Complexity</TabsTrigger>
-                <TabsTrigger value="blue" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Quick Win</TabsTrigger>
-                <TabsTrigger value="green" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Good Case</TabsTrigger>
-                <TabsTrigger value="yellow" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Needs Attention</TabsTrigger>
-                <TabsTrigger value="red" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Complex</TabsTrigger>
+              <TabsList className="bg-transparent gap-3">
+                <TabsTrigger value="all" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">All Complexity</TabsTrigger>
+                <TabsTrigger value="blue" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Quick Win</TabsTrigger>
+                <TabsTrigger value="green" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Good Case</TabsTrigger>
+                <TabsTrigger value="yellow" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Needs Attention</TabsTrigger>
+                <TabsTrigger value="red" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Complex</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Tabs value={timelineFilter} onValueChange={setTimelineFilter}>
-              <TabsList className="bg-transparent gap-2">
-                <TabsTrigger value="all" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">All Timeline</TabsTrigger>
-                <TabsTrigger value="overdue" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Overdue</TabsTrigger>
-                <TabsTrigger value="critical" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Critical</TabsTrigger>
-                <TabsTrigger value="soon" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Soon</TabsTrigger>
-                <TabsTrigger value="standard" className="border border-[#0E1B2A] text-[#0E1B2A] data-[state=active]:bg-[#D1B36A] data-[state=active]:text-[#1F2933] data-[state=active]:border-[#D1B36A]">Standard</TabsTrigger>
+              <TabsList className="bg-transparent gap-3">
+                <TabsTrigger value="all" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">All Timeline</TabsTrigger>
+                <TabsTrigger value="overdue" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Overdue</TabsTrigger>
+                <TabsTrigger value="critical" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Critical</TabsTrigger>
+                <TabsTrigger value="soon" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Soon</TabsTrigger>
+                <TabsTrigger value="standard" className="text-[13px] font-normal text-[#9CA3AF] data-[state=active]:text-[#0E1B2A] data-[state=active]:font-semibold data-[state=active]:before:content-[''] data-[state=active]:before:w-1.5 data-[state=active]:before:h-1.5 data-[state=active]:before:rounded-full data-[state=active]:before:bg-[#D1B36A] data-[state=active]:before:mr-2 data-[state=active]:before:inline-block hover:underline">Standard</TabsTrigger>
               </TabsList>
             </Tabs>
 
