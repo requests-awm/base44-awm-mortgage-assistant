@@ -501,8 +501,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('urgent')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-semibold text-red-600 flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#D1B36A]/20 flex items-center justify-center text-sm">⚠️</span>
+                <h2 className="text-lg font-bold text-[#EF4444] flex items-center gap-3 pl-4 border-l-[3px] border-[#EF4444]">
                   URGENT ({getUrgentCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.urgent ? '' : '-rotate-90'}`}
@@ -528,8 +527,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('thisWeek')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-semibold text-[#0E1B2A] flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#D1B36A] flex items-center justify-center text-sm">📅</span>
+                <h2 className="text-lg font-bold text-[#0E1B2A] flex items-center gap-3 pl-4 border-l-[3px] border-[#D1B36A]">
                   THIS WEEK ({getThisWeekCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.thisWeek ? '' : '-rotate-90'}`}
@@ -555,8 +553,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('readyToSend')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-semibold text-[#0E1B2A] flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#D1B36A] flex items-center justify-center text-sm">✅</span>
+                <h2 className="text-lg font-bold text-[#10B981] flex items-center gap-3 pl-4 border-l-[3px] border-[#10B981]">
                   READY TO SEND ({getReadyToSendCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.readyToSend ? '' : '-rotate-90'}`}
@@ -582,8 +579,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('waiting')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-semibold text-[#0E1B2A] flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#D1B36A] flex items-center justify-center text-sm">⏸️</span>
+                <h2 className="text-lg font-bold text-[#0E1B2A] flex items-center gap-3 pl-4 border-l-[3px] border-[#D1B36A]">
                   WAITING ({getWaitingCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.waiting ? '' : '-rotate-90'}`}
