@@ -56,8 +56,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     annual_income: initialData.annual_income || '',
     client_deadline: initialData.client_deadline || '',
     rate_expiry_date: initialData.rate_expiry_date || '',
-    intake_type: initialData.intake_type || 'identification',
     referral_source: initialData.referral_source || '',
+    referring_team_member: initialData.referring_team_member || '',
+    referring_team: initialData.referring_team || '',
     notes: initialData.notes || ''
   });
 
@@ -331,6 +332,84 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="referring_team_member">Referred By (Internal Team) - Optional</Label>
+                <Select value={formData.referring_team_member || ''} onValueChange={(v) => {
+                  updateField('referring_team_member', v);
+                  // Auto-extract team
+                  const teamMap = {
+                    'Mark Insley (Adviser)': 'Team Solo',
+                    'Bongiwe Sithebe': formData.referring_team_member?.includes('Quest') ? 'Team Quest' : 'Team Solo',
+                    'Ayanda Nyawose': 'Team Solo',
+                    'James Croker': 'Team Solo',
+                    'New Starter': 'Team Solo',
+                    'Claire Calder (Adviser)': 'Team Royal',
+                    'Algar Kaseema': 'Team Royal',
+                    'Michael Morris': 'Team Royal',
+                    'Greg Armstrong (Adviser)': 'Team Blue',
+                    'Catriona McCarron (Adviser)': 'Team Hurricane Catriona',
+                    'Israel Babatunde': 'Team Hurricane Catriona',
+                    'April Chapman': 'Team Hurricane Catriona',
+                    'Chenice Henry-Edwards': 'Team Hurricane Catriona',
+                    'Steve Coates (Adviser)': 'Team Quest',
+                    'Dextter Roberts': 'Team Quest',
+                    'Mark Drake (Adviser)': 'Chambers Wealth',
+                    'Mark Stokes': 'Chambers Wealth',
+                    'Simo Mlanjeni': 'Chambers Wealth',
+                    'Sam Hallet (Adviser)': 'Cape Berkshire Asset Management',
+                    'Shingirai Makuwaza': 'Cape Berkshire Asset Management',
+                    'External Referral (not internal team)': 'External / Other'
+                  };
+                  updateField('referring_team', teamMap[v] || '');
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select team member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null} className="text-slate-400">None</SelectItem>
+
+                    <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50">Team Solo</div>
+                    <SelectItem value="Mark Insley (Adviser)">Mark Insley (Adviser)</SelectItem>
+                    <SelectItem value="Bongiwe Sithebe">Bongiwe Sithebe</SelectItem>
+                    <SelectItem value="Ayanda Nyawose">Ayanda Nyawose</SelectItem>
+                    <SelectItem value="James Croker">James Croker</SelectItem>
+                    <SelectItem value="New Starter">New Starter</SelectItem>
+
+                    <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50 mt-1">Team Royal</div>
+                    <SelectItem value="Claire Calder (Adviser)">Claire Calder (Adviser)</SelectItem>
+                    <SelectItem value="Algar Kaseema">Algar Kaseema</SelectItem>
+                    <SelectItem value="Michael Morris">Michael Morris</SelectItem>
+
+                    <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50 mt-1">Team Blue</div>
+                    <SelectItem value="Greg Armstrong (Adviser)">Greg Armstrong (Adviser)</SelectItem>
+
+                    <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50 mt-1">Team Hurricane Catriona</div>
+                    <SelectItem value="Catriona McCarron (Adviser)">Catriona McCarron (Adviser)</SelectItem>
+                    <SelectItem value="Israel Babatunde">Israel Babatunde</SelectItem>
+                    <SelectItem value="April Chapman">April Chapman</SelectItem>
+                    <SelectItem value="Chenice Henry-Edwards">Chenice Henry-Edwards</SelectItem>
+
+                    <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50 mt-1">Team Quest</div>
+                    <SelectItem value="Steve Coates (Adviser)">Steve Coates (Adviser)</SelectItem>
+                    <SelectItem value="Bongiwe Sithebe (Quest)">Bongiwe Sithebe</SelectItem>
+                    <SelectItem value="Dextter Roberts">Dextter Roberts</SelectItem>
+
+                    <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50 mt-1">Chambers Wealth</div>
+                    <SelectItem value="Mark Drake (Adviser)">Mark Drake (Adviser)</SelectItem>
+                    <SelectItem value="Mark Stokes">Mark Stokes</SelectItem>
+                    <SelectItem value="Simo Mlanjeni">Simo Mlanjeni</SelectItem>
+
+                    <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50 mt-1">Cape Berkshire Asset Management</div>
+                    <SelectItem value="Sam Hallet (Adviser)">Sam Hallet (Adviser)</SelectItem>
+                    <SelectItem value="Shingirai Makuwaza">Shingirai Makuwaza</SelectItem>
+
+                    <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 bg-slate-50 mt-1">External / Other</div>
+                    <SelectItem value="External Referral (not internal team)">External Referral (not internal team)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">Which team member or adviser referred this client?</p>
+              </div>
             </motion.div>
           )}
 
@@ -373,25 +452,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                 {errors.purpose && <p className="text-xs text-red-500">{errors.purpose}</p>}
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                <div>
-                  <Label className="text-sm font-medium">Intake Type</Label>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {formData.intake_type === 'referral' 
-                      ? 'Mortgage team will complete details' 
-                      : 'You are completing full intake'}
-                  </p>
-                </div>
-                <Select value={formData.intake_type} onValueChange={(v) => updateField('intake_type', v)}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="identification">Full Intake</SelectItem>
-                    <SelectItem value="referral">Referral Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
 
               {/* Current Mortgage Details - Only for Remortgage */}
               {formData.purpose === 'remortgage' && (

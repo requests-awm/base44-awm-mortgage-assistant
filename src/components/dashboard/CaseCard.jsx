@@ -189,6 +189,11 @@ export default function CaseCard({ mortgageCase, compact = false }) {
             {formatCurrency(mortgageCase.loan_amount)} loan
             {mortgageCase.ltv && <> • {mortgageCase.ltv}% LTV</>}
             <> • {PURPOSE_LABELS[mortgageCase.purpose] || mortgageCase.purpose}</>
+            {mortgageCase.referring_team_member && (
+              <div className="mt-1 text-slate-400">
+                👤 {mortgageCase.referring_team_member}
+              </div>
+            )}
           </div>
 
           {/* FOOTER: Timestamp */}

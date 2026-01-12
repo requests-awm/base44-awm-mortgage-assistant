@@ -41,6 +41,7 @@ export default function Dashboard() {
   const [triageFilter, setTriageFilter] = useState('all');
   const [timelineFilter, setTimelineFilter] = useState('all');
   const [assignmentFilter, setAssignmentFilter] = useState('my-cases');
+  const [teamFilter, setTeamFilter] = useState('all');
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem('dashboardActiveTab') || 'my-work';
   });
@@ -104,8 +105,14 @@ export default function Dashboard() {
     } else if (assignmentFilter === 'unassigned') {
       matchesAssignment = !c.assigned_to;
     }
+
+    // Team filter
+    let matchesTeam = true;
+    if (teamFilter !== 'all') {
+      matchesTeam = c.referring_team === teamFilter;
+    }
     
-    return matchesSearch && matchesFilter && matchesTriage && matchesTimeline && matchesAssignment;
+    return matchesSearch && matchesFilter && matchesTriage && matchesTimeline && matchesAssignment && matchesTeam;
   });
 
   // Calculate metrics (use filteredCases to reflect search/filters)
@@ -126,7 +133,7 @@ export default function Dashboard() {
   });
 
   // Check if any filters are active
-  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || assignmentFilter !== 'my-cases';
+  const hasActiveFilters = search !== '' || filter !== 'all' || triageFilter !== 'all' || timelineFilter !== 'all' || assignmentFilter !== 'my-cases' || teamFilter !== 'all';
 
   const clearAllFilters = () => {
     setSearch('');
@@ -134,6 +141,7 @@ export default function Dashboard() {
     setTriageFilter('all');
     setTimelineFilter('all');
     setAssignmentFilter('my-cases');
+    setTeamFilter('all');
     setTableFilters({ triage: 'all', emailStatus: 'all', timeline: 'all' });
   };
 
@@ -217,6 +225,10 @@ export default function Dashboard() {
           aVal = a.assigned_to || 'zzz';
           bVal = b.assigned_to || 'zzz';
           return tableSort.order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        case 'referring_team_member':
+          aVal = a.referring_team_member || 'zzz';
+          bVal = b.referring_team_member || 'zzz';
+          return tableSort.order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
         case 'reference':
           aVal = a.reference || '';
           bVal = b.reference || '';
@@ -263,7 +275,7 @@ export default function Dashboard() {
   const exportToCSV = () => {
     const data = getFilteredAndSortedCases();
     const headers = [
-      'Client Name', 'Assigned To', 'Reference', 'Category', 'Purpose', 'Property Value', 
+      'Client Name', 'Assigned To', 'Referred By', 'Referring Team', 'Reference', 'Category', 'Purpose', 'Property Value', 
       'Loan Amount', 'LTV', 'Income Type', 'Annual Income', 'Stage', 
       'Triage', 'Email Status', 'Timeline', 'Days Until Deadline', 'Referral Source',
       'Created By', 'Created Date'
@@ -274,6 +286,8 @@ export default function Dashboard() {
       return [
         c.client_name || '',
         c.assigned_to || 'Unassigned',
+        c.referring_team_member || '',
+        c.referring_team || '',
         c.reference || '',
         c.category || '',
         c.purpose || '',
@@ -472,6 +486,23 @@ export default function Dashboard() {
                 <TabsTrigger value="standard" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-700">Standard</TabsTrigger>
               </TabsList>
             </Tabs>
+
+            <Select value={teamFilter} onValueChange={setTeamFilter}>
+              <SelectTrigger className="w-[200px] bg-white/80">
+                <SelectValue placeholder="All Teams" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Teams</SelectItem>
+                <SelectItem value="Team Solo">Team Solo</SelectItem>
+                <SelectItem value="Team Royal">Team Royal</SelectItem>
+                <SelectItem value="Team Blue">Team Blue</SelectItem>
+                <SelectItem value="Team Hurricane Catriona">Team Hurricane Catriona</SelectItem>
+                <SelectItem value="Team Quest">Team Quest</SelectItem>
+                <SelectItem value="Chambers Wealth">Chambers Wealth</SelectItem>
+                <SelectItem value="Cape Berkshire Asset Management">Cape Berkshire</SelectItem>
+                <SelectItem value="External / Other">External</SelectItem>
+              </SelectContent>
+            </Select>
 
             {hasActiveFilters && (
               <Button 
@@ -775,6 +806,9 @@ export default function Dashboard() {
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 w-[150px]" onClick={() => handleSort('assigned_to')}>
                       <div className="flex items-center gap-1">Assigned To <ArrowUpDown className="w-3 h-3" /></div>
                     </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 w-[180px]" onClick={() => handleSort('referring_team_member')}>
+                      <div className="flex items-center gap-1">Referred By <ArrowUpDown className="w-3 h-3" /></div>
+                    </th>
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-100" onClick={() => handleSort('reference')}>
                       <div className="flex items-center gap-1">Case Ref <ArrowUpDown className="w-3 h-3" /></div>
                     </th>
@@ -801,6 +835,16 @@ export default function Dashboard() {
                       <tr key={c.id} onClick={() => navigate(createPageUrl(`CaseDetail?id=${c.id}`))} className={`border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
                         <td className="px-4 py-3"><div className="font-semibold text-[14px] text-slate-900">{c.client_name}</div></td>
                         <td className="px-4 py-3"><div className="text-[14px] text-slate-700">{c.assigned_to || <span className="text-slate-400">Unassigned</span>}</div></td>
+                        <td className="px-4 py-3">
+                          {c.referring_team_member ? (
+                            <div className="text-[13px] text-slate-700">
+                              {c.referring_team_member}
+                              {c.referring_team && <div className="text-[11px] text-slate-400">{c.referring_team}</div>}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-[13px]">—</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3"><div className="text-[13px] text-slate-500">{c.reference}</div></td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2 text-[14px] text-slate-700">

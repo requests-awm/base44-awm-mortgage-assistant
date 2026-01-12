@@ -120,6 +120,16 @@ export default function CaseInfoCard({ caseData }) {
           </div>
         )}
 
+        {caseData.referring_team_member && (
+          <div>
+            <p className="text-xs text-slate-500 mb-1">Referred by</p>
+            <p className="text-sm font-medium text-slate-900">{caseData.referring_team_member}</p>
+            {caseData.referring_team && (
+              <p className="text-xs text-slate-500 mt-0.5">{caseData.referring_team}</p>
+            )}
+          </div>
+        )}
+
         {caseData.last_activity_by && (
           <div className="pt-3 border-t border-slate-100">
             <p className="text-xs text-slate-500 mb-1">Last activity</p>
