@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { ltv, category, annual_income, income_type } = await req.json();
+    const { ltv, category, annual_income, income_type, loan_amount, client_age, term_years } = await req.json();
 
     // Fetch all active lenders
     const allLenders = await base44.entities.Lender.filter({ is_active: true });
@@ -22,16 +22,20 @@ Deno.serve(async (req) => {
       const rejectionReasons = [];
       const matchReasons = [];
 
-      // Determine relevant max LTV based on category
+      // Determine relevant max LTV and min income based on category
       let relevantMaxLtv;
+      let relevantMinIncome;
+      
       if (category === 'buy_to_let') {
         relevantMaxLtv = lender.max_ltv_btl || 0;
+        relevantMinIncome = lender.min_income_btl || 0;
       } else {
-        // residential, later_life, or ltd_company use residential LTV
         relevantMaxLtv = lender.max_ltv_residential || 0;
+        relevantMinIncome = lender.min_income_residential || 0;
       }
 
       // REJECTION RULES
+
       // Reject if LTV exceeds lender's max
       if (ltv > relevantMaxLtv) {
         isRejected = true;
@@ -40,53 +44,44 @@ Deno.serve(async (req) => {
         matchReasons.push(`LTV ${ltv}% is within their ${relevantMaxLtv}% ${category === 'buy_to_let' ? 'BTL' : 'residential'} limit`);
       }
 
-      // Reject if income below minimum
-      if (annual_income < lender.min_income) {
+      // Reject if loan amount exceeds max at this LTV
+      if (loan_amount && lender.max_loan_at_max_ltv && loan_amount > lender.max_loan_at_max_ltv) {
         isRejected = true;
-        rejectionReasons.push(`Income £${annual_income.toLocaleString()} below minimum £${lender.min_income.toLocaleString()}`);
-      } else {
-        matchReasons.push(`Income £${annual_income.toLocaleString()} exceeds minimum £${lender.min_income.toLocaleString()} requirement`);
+        rejectionReasons.push(`Loan £${loan_amount.toLocaleString()} exceeds maximum £${lender.max_loan_at_max_ltv.toLocaleString()} at this LTV`);
+      } else if (loan_amount && lender.max_loan_at_max_ltv) {
+        matchReasons.push(`Loan amount £${loan_amount.toLocaleString()} within their limit of £${lender.max_loan_at_max_ltv.toLocaleString()}`);
+      }
+
+      // Reject if income below minimum (if minimum is set)
+      if (relevantMinIncome > 0 && annual_income < relevantMinIncome) {
+        isRejected = true;
+        rejectionReasons.push(`Income £${annual_income.toLocaleString()} below minimum £${relevantMinIncome.toLocaleString()}`);
+      } else if (relevantMinIncome > 0) {
+        matchReasons.push(`Income £${annual_income.toLocaleString()} meets minimum £${relevantMinIncome.toLocaleString()}`);
       }
 
       // Reject if self-employed not accepted
-      if (income_type === 'self_employed' && !lender.accepts_self_employed) {
+      if (income_type === 'self_employed' && !lender.self_employed_accepted) {
         isRejected = true;
         rejectionReasons.push('Does not accept self-employed applicants');
-      } else if (income_type === 'self_employed') {
-        matchReasons.push('Accepts self-employed applicants');
+      } else if (income_type === 'self_employed' && lender.self_employed_accepted) {
+        matchReasons.push(`Accepts self-employed (${lender.min_years_trading || 2} years trading required)`);
       }
 
-      // Reject if contractor not accepted
-      if (income_type === 'contractor' && !lender.accepts_contractors) {
-        isRejected = true;
-        rejectionReasons.push('Does not accept contractors');
-      } else if (income_type === 'contractor') {
-        matchReasons.push('Accepts contractors');
+      // Reject if age exceeds max at end of term
+      if (client_age && term_years && lender.max_age_end_of_term > 0) {
+        const ageAtEndOfTerm = client_age + term_years;
+        if (ageAtEndOfTerm > lender.max_age_end_of_term) {
+          isRejected = true;
+          rejectionReasons.push(`Age ${ageAtEndOfTerm} at end of term exceeds maximum ${lender.max_age_end_of_term}`);
+        } else {
+          matchReasons.push(`Age ${ageAtEndOfTerm} at end of term within limit of ${lender.max_age_end_of_term}`);
+        }
       }
 
-      // Check if employed is accepted
+      // Check if employed is accepted (all lenders accept)
       if (income_type === 'employed') {
         matchReasons.push('Accepts employed applicants');
-      }
-
-      // Reject if ltd_company not accepted
-      if (category === 'ltd_company' && !lender.accepts_ltd_company) {
-        isRejected = true;
-        rejectionReasons.push('Does not accept Ltd company purchases');
-      }
-
-      // Reject if ltd_company not in products offered
-      if (category === 'ltd_company' && !lender.products_offered?.includes('ltd_company')) {
-        isRejected = true;
-        rejectionReasons.push('Does not offer Ltd company products');
-      } else if (category === 'ltd_company') {
-        matchReasons.push('Offers Ltd company products');
-      }
-
-      // Check if category product is offered
-      if (lender.products_offered?.includes(category)) {
-        const categoryLabel = category === 'buy_to_let' ? 'buy-to-let' : category.replace('_', ' ');
-        matchReasons.push(`Offers ${categoryLabel} products`);
       }
 
       // If not rejected, calculate confidence score
