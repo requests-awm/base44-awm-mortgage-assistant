@@ -553,7 +553,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('readyToSend')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-bold text-[#10B981] flex items-center gap-3 pl-4 border-l-[3px] border-[#10B981]">
+                <h2 className="text-lg font-bold text-[#0E1B2A] flex items-center gap-3 pl-4 border-l-[3px] border-[#D1B36A]">
                   READY TO SEND ({getReadyToSendCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.readyToSend ? '' : '-rotate-90'}`}
