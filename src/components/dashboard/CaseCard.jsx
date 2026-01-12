@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Clock, User, Building, Banknote, AlertTriangle, 
   CheckCircle, ArrowRight, Pause, MessageSquare,
-  FileText, Eye
+  FileText, Eye, Calendar
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -171,6 +171,9 @@ export default function CaseCard({ mortgageCase, compact = false }) {
             <div className="text-[14px]">
               {mortgageCase.email_status === 'draft' && (
                 <span className="text-blue-600">✉️ Draft Ready</span>
+              )}
+              {mortgageCase.email_status === 'scheduled' && mortgageCase.email_scheduled_send_time && (
+                <span className="text-orange-600">📅 Scheduled {format(new Date(mortgageCase.email_scheduled_send_time), 'dd MMM')}</span>
               )}
               {mortgageCase.email_status === 'sent' && mortgageCase.email_sent_at && (
                 <span className="text-emerald-600">✅ Sent {format(new Date(mortgageCase.email_sent_at), 'dd MMM')}</span>
