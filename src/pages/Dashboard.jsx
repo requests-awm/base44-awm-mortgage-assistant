@@ -376,33 +376,33 @@ export default function Dashboard() {
         <div className="flex items-center gap-1 mb-6 border-b border-[#E6E9EE]">
           <button
             onClick={() => handleTabChange('my-work')}
-            className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
+            className={`px-5 py-3 text-[16px] transition-all border-b-[3px] ${
               activeTab === 'my-work'
-                ? 'text-[#0E1B2A] font-semibold border-b-[3px] border-[#D1B36A]'
-                : 'text-[#6B7280] hover:text-[#1F2933] hover:bg-slate-50'
+                ? 'text-[#0E1B2A] font-semibold border-[#D1B36A]'
+                : 'text-[#6B7280] font-normal border-transparent hover:text-[#D1B36A]'
             }`}
           >
-            📋 My Work
+            My Work
           </button>
           <button
             onClick={() => handleTabChange('pipeline')}
-            className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
+            className={`px-5 py-3 text-[16px] transition-all border-b-[3px] ${
               activeTab === 'pipeline'
-                ? 'text-[#0E1B2A] font-semibold border-b-[3px] border-[#D1B36A]'
-                : 'text-[#6B7280] hover:text-[#1F2933] hover:bg-slate-50'
+                ? 'text-[#0E1B2A] font-semibold border-[#D1B36A]'
+                : 'text-[#6B7280] font-normal border-transparent hover:text-[#D1B36A]'
             }`}
           >
-            🔄 Pipeline
+            Pipeline
           </button>
           <button
             onClick={() => handleTabChange('all-cases')}
-            className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
+            className={`px-5 py-3 text-[16px] transition-all border-b-[3px] ${
               activeTab === 'all-cases'
-                ? 'text-[#0E1B2A] font-semibold border-b-[3px] border-[#D1B36A]'
-                : 'text-[#6B7280] hover:text-[#1F2933] hover:bg-slate-50'
+                ? 'text-[#0E1B2A] font-semibold border-[#D1B36A]'
+                : 'text-[#6B7280] font-normal border-transparent hover:text-[#D1B36A]'
             }`}
           >
-            📊 All Cases
+            All Cases
           </button>
         </div>
 
@@ -810,12 +810,12 @@ export default function Dashboard() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="text-[14px]">
-                            {c.email_status === 'draft' && <span className="text-blue-600">✉️ Draft</span>}
+                            {c.email_status === 'draft' && <span className="text-blue-600">Draft</span>}
                             {c.email_status === 'scheduled' && c.email_scheduled_send_time && (
-                              <span className="text-[#D1B36A]">📅 Scheduled {format(new Date(c.email_scheduled_send_time), 'dd MMM')}</span>
+                              <span className="text-[#D1B36A]">Scheduled {format(new Date(c.email_scheduled_send_time), 'dd MMM')}</span>
                             )}
-                            {c.email_status === 'sent' && <span className="text-emerald-600">✅ Sent</span>}
-                            {c.email_status === 'failed' && <span className="text-red-600">⚠️ Failed</span>}
+                            {c.email_status === 'sent' && <span className="text-emerald-600">Sent</span>}
+                            {c.email_status === 'failed' && <span className="text-red-600">Failed</span>}
                             {c.email_status === 'not_generated' && <span className="text-slate-400">—</span>}
                           </div>
                         </td>
