@@ -304,7 +304,7 @@ export default function Dashboard() {
   const triageDotColors = {
     blue: '#3B82F6',
     green: '#10B981',
-    yellow: '#F59E0B',
+    yellow: '#D1B36A',
     red: '#EF4444'
   };
 
@@ -333,7 +333,7 @@ export default function Dashboard() {
             <p className="text-slate-500 mt-1">Pre-quote triage & workflow management</p>
           </div>
           <Link to={createPageUrl('NewCase')}>
-            <Button className="bg-slate-900 hover:bg-slate-800">
+            <Button>
               <Plus className="w-4 h-4 mr-2" />
               New Intake
             </Button>
@@ -373,13 +373,13 @@ export default function Dashboard() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1 mb-6 border-b border-slate-200">
+        <div className="flex items-center gap-1 mb-6 border-b border-[#E6E9EE]">
           <button
             onClick={() => handleTabChange('my-work')}
             className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
               activeTab === 'my-work'
-                ? 'text-[#3B82F6] font-semibold border-b-[3px] border-[#3B82F6]'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-blue-50'
+                ? 'text-[#0E1B2A] font-semibold border-b-[3px] border-[#D1B36A]'
+                : 'text-[#6B7280] hover:text-[#1F2933] hover:bg-slate-50'
             }`}
           >
             📋 My Work
@@ -388,8 +388,8 @@ export default function Dashboard() {
             onClick={() => handleTabChange('pipeline')}
             className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
               activeTab === 'pipeline'
-                ? 'text-[#3B82F6] font-semibold border-b-[3px] border-[#3B82F6]'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-blue-50'
+                ? 'text-[#0E1B2A] font-semibold border-b-[3px] border-[#D1B36A]'
+                : 'text-[#6B7280] hover:text-[#1F2933] hover:bg-slate-50'
             }`}
           >
             🔄 Pipeline
@@ -398,8 +398,8 @@ export default function Dashboard() {
             onClick={() => handleTabChange('all-cases')}
             className={`flex items-center gap-2 px-5 py-3 text-[16px] transition-all ${
               activeTab === 'all-cases'
-                ? 'text-[#3B82F6] font-semibold border-b-[3px] border-[#3B82F6]'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-blue-50'
+                ? 'text-[#0E1B2A] font-semibold border-b-[3px] border-[#D1B36A]'
+                : 'text-[#6B7280] hover:text-[#1F2933] hover:bg-slate-50'
             }`}
           >
             📊 All Cases
@@ -432,7 +432,7 @@ export default function Dashboard() {
                 <TabsTrigger value="all">All Complexity</TabsTrigger>
                 <TabsTrigger value="blue" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">Quick Win</TabsTrigger>
                 <TabsTrigger value="green" className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-700">Good Case</TabsTrigger>
-                <TabsTrigger value="yellow" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-700">Needs Attention</TabsTrigger>
+                <TabsTrigger value="yellow" className="data-[state=active]:bg-[#D1B36A]/20 data-[state=active]:text-[#0E1B2A]">Needs Attention</TabsTrigger>
                 <TabsTrigger value="red" className="data-[state=active]:bg-red-100 data-[state=active]:text-red-700">Complex</TabsTrigger>
               </TabsList>
             </Tabs>
@@ -475,16 +475,16 @@ export default function Dashboard() {
               </Button>
             )}
 
-            <div className="flex bg-white/80 rounded-lg p-1 border border-slate-200">
+            <div className="flex bg-white/80 rounded-lg p-1 border border-[#E6E9EE]">
               <button
                 onClick={() => setView('kanban')}
-                className={`p-2 rounded transition-all ${view === 'kanban' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`p-2 rounded transition-all ${view === 'kanban' ? 'bg-[#D1B36A] text-[#0E1B2A]' : 'text-[#6B7280] hover:text-[#1F2933]'}`}
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setView('list')}
-                className={`p-2 rounded transition-all ${view === 'list' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`p-2 rounded transition-all ${view === 'list' ? 'bg-[#D1B36A] text-[#0E1B2A]' : 'text-[#6B7280] hover:text-[#1F2933]'}`}
               >
                 <List className="w-4 h-4" />
               </button>
@@ -812,7 +812,7 @@ export default function Dashboard() {
                           <div className="text-[14px]">
                             {c.email_status === 'draft' && <span className="text-blue-600">✉️ Draft</span>}
                             {c.email_status === 'scheduled' && c.email_scheduled_send_time && (
-                              <span className="text-orange-600">📅 Scheduled {format(new Date(c.email_scheduled_send_time), 'dd MMM')}</span>
+                              <span className="text-[#D1B36A]">📅 Scheduled {format(new Date(c.email_scheduled_send_time), 'dd MMM')}</span>
                             )}
                             {c.email_status === 'sent' && <span className="text-emerald-600">✅ Sent</span>}
                             {c.email_status === 'failed' && <span className="text-red-600">⚠️ Failed</span>}

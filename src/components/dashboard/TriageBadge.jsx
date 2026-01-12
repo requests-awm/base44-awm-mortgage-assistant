@@ -14,7 +14,7 @@ const TRIAGE_CONFIG = {
   },
   yellow: {
     label: 'Needs Attention',
-    dotColor: '#F59E0B',
+    dotColor: '#D1B36A',
     description: 'Requires broker expertise'
   },
   red: {

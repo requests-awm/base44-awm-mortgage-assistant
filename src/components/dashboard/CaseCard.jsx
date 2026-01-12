@@ -90,7 +90,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
   const triageDotColors = {
     blue: '#3B82F6',
     green: '#10B981',
-    yellow: '#F59E0B',
+    yellow: '#D1B36A',
     red: '#EF4444'
   };
 
@@ -173,7 +173,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
                 <span className="text-blue-600">✉️ Draft Ready</span>
               )}
               {mortgageCase.email_status === 'scheduled' && mortgageCase.email_scheduled_send_time && (
-                <span className="text-orange-600">📅 Scheduled {format(new Date(mortgageCase.email_scheduled_send_time), 'dd MMM')}</span>
+                <span className="text-[#D1B36A]">📅 Scheduled {format(new Date(mortgageCase.email_scheduled_send_time), 'dd MMM')}</span>
               )}
               {mortgageCase.email_status === 'sent' && mortgageCase.email_sent_at && (
                 <span className="text-emerald-600">✅ Sent {format(new Date(mortgageCase.email_sent_at), 'dd MMM')}</span>

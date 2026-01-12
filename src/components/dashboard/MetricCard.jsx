@@ -12,23 +12,23 @@ export default function MetricCard({
   color = 'slate'
 }) {
   const colorClasses = {
-    slate: 'bg-slate-50 text-slate-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    blue: 'bg-blue-50 text-blue-600',
-    amber: 'bg-amber-50 text-amber-600',
-    purple: 'bg-purple-50 text-purple-600',
-    red: 'bg-red-50 text-red-600'
+    slate: 'bg-[#12243A] text-[#D1B36A]',
+    emerald: 'bg-[#12243A] text-[#D1B36A]',
+    blue: 'bg-[#12243A] text-[#D1B36A]',
+    amber: 'bg-[#12243A] text-[#D1B36A]',
+    purple: 'bg-[#12243A] text-[#D1B36A]',
+    red: 'bg-[#12243A] text-[#D1B36A]'
   };
 
   return (
-    <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+    <Card className="border border-[#E6E9EE] shadow-sm bg-white">
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500">{title}</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
+            <p className="text-sm font-medium text-[#6B7280]">{title}</p>
+            <p className="text-2xl font-bold text-[#1F2933] mt-1">{value}</p>
             {subtitle && (
-              <p className="text-xs text-slate-400 mt-1">{subtitle}</p>
+              <p className="text-xs text-[#6B7280] mt-1">{subtitle}</p>
             )}
           </div>
           {Icon && (
