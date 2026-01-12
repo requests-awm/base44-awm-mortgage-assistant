@@ -122,7 +122,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
 
   return (
     <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
-      <Card className="hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer border border-slate-200 bg-white group">
+      <Card className="hover:shadow-[0_2px_8px_rgba(14,27,42,0.12)] transition-shadow duration-200 cursor-pointer border border-slate-200 bg-white group">
         <CardContent className="p-4">
           {/* TOP: Client Name & Asana */}
           <div className="flex items-start justify-between gap-3 mb-1">
@@ -151,7 +151,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
             {/* Line 1: Triage + Lender Count */}
             <div className="flex items-center gap-2 text-[14px] text-slate-700">
               <span 
-                className="w-2 h-2 rounded-full flex-shrink-0"
+                className="w-3.5 h-3.5 rounded-full flex-shrink-0"
                 style={{ backgroundColor: triageDotColors[triageData.rating] }}
               />
               <span>{triageLabels[triageData.rating]}</span>
@@ -187,7 +187,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
           </div>
 
           {/* BOTTOM: Quick Facts */}
-          <div className="text-[12px] text-slate-500 mb-3">
+          <div className="text-[12px] text-slate-500 mb-3 mt-2 leading-[1.3]">
             {formatCurrency(mortgageCase.loan_amount)} loan
             {mortgageCase.ltv && <> • {mortgageCase.ltv}% LTV</>}
             <> • {PURPOSE_LABELS[mortgageCase.purpose] || mortgageCase.purpose}</>

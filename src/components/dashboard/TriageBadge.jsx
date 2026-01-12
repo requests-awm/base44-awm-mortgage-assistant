@@ -26,7 +26,7 @@ const TRIAGE_CONFIG = {
 
 export function TriageBadge({ rating, factors = [], showLabel = true, showDescription = false, size = 'default' }) {
   const config = TRIAGE_CONFIG[rating] || TRIAGE_CONFIG.green;
-  const dotSize = size === 'sm' ? 'w-2 h-2' : 'w-2.5 h-2.5';
+  const dotSize = size === 'sm' ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5';
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
 
   const badge = (
@@ -80,7 +80,7 @@ export function TriageBadge({ rating, factors = [], showLabel = true, showDescri
 
 export function TriageDot({ rating, size = 'default' }) {
   const config = TRIAGE_CONFIG[rating] || TRIAGE_CONFIG.green;
-  const sizeClasses = size === 'sm' ? 'w-2 h-2' : 'w-2.5 h-2.5';
+  const sizeClasses = size === 'sm' ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5';
   
   return (
     <span 
