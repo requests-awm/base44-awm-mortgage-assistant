@@ -584,7 +584,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               type="button"
               onClick={(e) => {
                 console.log('[IntakeForm] Button clicked');
-                handleSubmit(e);
+                if (validateStep(2)) {
+                  handleSubmit(e);
+                }
               }} 
               disabled={isSubmitting}
               className="bg-emerald-600 hover:bg-emerald-700"
