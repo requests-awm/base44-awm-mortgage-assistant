@@ -153,13 +153,13 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e?.preventDefault();
     console.log('[IntakeForm] handleSubmit called');
     
     // Validate step 2 before submitting
     if (!validateStep(2)) {
-      console.log('[IntakeForm] Validation failed');
+      console.log('[IntakeForm] Validation failed', errors);
       return;
     }
     
@@ -175,13 +175,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
       ltv: ltv ? Math.round(ltv * 10) / 10 : null
     };
 
-    console.log('[IntakeForm] Submitting data:', submitData);
+    console.log('[IntakeForm] Calling onSubmit with data:', submitData);
     
-    try {
-      onSubmit(submitData);
-    } catch (error) {
-      console.error('[IntakeForm] Submit error:', error);
-    }
+    await onSubmit(submitData);
   };
 
   const calculateLTV = () => {
