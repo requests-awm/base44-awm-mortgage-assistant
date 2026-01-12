@@ -156,17 +156,27 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
   const handleSubmit = (e) => {
     e?.preventDefault();
+    console.log('[IntakeForm] handleSubmit called');
+    
     const ltv = formData.property_value && formData.loan_amount 
       ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
       : null;
 
-    onSubmit({
+    const submitData = {
       ...formData,
       property_value: parseFloat(formData.property_value) || null,
       loan_amount: parseFloat(formData.loan_amount) || null,
       annual_income: parseFloat(formData.annual_income) || null,
       ltv: ltv ? Math.round(ltv * 10) / 10 : null
-    });
+    };
+
+    console.log('[IntakeForm] Submitting data:', submitData);
+    
+    try {
+      onSubmit(submitData);
+    } catch (error) {
+      console.error('[IntakeForm] Submit error:', error);
+    }
   };
 
   const calculateLTV = () => {
@@ -660,7 +670,11 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
             </Button>
           ) : (
             <Button 
-              onClick={handleSubmit} 
+              type="button"
+              onClick={(e) => {
+                console.log('[IntakeForm] Button clicked');
+                handleSubmit(e);
+              }} 
               disabled={isSubmitting}
               className="bg-emerald-600 hover:bg-emerald-700"
             >

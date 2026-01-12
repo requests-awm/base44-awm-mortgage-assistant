@@ -17,7 +17,9 @@ export default function NewCase() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      console.log('[NewCase] Mutation started with data:', data);
       const user = await base44.auth.me();
+      console.log('[NewCase] User:', user);
 
       // Generate reference
       const reference = `AWM-${Date.now().toString(36).toUpperCase()}`;
@@ -135,6 +137,7 @@ export default function NewCase() {
       toast.success('Case created! Email draft generated.');
     },
     onError: (error) => {
+      console.error('[NewCase] Mutation error:', error);
       toast.error('Failed to create case: ' + error.message);
     }
   });
