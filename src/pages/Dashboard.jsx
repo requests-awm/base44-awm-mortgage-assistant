@@ -811,6 +811,9 @@ export default function Dashboard() {
                         <td className="px-4 py-3">
                           <div className="text-[14px]">
                             {c.email_status === 'draft' && <span className="text-blue-600">✉️ Draft</span>}
+                            {c.email_status === 'scheduled' && c.email_scheduled_send_time && (
+                              <span className="text-orange-600">📅 Scheduled {format(new Date(c.email_scheduled_send_time), 'dd MMM')}</span>
+                            )}
                             {c.email_status === 'sent' && <span className="text-emerald-600">✅ Sent</span>}
                             {c.email_status === 'failed' && <span className="text-red-600">⚠️ Failed</span>}
                             {c.email_status === 'not_generated' && <span className="text-slate-400">—</span>}
