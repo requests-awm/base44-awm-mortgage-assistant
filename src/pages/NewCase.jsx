@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import IntakeForm from '@/components/intake/IntakeForm';
 import { toast } from 'sonner';
@@ -12,8 +12,6 @@ import { toast } from 'sonner';
 export default function NewCase() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [success, setSuccess] = useState(false);
-  const [createdCase, setCreatedCase] = useState(null);
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
@@ -117,57 +115,18 @@ export default function NewCase() {
         timestamp: new Date().toISOString()
       });
 
-      // Auto-generate email draft (non-blocking)
-      try {
-        await base44.functions.invoke('generateIndicativeEmail', { case_id: newCase.id });
-      } catch (emailError) {
-        console.error('Email generation failed:', emailError);
-        // Don't block case creation if email fails
-        await base44.entities.MortgageCase.update(newCase.id, {
-          email_status: 'failed'
-        });
-      }
-
       return newCase;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries(['mortgageCases']);
-      setCreatedCase(data);
-      setSuccess(true);
-      toast.success('Case created! Email draft generated.');
+      toast.success('Case created successfully!');
+      navigate(createPageUrl(`CaseCreated?id=${data.id}`));
     },
     onError: (error) => {
       console.error('[NewCase] Mutation error:', error);
       toast.error('Failed to create case: ' + error.message);
     }
   });
-
-  if (success && createdCase) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-emerald-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Case Created</h1>
-          <p className="text-slate-500 mb-6">
-            Reference: <span className="font-mono font-semibold">{createdCase.reference}</span>
-          </p>
-          <p className="text-sm text-slate-500 mb-8">
-            Case created successfully. You can now review and process it.
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Link to={createPageUrl('Dashboard')}>
-              <Button variant="outline">Back to Dashboard</Button>
-            </Link>
-            <Link to={createPageUrl(`CaseDetail?id=${createdCase.id}`)}>
-              <Button className="bg-slate-900 hover:bg-slate-800">View Case</Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100">

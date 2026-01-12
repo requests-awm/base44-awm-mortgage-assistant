@@ -5,6 +5,7 @@ import NewCase from './pages/NewCase';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Dashboard from './pages/Dashboard';
+import CaseCreated from './pages/CaseCreated';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "Reports": Reports,
     "Settings": Settings,
     "Dashboard": Dashboard,
+    "CaseCreated": CaseCreated,
 }
 
 export const pagesConfig = {
