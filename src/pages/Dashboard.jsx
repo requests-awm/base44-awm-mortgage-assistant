@@ -51,7 +51,7 @@ export default function Dashboard() {
   const [expandedSections, setExpandedSections] = useState({
     urgent: true,
     thisWeek: false,
-    readyToSend: true,
+    sentToClients: true,
     waiting: false
   });
 
@@ -150,10 +150,10 @@ export default function Dashboard() {
       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
   };
 
-  const getReadyToSendCases = () => {
+  const getSentToClientsCases = () => {
     return filteredCases
-      .filter(c => c.email_status === 'draft')
-      .sort((a, b) => new Date(b.email_generated_at || 0) - new Date(a.email_generated_at || 0));
+      .filter(c => c.email_status === 'sent' && c.email_sent_at)
+      .sort((a, b) => new Date(b.email_sent_at) - new Date(a.email_sent_at));
   };
 
   const getWaitingCases = () => {
@@ -548,25 +548,25 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* READY TO SEND Section */}
+            {/* SENT TO CLIENTS Section */}
             <div>
               <button
-                onClick={() => toggleSection('readyToSend')}
+                onClick={() => toggleSection('sentToClients')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
                 <h2 className="text-lg font-bold text-[#0E1B2A] flex items-center gap-3 pl-4 border-l-[3px] border-[#D1B36A]">
-                  READY TO SEND ({getReadyToSendCases().length})
+                  SENT TO CLIENTS ({getSentToClientsCases().length})
                   <ChevronDown 
-                    className={`w-5 h-5 transition-transform ${expandedSections.readyToSend ? '' : '-rotate-90'}`}
+                    className={`w-5 h-5 transition-transform ${expandedSections.sentToClients ? '' : '-rotate-90'}`}
                   />
                 </h2>
               </button>
-              {expandedSections.readyToSend && (
+              {expandedSections.sentToClients && (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {getReadyToSendCases().length === 0 ? (
-                    <p className="text-slate-400 col-span-full">No drafts ready</p>
+                  {getSentToClientsCases().length === 0 ? (
+                    <p className="text-slate-400 col-span-full">No emails sent yet</p>
                   ) : (
-                    getReadyToSendCases().map(c => (
+                    getSentToClientsCases().map(c => (
                       <CaseCard key={c.id} mortgageCase={c} />
                     ))
                   )}
