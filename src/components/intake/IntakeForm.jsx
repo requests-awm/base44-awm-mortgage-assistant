@@ -578,7 +578,17 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
           )}
           
           {step < 2 ? (
-            <Button onClick={nextStep} className="bg-slate-900 hover:bg-slate-800">
+            <Button 
+              onClick={nextStep}
+              style={{
+                backgroundColor: '#D1B36A',
+                color: '#0E1B2A',
+                fontWeight: 600,
+                padding: '12px 24px',
+                borderRadius: '6px'
+              }}
+              className="hover:bg-[#E0C77B]"
+            >
               Continue to Assessment →
             </Button>
           ) : (
@@ -589,7 +599,14 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                 handleSubmit();
               }} 
               disabled={isSubmitting}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              style={{
+                backgroundColor: '#D1B36A',
+                color: '#0E1B2A',
+                fontWeight: 600,
+                padding: '12px 24px',
+                borderRadius: '6px'
+              }}
+              className="hover:bg-[#E0C77B]"
             >
               {isSubmitting ? (
                 <>
