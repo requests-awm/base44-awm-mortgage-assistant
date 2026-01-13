@@ -312,57 +312,65 @@ export default function CaseDetail() {
         console.log('💰 FINANCIAL DATA CHANGED - RECALCULATING');
         console.log('   Old LTV: ' + caseData.ltv + '% -> New LTV: ' + updates.ltv + '%');
         
-        // Recalculate triage
+        // Calculate triage rating - COPIED FROM NewCase.js
         console.log('🎯 Step 1: Calling calculateTriage...');
+        const triageResponse = await base44.functions.invoke('calculateTriage', {
+          ltv: updates.ltv,
+          annual_income: updates.annual_income,
+          category: updates.category,
+          income_type: updates.income_type,
+          purpose: updates.purpose || caseData.purpose
+        });
+        const { rating, factors, timestamp } = triageResponse.data;
+        
+        updates.triage_rating = rating;
+        updates.triage_factors = factors;
+        updates.triage_last_calculated = timestamp;
+        
+        console.log('✅ Triage result:', {
+          rating: rating,
+          factors: factors
+        });
+        
+        // Match lenders - COPIED FROM NewCase.js
+        console.log('🏦 Step 2: Calling matchLenders...');
+        let lenderMatchData = {
+          matched_lenders: [],
+          total_lender_matches: 0,
+          lender_match_calculated_at: null
+        };
+        
         try {
-          const triageResponse = await base44.functions.invoke('calculateTriage', {
+          const matchResponse = await base44.functions.invoke('matchLenders', {
             ltv: updates.ltv,
-            annual_income: updates.annual_income || 0,
             category: updates.category,
-            income_type: updates.income_type,
-            purpose: updates.purpose || caseData.purpose
+            annual_income: updates.annual_income,
+            income_type: updates.income_type
           });
           
-          updates.triage_rating = triageResponse.data.rating;
-          updates.triage_factors = triageResponse.data.factors;
-          updates.triage_last_calculated = new Date().toISOString();
-          
-          console.log('✅ Triage result:', {
-            rating: triageResponse.data.rating,
-            factors: triageResponse.data.factors
-          });
+          lenderMatchData = {
+            matched_lenders: matchResponse.data.lenders,
+            rejected_lenders: matchResponse.data.rejected_lenders || [],
+            total_lender_matches: matchResponse.data.total_matches,
+            total_rejected_lenders: matchResponse.data.total_rejected || 0,
+            lender_match_calculated_at: matchResponse.data.timestamp
+          };
         } catch (error) {
-          console.error('❌ Failed to calculate triage:', error);
-          throw new Error('Failed to calculate triage: ' + error.message);
+          console.error('❌ Lender matching failed:', error);
+          // Continue with update even if matching fails
         }
         
-        // Recalculate lender matching
-        console.log('🏦 Step 2: Calling matchLenders...');
-        try {
-          const lenderResponse = await base44.functions.invoke('matchLenders', {
-            ltv: updates.ltv,
-            loan_amount: updates.loan_amount,
-            annual_income: updates.annual_income || 0,
-            income_type: updates.income_type,
-            category: updates.category,
-            client_age: 35
-          });
-          
-          updates.matched_lenders = lenderResponse.data.matched;
-          updates.rejected_lenders = lenderResponse.data.rejected;
-          updates.total_lender_matches = lenderResponse.data.matched.length;
-          updates.total_rejected_lenders = lenderResponse.data.rejected.length;
-          updates.lender_match_calculated_at = new Date().toISOString();
-          
-          console.log('✅ Lenders result:', {
-            matched: lenderResponse.data.matched.length,
-            rejected: lenderResponse.data.rejected.length,
-            lender_names: lenderResponse.data.matched.map(l => l.name)
-          });
-        } catch (error) {
-          console.error('❌ Failed to match lenders:', error);
-          throw new Error('Failed to match lenders: ' + error.message);
-        }
+        updates.matched_lenders = lenderMatchData.matched_lenders;
+        updates.rejected_lenders = lenderMatchData.rejected_lenders;
+        updates.total_lender_matches = lenderMatchData.total_lender_matches;
+        updates.total_rejected_lenders = lenderMatchData.total_rejected_lenders;
+        updates.lender_match_calculated_at = lenderMatchData.lender_match_calculated_at;
+        
+        console.log('✅ Lenders result:', {
+          matched: lenderMatchData.total_lender_matches,
+          rejected: lenderMatchData.total_rejected_lenders,
+          lender_names: lenderMatchData.matched_lenders.map(l => l.name || l.short_name)
+        });
       }
       
       console.log('💾 Step 3: Saving to database...');
