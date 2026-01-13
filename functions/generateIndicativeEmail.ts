@@ -3,45 +3,70 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 // Default template function
 function getDefaultTemplate(caseData) {
   const firstName = caseData.client_name.split(' ')[0];
-  const lenderList = (caseData.matched_lenders || []).slice(0, 5).map(l => l.name).join(', ');
+  const lenderCount = (caseData.matched_lenders || []).length;
+  const categoryLabel = {
+    residential: 'Residential',
+    buy_to_let: 'Buy-to-Let',
+    later_life: 'Later Life',
+    ltd_company: 'Ltd Company'
+  }[caseData.category] || caseData.category;
+  
+  const purposeLabel = {
+    purchase: 'purchase',
+    remortgage: 'remortgage',
+    rate_expiry: 'rate switch'
+  }[caseData.purpose] || caseData.purpose;
   
   return {
-    subject: `Your ${caseData.purpose === 'remortgage' ? 'Remortgage' : 'Mortgage'} Options - Initial Assessment`,
+    subject: 'Your Mortgage Options - Initial Assessment',
     body: `Hi ${firstName},
 
-I hope this message finds you well. I wanted to provide you with an initial assessment of your ${caseData.purpose === 'remortgage' ? 'remortgage' : 'mortgage'} enquiry based on the information you've provided.
+Thank you for considering Ascot Wealth Management for your mortgage needs.
 
-Given your property value of £${caseData.property_value?.toLocaleString()} and loan amount of £${caseData.loan_amount?.toLocaleString()} (${caseData.ltv}% LTV), I can provide an indicative interest rate range of approximately 4.5% to 5.5%. Please note this is indicative only and subject to full assessment.
+Based on the information provided:
+- Property value: £${caseData.property_value?.toLocaleString() || 'N/A'}
+- Loan amount: £${caseData.loan_amount?.toLocaleString() || 'N/A'}
+- Loan-to-value: ${caseData.ltv || 'N/A'}%
+- ${categoryLabel} mortgage for ${purposeLabel}
 
-Based on our initial review, the following lenders may be suitable: ${lenderList}. These options are pending a comprehensive review of your financial circumstances and the lenders' final criteria.
+We've identified ${lenderCount} lenders that match your specific circumstances and criteria.
 
-Please note: Should you decide to proceed and we submit your application, there is a £750 non-refundable processing fee. This fee covers our professional advisory services, lender liaison, and application management. It is important to note that this fee applies even if you later decide not to proceed with the mortgage.
+We'd be pleased to proceed with a comprehensive professional quote to find you the most suitable option based on your financial situation. Our team will:
+- Compare rates and terms across your matched lenders
+- Identify the best product for your needs
+- Handle the application process on your behalf
 
-Please remember, this is an indicative assessment only and does not constitute regulated mortgage advice. A full fact-find and affordability assessment will be required before any formal recommendation can be made.
+If you'd like us to proceed, simply reply to this email or call us at [phone].
 
-I'd be delighted to discuss your options in more detail. Please reply to this email or book a call at your convenience.
-
-Warm regards,
+Best regards,
 [Adviser Name]
-[Position]
-[Contact Info]
-[Company Name]`
+Ascot Wealth Management
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Important Information:
+This assessment is indicative only and does not constitute regulated financial advice. A full analysis and formal recommendation will be provided following our comprehensive review process.
+
+Our professional service fee is £750. This fee becomes payable if you proceed with our service and subsequently withdraw after we have commenced work on your application. By proceeding, you acknowledge and accept these terms.
+
+Ascot Wealth Management is authorised and regulated by the Financial Conduct Authority (FCA).`
   };
 }
 
 // Locked template sections (never AI-generated)
 const LOCKED_SECTIONS = {
-  feeDisclosure: `Please note: Should you decide to proceed and we submit your application, there is a £750 non-refundable processing fee. This fee covers our professional advisory services, lender liaison, and application management. It is important to note that this fee applies even if you later decide not to proceed with the mortgage.`,
-  
-  fcaDisclaimer: `Please remember, this is an indicative assessment only and does not constitute regulated mortgage advice. A full fact-find and affordability assessment will be required before any formal recommendation can be made.`,
-  
-  signOff: `If you have any questions or would like to discuss this further, please feel free to reply to this email or book a call with me at your convenience. I'm here to help you navigate this process smoothly.
+  disclaimer: `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Warm regards,
+Important Information:
+This assessment is indicative only and does not constitute regulated financial advice. A full analysis and formal recommendation will be provided following our comprehensive review process.
+
+Our professional service fee is £750. This fee becomes payable if you proceed with our service and subsequently withdraw after we have commenced work on your application. By proceeding, you acknowledge and accept these terms.
+
+Ascot Wealth Management is authorised and regulated by the Financial Conduct Authority (FCA).`,
+  
+  signOff: `Best regards,
 [Adviser Name]
-[Position]
-[Contact Info]
-[Company Name]`
+Ascot Wealth Management`
 };
 
 Deno.serve(async (req) => {
@@ -113,11 +138,22 @@ Deno.serve(async (req) => {
     // Extract client first name
     const clientFirstName = mortgageCase.client_name?.split(' ')[0] || 'there';
     
-    // Get matched lender names (max 5)
-    const matchedLenderNames = (mortgageCase.matched_lenders || [])
-      .slice(0, 5)
-      .map(l => l.name)
-      .join(', ');
+    // Get matched lender count
+    const lenderCount = (mortgageCase.matched_lenders || []).length;
+    
+    // Category and purpose labels
+    const categoryLabel = {
+      residential: 'Residential',
+      buy_to_let: 'Buy-to-Let',
+      later_life: 'Later Life',
+      ltd_company: 'Ltd Company'
+    }[mortgageCase.category] || mortgageCase.category;
+    
+    const purposeLabel = {
+      purchase: 'purchase',
+      remortgage: 'remortgage',
+      rate_expiry: 'rate switch'
+    }[mortgageCase.purpose] || mortgageCase.purpose;
 
     // Build email context
     let mortgageContext = '';
@@ -126,7 +162,7 @@ Deno.serve(async (req) => {
     }
 
     // Build prompt based on adjustment type
-    let toneInstruction = 'professional but friendly';
+    let toneInstruction = 'professional and consultative';
     let focusInstruction = '';
     
     if (adjustment === 'formal') {
@@ -138,42 +174,46 @@ Deno.serve(async (req) => {
       if (mortgageCase.existing_product_end_date) {
         focusInstruction = `EMPHASIZE: Their current deal expires on ${mortgageCase.existing_product_end_date}. Stress the importance of acting soon.`;
       }
-    } else if (adjustment === 'savings') {
-      if (mortgageCase.existing_rate) {
-        focusInstruction = `FOCUS: Compare their current ${mortgageCase.existing_rate}% rate to potential new rates. Highlight savings opportunity.`;
-      }
-    } else if (adjustment === 'speed') {
-      focusInstruction = 'FOCUS: Emphasize fast turnaround, quick lender decisions, and efficient processing.';
-    } else if (adjustment === 'experience') {
-      focusInstruction = 'FOCUS: Highlight adviser expertise, successful track record, and professional credentials.';
     }
 
-    // Build AI prompt (generates only specific sections)
-    const prompt = `Write ONLY the following 4 sections for a UK mortgage client email (${toneInstruction} tone):
+    // Build AI prompt - generates main body only (no greeting)
+    const prompt = `Write the main body sections for a UK mortgage client email (${toneInstruction} tone).
 
-CLIENT: ${clientFirstName} ${mortgageCase.client_name}
-PROPERTY: £${mortgageCase.property_value?.toLocaleString() || 'N/A'} | LOAN: £${mortgageCase.loan_amount?.toLocaleString() || 'N/A'} | LTV: ${mortgageCase.ltv || 'N/A'}%
-CATEGORY: ${mortgageCase.category || 'N/A'} | PURPOSE: ${mortgageCase.purpose || 'N/A'}
-INCOME: £${mortgageCase.annual_income?.toLocaleString() || 'N/A'}${mortgageContext}
-MATCHED LENDERS: ${matchedLenderNames || 'To be determined'}
+CLIENT DETAILS:
+Property: £${mortgageCase.property_value?.toLocaleString() || 'N/A'}
+Loan: £${mortgageCase.loan_amount?.toLocaleString() || 'N/A'}
+LTV: ${mortgageCase.ltv || 'N/A'}%
+Category: ${categoryLabel}
+Purpose: ${purposeLabel}
+Matched Lenders: ${lenderCount}${mortgageContext}
 
 ${focusInstruction}
 
-Generate ONLY these 4 sections (150-200 words total):
+DO NOT INCLUDE:
+- Greeting (no "Hi" or "Dear")
+- Specific lender names
+- Rate estimates or percentages
+- Mentions of shopping around
+- Closing signature
 
-1. OPENING: 2-3 sentences summarizing their specific situation (use first name)
-2. RATE_GUIDANCE: Indicative rate range 4.5%-5.5% with brief context
-3. LENDERS: Brief mention of matched lenders as potential options (not guarantees, pending full assessment)
-4. CTA: One sentence inviting them to discuss further
+DO INCLUDE:
+- Number of matched lenders
+- Personalized summary of their situation
+- What we'll do next (compare rates, identify best product, handle application)
+- Clear call to action (reply or call)
+
+Generate 3 sections (120-150 words total):
+
+1. INTRO: Thank them and summarize their situation (property value, loan, LTV, category/purpose)
+2. MATCHES: State number of matched lenders and what we'll do (compare, identify best, handle process)
+3. CTA: Simple call to action to reply or call
 
 Format your response EXACTLY like this:
-OPENING: [your text here]
-RATE_GUIDANCE: [your text here]
-LENDERS: [your text here]
+INTRO: [your text here]
+MATCHES: [your text here]
 CTA: [your text here]
 
-Also provide a subject line.
-UK spelling throughout. Be concise.`;
+UK spelling. Professional but approachable tone.`;
 
     // Call OpenAI API
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -222,37 +262,28 @@ UK spelling throughout. Be concise.`;
 
     // Parse AI-generated sections
     const sections = {};
-    const openingMatch = aiOutput.match(/OPENING:\s*(.+?)(?=\nRATE_GUIDANCE:|$)/s);
-    const rateMatch = aiOutput.match(/RATE_GUIDANCE:\s*(.+?)(?=\nLENDERS:|$)/s);
-    const lendersMatch = aiOutput.match(/LENDERS:\s*(.+?)(?=\nCTA:|$)/s);
+    const introMatch = aiOutput.match(/INTRO:\s*(.+?)(?=\nMATCHES:|$)/s);
+    const matchesMatch = aiOutput.match(/MATCHES:\s*(.+?)(?=\nCTA:|$)/s);
     const ctaMatch = aiOutput.match(/CTA:\s*(.+?)(?=\n|$)/s);
     
-    sections.opening = openingMatch ? openingMatch[1].trim() : `I hope this message finds you well. I wanted to provide you with an initial assessment of your ${mortgageCase.purpose} enquiry.`;
-    sections.rateGuidance = rateMatch ? rateMatch[1].trim() : 'Based on your circumstances, the indicative interest rate range is approximately 4.5% to 5.5%. Please note this is subject to full assessment.';
-    sections.lenders = lendersMatch ? lendersMatch[1].trim() : `The following lenders may be suitable: ${matchedLenderNames}. These are indicative options pending comprehensive review.`;
-    sections.cta = ctaMatch ? ctaMatch[1].trim() : "I'd be delighted to discuss your options in more detail.";
+    sections.intro = introMatch ? introMatch[1].trim() : `Thank you for considering Ascot Wealth Management for your mortgage needs.\n\nBased on the information provided:\n- Property value: £${mortgageCase.property_value?.toLocaleString() || 'N/A'}\n- Loan amount: £${mortgageCase.loan_amount?.toLocaleString() || 'N/A'}\n- Loan-to-value: ${mortgageCase.ltv || 'N/A'}%\n- ${categoryLabel} mortgage for ${purposeLabel}`;
+    sections.matches = matchesMatch ? matchesMatch[1].trim() : `We've identified ${lenderCount} lenders that match your specific circumstances and criteria.\n\nWe'd be pleased to proceed with a comprehensive professional quote to find you the most suitable option based on your financial situation. Our team will:\n- Compare rates and terms across your matched lenders\n- Identify the best product for your needs\n- Handle the application process on your behalf`;
+    sections.cta = ctaMatch ? ctaMatch[1].trim() : "If you'd like us to proceed, simply reply to this email or call us at [phone].";
 
-    // Extract subject line
-    const subjectMatch = aiOutput.match(/Subject:\s*(.+?)(\n|$)/i);
-    const emailSubject = subjectMatch ? subjectMatch[1].trim() : 
-      (mortgageCase.purpose === 'remortgage' ? 'Your Remortgage Options - Initial Assessment' : 'Your Mortgage Options - Initial Assessment');
+    const emailSubject = 'Your Mortgage Options - Initial Assessment';
     
-    // Assemble full email with locked sections
+    // Assemble full email with template structure
     const emailBody = `Hi ${clientFirstName},
 
-${sections.opening}
+${sections.intro}
 
-${sections.rateGuidance}
-
-${sections.lenders}
-
-${LOCKED_SECTIONS.feeDisclosure}
-
-${LOCKED_SECTIONS.fcaDisclaimer}
+${sections.matches}
 
 ${sections.cta}
 
-${LOCKED_SECTIONS.signOff}`.trim();
+${LOCKED_SECTIONS.signOff}
+
+${LOCKED_SECTIONS.disclaimer}`.trim();
 
     // Update case with email draft
     const currentVersion = mortgageCase.email_version || 0;
