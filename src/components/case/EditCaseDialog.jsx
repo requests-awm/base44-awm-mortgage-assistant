@@ -51,6 +51,39 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
     notes: caseData?.notes || ''
   });
 
+  // Update form when caseData changes
+  React.useEffect(() => {
+    if (caseData && isOpen) {
+      const loadedData = {
+        client_name: caseData.client_name || '',
+        client_email: caseData.client_email || '',
+        client_phone: caseData.client_phone || '',
+        category: caseData.category || '',
+        purpose: caseData.purpose || '',
+        existing_lender: caseData.existing_lender || '',
+        existing_rate: caseData.existing_rate || '',
+        existing_product_type: caseData.existing_product_type || '',
+        existing_product_end_date: caseData.existing_product_end_date || '',
+        existing_monthly_payment: caseData.existing_monthly_payment || '',
+        switching_reason: caseData.switching_reason || '',
+        property_value: caseData.property_value || '',
+        loan_amount: caseData.loan_amount || '',
+        income_type: caseData.income_type || '',
+        annual_income: caseData.annual_income || '',
+        client_deadline: caseData.client_deadline || '',
+        rate_expiry_date: caseData.rate_expiry_date || '',
+        notes: caseData.notes || ''
+      };
+      console.log('📋 Loaded case for editing:', {
+        property_value: loadedData.property_value,
+        loan_amount: loadedData.loan_amount,
+        ltv: caseData.ltv,
+        triage_rating: caseData.triage_rating
+      });
+      setFormData(loadedData);
+    }
+  }, [caseData, isOpen]);
+
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
