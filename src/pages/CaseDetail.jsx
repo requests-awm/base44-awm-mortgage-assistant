@@ -339,7 +339,7 @@ export default function CaseDetail() {
       
       console.log('✅ Case update complete!');
     },
-    onSuccess: (_, updates) => {
+    onSuccess: async (_, updates) => {
       const financialChanged = 
         updates.property_value !== caseData.property_value ||
         updates.loan_amount !== caseData.loan_amount ||
@@ -347,8 +347,17 @@ export default function CaseDetail() {
         updates.category !== caseData.category ||
         updates.income_type !== caseData.income_type;
       
-      queryClient.invalidateQueries(['mortgageCase', caseId]);
-      queryClient.invalidateQueries(['auditLogs', caseId]);
+      console.log('✅ Case update saved to database');
+      
+      // Invalidate ALL case queries to refresh everywhere
+      await queryClient.invalidateQueries({ queryKey: ['mortgageCase'] });
+      await queryClient.invalidateQueries({ queryKey: ['auditLogs', caseId] });
+      
+      // Force refetch of current case
+      await queryClient.refetchQueries({ queryKey: ['mortgageCase', caseId] });
+      
+      console.log('🔄 All queries invalidated and refetched');
+      
       setIsEditDialogOpen(false);
       toast.success(financialChanged ? 'Case updated - triage recalculated' : 'Case updated successfully');
     },
