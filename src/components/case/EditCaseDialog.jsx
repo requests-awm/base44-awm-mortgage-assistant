@@ -246,11 +246,11 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving} className="bg-slate-900 hover:bg-slate-800">
+            <Button type="submit" disabled={isSaving} className="bg-[#D1B36A] text-[#0E1B2A] font-semibold hover:bg-[#DBC17D]">
               {isSaving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  Recalculating...
                 </>
               ) : (
                 'Save Changes'

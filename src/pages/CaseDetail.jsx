@@ -265,15 +265,18 @@ export default function CaseDetail() {
 
   const editMutation = useMutation({
     mutationFn: async (updates) => {
+      console.log('🔄 Saving case updates...', updates);
       const user = await base44.auth.me();
       
       // Recalculate timeline urgency if deadline changed
       if (updates.client_deadline !== caseData.client_deadline) {
+        console.log('📅 Timeline changed, recalculating urgency...');
         const timelineResponse = await base44.functions.invoke('calculateTimelineUrgency', {
           client_deadline: updates.client_deadline
         });
         updates.timeline_urgency = timelineResponse.data.urgency;
         updates.days_until_deadline = timelineResponse.data.days_left;
+        console.log('✅ Timeline urgency:', timelineResponse.data.urgency);
       }
       
       // Check if financial data changed - recalculate triage and lender matching
@@ -285,7 +288,11 @@ export default function CaseDetail() {
         updates.income_type !== caseData.income_type;
       
       if (financialChanged && updates.ltv) {
+        console.log('💰 Financial data changed, recalculating triage & lenders...');
+        console.log('   Old LTV:', caseData.ltv, '-> New LTV:', updates.ltv);
+        
         // Recalculate triage
+        console.log('🎯 Calling calculateTriage...');
         const triageResponse = await base44.functions.invoke('calculateTriage', {
           ltv: updates.ltv,
           annual_income: updates.annual_income || 0,
@@ -297,8 +304,10 @@ export default function CaseDetail() {
         updates.triage_rating = triageResponse.data.rating;
         updates.triage_factors = triageResponse.data.factors;
         updates.triage_last_calculated = new Date().toISOString();
+        console.log('✅ Triage recalculated:', triageResponse.data.rating);
         
         // Recalculate lender matching
+        console.log('🏦 Calling matchLenders...');
         const lenderResponse = await base44.functions.invoke('matchLenders', {
           ltv: updates.ltv,
           loan_amount: updates.loan_amount,
@@ -313,8 +322,10 @@ export default function CaseDetail() {
         updates.total_lender_matches = lenderResponse.data.matched.length;
         updates.total_rejected_lenders = lenderResponse.data.rejected.length;
         updates.lender_match_calculated_at = new Date().toISOString();
+        console.log('✅ Lenders matched:', lenderResponse.data.matched.length);
       }
       
+      console.log('💾 Saving to database...');
       await base44.entities.MortgageCase.update(caseId, updates);
       
       await base44.entities.AuditLog.create({
@@ -325,14 +336,24 @@ export default function CaseDetail() {
         actor_email: user?.email,
         timestamp: new Date().toISOString()
       });
+      
+      console.log('✅ Case update complete!');
     },
-    onSuccess: () => {
+    onSuccess: (_, updates) => {
+      const financialChanged = 
+        updates.property_value !== caseData.property_value ||
+        updates.loan_amount !== caseData.loan_amount ||
+        updates.annual_income !== caseData.annual_income ||
+        updates.category !== caseData.category ||
+        updates.income_type !== caseData.income_type;
+      
       queryClient.invalidateQueries(['mortgageCase', caseId]);
       queryClient.invalidateQueries(['auditLogs', caseId]);
       setIsEditDialogOpen(false);
-      toast.success('Case updated successfully');
+      toast.success(financialChanged ? 'Case updated - triage recalculated' : 'Case updated successfully');
     },
     onError: (error) => {
+      console.error('❌ Edit mutation failed:', error);
       toast.error('Failed to update case: ' + error.message);
     }
   });
