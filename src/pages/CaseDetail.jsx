@@ -501,9 +501,9 @@ export default function CaseDetail() {
               </Button>
 
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => setIsEditDialogOpen(true)}
+                className="bg-[#D1B36A] text-[#0E1B2A] font-semibold hover:bg-[#DBC17D]"
               >
                 <Edit className="w-4 h-4 mr-1" />
                 Edit
