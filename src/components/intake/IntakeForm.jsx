@@ -192,44 +192,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   return (
     <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-semibold text-slate-900">Mortgage Intake</CardTitle>
         <CardDescription className="text-slate-500">
           {step === 1 ? 'Capture client details from Asana handover' : 'Financial assessment for triage scoring'}
         </CardDescription>
-        
-        {/* Progress Steps */}
-        <div className="flex items-center justify-between mt-6 px-2">
-          {stepConfig.map((s, idx) => (
-            <React.Fragment key={s.num}>
-              <button
-                onClick={() => s.num < step && setStep(s.num)}
-                className={`flex flex-col items-center transition-all ${
-                  step === s.num 
-                    ? 'opacity-100' 
-                    : step > s.num 
-                      ? 'opacity-70 cursor-pointer hover:opacity-100' 
-                      : 'opacity-40'
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                  step === s.num 
-                    ? 'bg-slate-900 text-white' 
-                    : step > s.num 
-                      ? 'bg-emerald-100 text-emerald-600' 
-                      : 'bg-slate-100 text-slate-400'
-                }`}>
-                  {step > s.num ? <CheckCircle className="w-5 h-5" /> : <s.icon className="w-5 h-5" />}
-                </div>
-                <span className="text-xs mt-1.5 font-medium text-slate-600">{s.label}</span>
-              </button>
-              {idx < stepConfig.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-2 transition-all ${
-                  step > s.num ? 'bg-emerald-200' : 'bg-slate-200'
-                }`} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
       </CardHeader>
 
       <CardContent>
