@@ -37,19 +37,19 @@ const CATEGORY_COLORS = {
   challenger: 'bg-pink-100 text-pink-700'
 };
 
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+
 export default function LenderDashboard() {
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
+  const [selectedLender, setSelectedLender] = useState(null);
 
   const { data: lenders = [], isLoading: loadingLenders } = useQuery({
     queryKey: ['lenders'],
     queryFn: () => base44.entities.Lender.list()
-  });
-
-  const { data: products = [], isLoading: loadingProducts } = useQuery({
-    queryKey: ['lenderProducts'],
-    queryFn: () => base44.entities.LenderProduct.list()
   });
 
   // Filter and sort
@@ -59,9 +59,9 @@ export default function LenderDashboard() {
         l.name?.toLowerCase().includes(search.toLowerCase()) ||
         l.short_name?.toLowerCase().includes(search.toLowerCase());
       
-      const matchesCategory = categoryFilter === 'all' || l.category === categoryFilter;
+      const matchesType = typeFilter === 'all' || l.type === typeFilter;
       
-      return matchesSearch && matchesCategory && l.is_active;
+      return matchesSearch && matchesType && l.is_active;
     });
 
     // Sort
@@ -69,36 +69,31 @@ export default function LenderDashboard() {
       switch (sortBy) {
         case 'name':
           return (a.name || '').localeCompare(b.name || '');
-        case 'category':
-          return (a.category || '').localeCompare(b.category || '');
+        case 'type':
+          return (a.type || '').localeCompare(b.type || '');
         case 'updated':
-          return new Date(b.last_criteria_update || 0) - new Date(a.last_criteria_update || 0);
-        case 'products':
-          const aCount = products.filter(p => p.lender_id === a.id).length;
-          const bCount = products.filter(p => p.lender_id === b.id).length;
-          return bCount - aCount;
+          return new Date(b.last_updated || 0) - new Date(a.last_updated || 0);
         default:
           return 0;
       }
     });
 
     return filtered;
-  }, [lenders, products, search, categoryFilter, sortBy]);
+  }, [lenders, search, typeFilter, sortBy]);
 
   // Stats
   const stats = useMemo(() => {
     const activeLenders = lenders.filter(l => l.is_active).length;
-    const totalProducts = products.filter(p => p.is_available).length;
     const needsUpdate = lenders.filter(l => {
-      if (!l.last_criteria_update) return true;
-      const daysSince = (Date.now() - new Date(l.last_criteria_update).getTime()) / (1000 * 60 * 60 * 24);
+      if (!l.last_updated) return true;
+      const daysSince = (Date.now() - new Date(l.last_updated).getTime()) / (1000 * 60 * 60 * 24);
       return daysSince > 90;
     }).length;
 
-    return { activeLenders, totalProducts, needsUpdate };
-  }, [lenders, products]);
+    return { activeLenders, needsUpdate };
+  }, [lenders]);
 
-  if (loadingLenders || loadingProducts) {
+  if (loadingLenders) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
@@ -173,17 +168,16 @@ export default function LenderDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-48 bg-white/80">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder="Lender Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="high_street">High Street</SelectItem>
-                <SelectItem value="building_society">Building Society</SelectItem>
-                <SelectItem value="specialist">Specialist</SelectItem>
-                <SelectItem value="private_bank">Private Bank</SelectItem>
-                <SelectItem value="challenger">Challenger</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="High Street">High Street</SelectItem>
+                <SelectItem value="Building Society">Building Society</SelectItem>
+                <SelectItem value="Specialist">Specialist</SelectItem>
+                <SelectItem value="Challenger">Challenger</SelectItem>
               </SelectContent>
             </Select>
 
@@ -193,9 +187,8 @@ export default function LenderDashboard() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="category">Category</SelectItem>
+                <SelectItem value="type">Type</SelectItem>
                 <SelectItem value="updated">Last Updated</SelectItem>
-                <SelectItem value="products">Product Count</SelectItem>
               </SelectContent>
             </Select>
 
@@ -211,94 +204,211 @@ export default function LenderDashboard() {
         {/* Lenders Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredLenders.map(lender => {
-            const lenderProducts = products.filter(p => p.lender_id === lender.id && p.is_available);
-            const needsUpdate = !lender.last_criteria_update || 
-              (Date.now() - new Date(lender.last_criteria_update).getTime()) / (1000 * 60 * 60 * 24) > 90;
+            const needsUpdate = !lender.last_updated || 
+              (Date.now() - new Date(lender.last_updated).getTime()) / (1000 * 60 * 60 * 24) > 90;
+            
+            // Format helpers
+            const formatPercent = (val) => val ? `${val}%` : '-';
+            const formatMoney = (val) => val ? `£${val.toLocaleString()}` : '-';
 
             return (
-              <Card key={lender.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
+              <Card 
+                key={lender.id} 
+                className="border-0 shadow-sm hover:shadow-md transition-all cursor-pointer group hover:ring-2 hover:ring-[#D1B36A]/50"
+                onClick={() => setSelectedLender(lender)}
+              >
+                <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-base font-semibold text-slate-900">
+                      <CardTitle className="text-lg font-bold text-slate-900">
                         {lender.name}
                       </CardTitle>
-                      {lender.short_name && (
-                        <p className="text-xs text-slate-500 mt-0.5">{lender.short_name}</p>
-                      )}
-                    </div>
-                    <Badge className={`${CATEGORY_COLORS[lender.category]} text-xs`}>
-                      {CATEGORY_LABELS[lender.category]}
-                    </Badge>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  {/* Products */}
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-slate-500" />
-                      <span className="text-sm text-slate-700">Products</span>
-                    </div>
-                    <span className="font-semibold text-slate-900">{lenderProducts.length}</span>
-                  </div>
-
-                  {/* Product Types */}
-                  {lender.products_offered && lender.products_offered.length > 0 && (
-                    <div>
-                      <p className="text-xs text-slate-500 mb-2">Offerings</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {lender.products_offered.map((type, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs capitalize">
-                            {type.replace('_', ' ')}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* BDM Contact */}
-                  {lender.bdm_contact && (
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Users className="w-4 h-4 text-slate-400" />
-                      <span className="truncate">{lender.bdm_contact}</span>
-                    </div>
-                  )}
-
-                  {/* Last Update */}
-                  <div className="pt-3 border-t flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <Calendar className="w-3 h-3" />
-                      {lender.last_criteria_update ? (
-                        <span>Updated {formatDistanceToNow(new Date(lender.last_criteria_update), { addSuffix: true })}</span>
-                      ) : (
-                        <span>Never updated</span>
-                      )}
+                      <p className="text-xs font-medium text-slate-500 mt-0.5">{lender.type}</p>
                     </div>
                     {needsUpdate && (
-                      <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+                      <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 text-[10px] px-1.5 h-5">
                         Update needed
                       </Badge>
                     )}
                   </div>
+                </CardHeader>
 
-                  {/* Criteria URL */}
-                  {lender.criteria_url && (
-                    <a 
-                      href={lender.criteria_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-700 transition-colors"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      View Criteria
-                    </a>
-                  )}
+                <CardContent className="pt-4 space-y-4">
+                  {/* Key Stats */}
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500">Max LTV</span>
+                      <span className="font-semibold text-slate-900">
+                        {formatPercent(lender.max_ltv_residential)} (Res) <span className="text-slate-300">|</span> {formatPercent(lender.max_ltv_btl)} (BTL)
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500">Min Income</span>
+                      <span className="font-semibold text-slate-900">{formatMoney(lender.min_income)}</span>
+                    </div>
+                  </div>
+
+                  {/* Boolean Flags */}
+                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                    <div className={`flex items-center gap-2 text-sm ${lender.self_employed_accepted ? 'text-slate-700' : 'text-slate-400'}`}>
+                      {lender.self_employed_accepted ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <div className="w-4 h-4 flex items-center justify-center text-slate-300">✗</div>}
+                      <span>Self-Employed OK</span>
+                    </div>
+                    <div className={`flex items-center gap-2 text-sm ${lender.later_life_products ? 'text-slate-700' : 'text-slate-400'}`}>
+                      {lender.later_life_products ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <div className="w-4 h-4 flex items-center justify-center text-slate-300">✗</div>}
+                      <span>Later Life Products</span>
+                    </div>
+                    <div className={`flex items-center gap-2 text-sm ${lender.ltd_company_btl ? 'text-slate-700' : 'text-slate-400'}`}>
+                      {lender.ltd_company_btl ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <div className="w-4 h-4 flex items-center justify-center text-slate-300">✗</div>}
+                      <span>Ltd Company BTL</span>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="pt-4 mt-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-100">
+                    <span>
+                      Updated {lender.last_updated ? formatDistanceToNow(new Date(lender.last_updated), { addSuffix: true }) : 'never'}
+                    </span>
+                    <div className="flex gap-3 font-medium">
+                      {lender.criteria_url && (
+                        <a 
+                          href={lender.criteria_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          View Criteria
+                        </a>
+                      )}
+                      <span className="text-slate-300">|</span>
+                      <button className="text-slate-600 hover:text-slate-900 hover:underline">Edit</button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
+
+        {/* Detail Modal */}
+        <Dialog open={!!selectedLender} onOpenChange={(open) => !open && setSelectedLender(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            {selectedLender && (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center justify-between pr-8">
+                    <div>
+                      <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+                        {selectedLender.name}
+                        {selectedLender.criteria_url && (
+                          <a 
+                            href={selectedLender.criteria_url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <ExternalLink className="w-5 h-5" />
+                          </a>
+                        )}
+                      </DialogTitle>
+                      <p className="text-slate-500 mt-1">{selectedLender.type}</p>
+                    </div>
+                    {(!selectedLender.last_updated || (Date.now() - new Date(selectedLender.last_updated).getTime()) / (1000 * 60 * 60 * 24) > 90) && (
+                      <Badge className="bg-amber-100 text-amber-700 border-amber-200">Update Needed</Badge>
+                    )}
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-8 py-4">
+                  {/* Key Criteria Grid */}
+                  <div className="grid grid-cols-2 gap-6 p-5 bg-slate-50 rounded-xl border border-slate-100">
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">Residential</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Max LTV:</span>
+                          <span className="font-semibold">{selectedLender.max_ltv_residential}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Min Income:</span>
+                          <span className="font-semibold">£{(selectedLender.min_income || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Self-Employed:</span>
+                          <span className={selectedLender.self_employed_accepted ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                            {selectedLender.self_employed_accepted ? "Accepted" : "No"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Later Life:</span>
+                          <span className={selectedLender.later_life_products ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                            {selectedLender.later_life_products ? "Available" : "No"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>HMO:</span>
+                          <span className={selectedLender.hmo_mortgages ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                            {selectedLender.hmo_mortgages ? "Available" : "No"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">Buy-to-Let</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Max LTV:</span>
+                          <span className="font-semibold">{selectedLender.max_ltv_btl}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Ltd Company:</span>
+                          <span className={selectedLender.ltd_company_btl ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                            {selectedLender.ltd_company_btl ? "Accepted" : "No"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Text Sections */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold text-emerald-700 flex items-center gap-2 mb-2">
+                        <CheckCircle className="w-4 h-4" /> Strengths
+                      </h3>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                        {selectedLender.strengths || "No strengths listed."}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-amber-700 flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-4 h-4" /> Weaknesses
+                      </h3>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                        {selectedLender.weaknesses || "No weaknesses listed."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedLender.notable_criteria && (
+                    <div>
+                      <h3 className="font-semibold text-slate-900 mb-2">Notable Criteria</h3>
+                      <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border-l-4 border-blue-500">
+                        {selectedLender.notable_criteria}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-slate-400 text-center pt-4 border-t">
+                    Last updated: {selectedLender.last_updated ? format(new Date(selectedLender.last_updated), 'dd MMM yyyy') : 'Never'}
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {filteredLenders.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-slate-400">
