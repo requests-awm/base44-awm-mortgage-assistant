@@ -169,7 +169,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
             {/* Line 3: Email Status */}
             <div className="text-[14px]">
               {mortgageCase.email_status === 'draft' && (
-                <span className="text-blue-600">Draft Ready</span>
+                <span className="text-blue-600">Draft ready</span>
               )}
               {mortgageCase.email_status === 'scheduled' && mortgageCase.email_scheduled_send_time && (
                 <span className="text-[#D1B36A]">Scheduled {format(new Date(mortgageCase.email_scheduled_send_time), 'dd MMM')}</span>
@@ -177,10 +177,7 @@ export default function CaseCard({ mortgageCase, compact = false }) {
               {mortgageCase.email_status === 'sent' && mortgageCase.email_sent_at && (
                 <span className="text-emerald-600">Sent {format(new Date(mortgageCase.email_sent_at), 'dd MMM')}</span>
               )}
-              {mortgageCase.email_status === 'failed' && (
-                <span className="text-red-600">Draft Failed</span>
-              )}
-              {mortgageCase.email_status === 'not_generated' && (
+              {(!mortgageCase.email_status || mortgageCase.email_status === 'not_generated') && (
                 <span className="text-slate-400">Draft pending</span>
               )}
             </div>
