@@ -276,11 +276,50 @@ export default function CaseDetail() {
         updates.days_until_deadline = timelineResponse.data.days_left;
       }
       
+      // Check if financial data changed - recalculate triage and lender matching
+      const financialChanged = 
+        updates.property_value !== caseData.property_value ||
+        updates.loan_amount !== caseData.loan_amount ||
+        updates.annual_income !== caseData.annual_income ||
+        updates.category !== caseData.category ||
+        updates.income_type !== caseData.income_type;
+      
+      if (financialChanged && updates.ltv) {
+        // Recalculate triage
+        const triageResponse = await base44.functions.invoke('calculateTriage', {
+          ltv: updates.ltv,
+          annual_income: updates.annual_income || 0,
+          category: updates.category,
+          income_type: updates.income_type,
+          purpose: updates.purpose
+        });
+        
+        updates.triage_rating = triageResponse.data.rating;
+        updates.triage_factors = triageResponse.data.factors;
+        updates.triage_last_calculated = new Date().toISOString();
+        
+        // Recalculate lender matching
+        const lenderResponse = await base44.functions.invoke('matchLenders', {
+          ltv: updates.ltv,
+          loan_amount: updates.loan_amount,
+          annual_income: updates.annual_income || 0,
+          income_type: updates.income_type,
+          category: updates.category,
+          client_age: 35 // Default if not tracked
+        });
+        
+        updates.matched_lenders = lenderResponse.data.matched;
+        updates.rejected_lenders = lenderResponse.data.rejected;
+        updates.total_lender_matches = lenderResponse.data.matched.length;
+        updates.total_rejected_lenders = lenderResponse.data.rejected.length;
+        updates.lender_match_calculated_at = new Date().toISOString();
+      }
+      
       await base44.entities.MortgageCase.update(caseId, updates);
       
       await base44.entities.AuditLog.create({
         case_id: caseId,
-        action: 'Case details updated',
+        action: 'Case details updated' + (financialChanged ? ' (triage & lenders recalculated)' : ''),
         action_category: 'manual_override',
         actor: 'user',
         actor_email: user?.email,
