@@ -284,6 +284,47 @@ Deno.serve(async (req) => {
         console.log(`✅ MortgageCase created successfully`);
         console.log(`📌 Case ID: ${newCase.id}`);
         console.log(`📌 Case Reference: ${newCase.reference}`);
+
+        // POST COMMENT TO ASANA TASK
+        console.log(`💬 Posting comment to Asana task...`);
+        let asanaCommentPosted = false;
+
+        try {
+          const commentBody = {
+            data: {
+              text: `🔗 MORTGAGE CASE LINKED TO BASE44\nStatus: Awaiting intake completion\nCase ID: ${newCase.reference}\n⏳ Next Step: Assistant to complete intake form`
+            }
+          };
+
+          const commentResponse = await fetch(
+            `https://app.asana.com/api/1.0/tasks/${taskGid}/stories`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${asanaToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(commentBody),
+              signal: AbortSignal.timeout(3000) // 3 second timeout
+            }
+          );
+
+          if (commentResponse.ok) {
+            const commentData = await commentResponse.json();
+            console.log(`✅ Comment posted to Asana task`);
+            console.log(`📌 Story ID: ${commentData.data?.id}`);
+            asanaCommentPosted = true;
+          } else {
+            console.warn(`⚠️ Asana comment API error: ${commentResponse.status} ${commentResponse.statusText}`);
+            const errorBody = await commentResponse.text();
+            console.warn(`📌 Error body: ${errorBody}`);
+            // Continue - don't fail the webhook
+          }
+        } catch (commentError) {
+          console.warn(`⚠️ Failed to post comment to Asana: ${commentError.message}`);
+          // Continue - comment is optional, case already created
+        }
+
         console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
         return Response.json(
@@ -292,7 +333,8 @@ Deno.serve(async (req) => {
             message: 'Case created successfully',
             case_reference: newCase.reference,
             case_id: newCase.id,
-            task_gid: taskGid
+            task_gid: taskGid,
+            asana_comment_posted: asanaCommentPosted
           },
           { status: 200 }
         );
