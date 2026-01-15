@@ -126,8 +126,26 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Initialize Base44 client
-    const base44 = createClientFromRequest(req);
+    // Initialize Base44 client without authentication (webhook is public)
+    // Use service role for all database operations
+    const base44 = {
+      asServiceRole: {
+        entities: {
+          MortgageCase: {
+            filter: async (filter) => {
+              const { createClient } = await import('npm:@base44/sdk@0.8.6');
+              const client = createClient(Deno.env.get('BASE44_APP_ID'), null);
+              return await client.asServiceRole.entities.MortgageCase.filter(filter);
+            },
+            create: async (data) => {
+              const { createClient } = await import('npm:@base44/sdk@0.8.6');
+              const client = createClient(Deno.env.get('BASE44_APP_ID'), null);
+              return await client.asServiceRole.entities.MortgageCase.create(data);
+            }
+          }
+        }
+      }
+    };
 
     // CHECK FOR DUPLICATE
     console.log(`🔍 Checking for duplicate case with asana_task_gid: ${taskGid}`);
