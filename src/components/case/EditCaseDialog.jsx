@@ -136,11 +136,25 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Validation Errors */}
+          {!isFormValid && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm font-semibold text-red-900 mb-2">Please fill in all required fields:</p>
+              <ul className="text-sm text-red-800 space-y-1 list-disc list-inside">
+                {missingFields.map(field => (
+                  <li key={field}>
+                    {field.replace(/_/g, ' ').charAt(0).toUpperCase() + field.replace(/_/g, ' ').slice(1)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Client Details */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-slate-900">Client Information</h3>
             <div className="space-y-2">
-              <Label htmlFor="edit_client_name">Client Name</Label>
+              <Label htmlFor="edit_client_name">Client Name <span className="text-red-600">*</span></Label>
               <Input
                 id="edit_client_name"
                 value={formData.client_name}
