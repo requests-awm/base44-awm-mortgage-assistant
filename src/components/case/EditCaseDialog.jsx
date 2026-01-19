@@ -205,14 +205,16 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             <h3 className="text-sm font-semibold text-slate-900">Financial Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit_property_value">Property Value (£)</Label>
-                <Input
-                  id="edit_property_value"
-                  type="number"
-                  value={formData.property_value}
-                  onChange={(e) => setFormData({ ...formData, property_value: e.target.value })}
-                />
-              </div>
+                 <Label htmlFor="edit_property_value">
+                   Property Value (£) <span className="text-red-500">*</span>
+                 </Label>
+                 <Input
+                   id="edit_property_value"
+                   type="number"
+                   value={formData.property_value}
+                   onChange={(e) => setFormData({ ...formData, property_value: e.target.value })}
+                 />
+               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit_loan_amount">Loan Amount (£)</Label>
                 <Input
