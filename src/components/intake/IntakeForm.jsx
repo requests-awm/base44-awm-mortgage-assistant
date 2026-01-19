@@ -7,10 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle, AlertTriangle, ArrowRight, User, Building, Banknote, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import RemortgageFields from '@/components/intake/RemortgageFields';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 
 const CATEGORIES = [
   { value: 'residential', label: 'Residential' },
@@ -34,7 +39,44 @@ const INCOME_TYPES = [
 ];
 
 export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} }) {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  
+  // Detect edit mode from URL
+  const caseId = new URLSearchParams(window.location.search).get('case_id');
+  const isEditMode = !!caseId;
+
+  // Fetch existing case data if in edit mode
+  const { data: existingCase, isLoading: loadingCase } = useQuery({
+    queryKey: ['mortgageCase', caseId],
+    queryFn: async () => {
+      const cases = await base44.entities.MortgageCase.filter({ id: caseId });
+      return cases[0];
+    },
+    enabled: isEditMode,
+    onSuccess: (data) => {
+      // Check for edge cases
+      if (!data) {
+        toast.error('Case not found. Redirecting to dashboard...');
+        setTimeout(() => navigate(createPageUrl('Dashboard')), 2000);
+        return;
+      }
+      
+      if (data.case_status === 'active') {
+        toast.error('This case is already active. Redirecting to case details...');
+        setTimeout(() => navigate(createPageUrl(`CaseDetail?id=${caseId}`)), 2000);
+        return;
+      }
+    },
+    onError: () => {
+      toast.error('Case not found. Redirecting to dashboard...');
+      setTimeout(() => navigate(createPageUrl('Dashboard')), 2000);
+    }
+  });
+
+  // Track which fields came from Asana
+  const [asanaFields, setAsanaFields] = useState(new Set());
+
   const [formData, setFormData] = useState({
     asana_task_gid: initialData.asana_task_gid || '',
     client_name: initialData.client_name || '',
@@ -54,13 +96,62 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     switching_reason: initialData.switching_reason || '',
     annual_income: initialData.annual_income || '',
     income_type: initialData.income_type || '',
-    client_deadline: initialData.client_deadline || ''
+    client_deadline: initialData.client_deadline || '',
+    insightly_id: initialData.insightly_id || '',
+    internal_introducer: initialData.internal_introducer || '',
+    mortgage_broker_appointed: initialData.mortgage_broker_appointed || ''
   });
 
   const [errors, setErrors] = useState({});
   const [triageFeedback, setTriageFeedback] = useState(null);
   const [isCalculatingTriage, setIsCalculatingTriage] = useState(false);
   const triageTimeoutRef = useRef(null);
+
+  // Pre-fill form with existing case data
+  useEffect(() => {
+    if (existingCase && isEditMode) {
+      const fieldsFromAsana = new Set();
+      
+      // Map case data to form fields and track Asana fields
+      const updates = {
+        client_name: existingCase.client_name || '',
+        client_email: existingCase.client_email || '',
+        client_phone: existingCase.client_phone || '',
+        referring_team_member: existingCase.referring_team_member || '',
+        referring_team: existingCase.referring_team || '',
+        property_value: existingCase.property_value || '',
+        loan_amount: existingCase.loan_amount || '',
+        category: existingCase.category || '',
+        purpose: existingCase.purpose || '',
+        existing_lender: existingCase.existing_lender || '',
+        existing_rate: existingCase.existing_rate || '',
+        existing_product_type: existingCase.existing_product_type || '',
+        existing_product_end_date: existingCase.existing_product_end_date || '',
+        existing_monthly_payment: existingCase.existing_monthly_payment || '',
+        switching_reason: existingCase.switching_reason || '',
+        annual_income: existingCase.annual_income || '',
+        income_type: existingCase.income_type || '',
+        client_deadline: existingCase.client_deadline || '',
+        asana_task_gid: existingCase.asana_task_gid || '',
+        insightly_id: existingCase.insightly_id || '',
+        internal_introducer: existingCase.internal_introducer || '',
+        mortgage_broker_appointed: existingCase.mortgage_broker_appointed || ''
+      };
+
+      // Track fields that came from Asana (have values from webhook)
+      if (existingCase.created_from_asana) {
+        if (updates.client_name) fieldsFromAsana.add('client_name');
+        if (updates.client_email) fieldsFromAsana.add('client_email');
+        if (updates.asana_task_gid) fieldsFromAsana.add('asana_task_gid');
+        if (updates.insightly_id) fieldsFromAsana.add('insightly_id');
+        if (updates.internal_introducer) fieldsFromAsana.add('internal_introducer');
+        if (updates.mortgage_broker_appointed) fieldsFromAsana.add('mortgage_broker_appointed');
+      }
+
+      setFormData(updates);
+      setAsanaFields(fieldsFromAsana);
+    }
+  }, [existingCase, isEditMode]);
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -189,9 +280,29 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     { num: 2, label: 'Income & Timeline', icon: Banknote }
   ];
 
+  // Show loading state while fetching case
+  if (isEditMode && loadingCase) {
+    return (
+      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+        <CardContent className="p-12 text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-slate-400 mx-auto mb-4" />
+          <p className="text-slate-600">Loading case details...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Helper to check if field is from Asana
+  const isAsanaField = (fieldName) => asanaFields.has(fieldName);
+
   return (
     <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
       <CardHeader className="pb-4">
+        <CardTitle className="text-2xl">
+          {isEditMode && existingCase 
+            ? `Complete Intake for Case ${existingCase.reference}` 
+            : 'Create New Mortgage Case'}
+        </CardTitle>
         <CardDescription className="text-slate-500">
           {step === 1 ? 'Capture client details from Asana handover' : 'Financial assessment for triage scoring'}
         </CardDescription>
@@ -209,13 +320,20 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               className="space-y-5"
             >
               <div className="space-y-2">
-                <Label htmlFor="client_name">Client Name (from Asana/handover)</Label>
+                <Label htmlFor="client_name" className="flex items-center gap-2">
+                  Client Name (from Asana/handover)
+                  {isAsanaField('client_name') && (
+                    <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
+                  )}
+                </Label>
                 <Input
                   id="client_name"
                   value={formData.client_name}
                   onChange={(e) => updateField('client_name', e.target.value)}
                   placeholder="Full name"
-                  className={errors.client_name ? 'border-red-300' : ''}
+                  className={`${errors.client_name ? 'border-red-300' : ''} ${
+                    isAsanaField('client_name') ? 'border-emerald-300 bg-emerald-50/50' : ''
+                  }`}
                 />
                 {errors.client_name && (
                   <p className="text-xs text-red-500">{errors.client_name}</p>
@@ -224,13 +342,19 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="client_email">Email Address</Label>
+                  <Label htmlFor="client_email" className="flex items-center gap-2">
+                    Email Address
+                    {isAsanaField('client_email') && (
+                      <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
+                    )}
+                  </Label>
                   <Input
                     id="client_email"
                     type="email"
                     value={formData.client_email}
                     onChange={(e) => updateField('client_email', e.target.value)}
                     placeholder="email@example.com"
+                    className={isAsanaField('client_email') ? 'border-emerald-300 bg-emerald-50/50' : ''}
                   />
                 </div>
                 <div className="space-y-2">
@@ -245,13 +369,21 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="asana_task_gid">Asana Task ID</Label>
+                <Label htmlFor="asana_task_gid" className="flex items-center gap-2">
+                  Asana Task ID
+                  {isAsanaField('asana_task_gid') && (
+                    <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
+                  )}
+                </Label>
                 <Input
                   id="asana_task_gid"
                   value={formData.asana_task_gid}
                   onChange={(e) => updateField('asana_task_gid', e.target.value)}
                   placeholder="e.g., 1234567890 (optional)"
-                  className={errors.asana_task_gid ? 'border-red-300' : ''}
+                  disabled={isAsanaField('asana_task_gid')}
+                  className={`${errors.asana_task_gid ? 'border-red-300' : ''} ${
+                    isAsanaField('asana_task_gid') ? 'border-emerald-300 bg-emerald-50/50 cursor-not-allowed opacity-80' : ''
+                  }`}
                 />
                 <p className="text-xs text-slate-500">Links case back to Asana task</p>
                 {errors.asana_task_gid && (
@@ -426,6 +558,55 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   <RemortgageFields formData={formData} updateField={updateField} />
                 </div>
               )}
+
+              {/* Read-only Asana metadata (Step 5 fields) */}
+              {isEditMode && (formData.insightly_id || formData.internal_introducer || formData.mortgage_broker_appointed) && (
+                <div className="border-t pt-4 space-y-4">
+                  <h3 className="text-sm font-semibold text-slate-700">Asana Metadata (Read-Only)</h3>
+                  
+                  {formData.insightly_id && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        Insightly ID
+                        <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
+                      </Label>
+                      <Input
+                        value={formData.insightly_id}
+                        disabled
+                        className="border-emerald-300 bg-emerald-50/50 cursor-not-allowed opacity-80"
+                      />
+                    </div>
+                  )}
+
+                  {formData.internal_introducer && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        Internal Introducer
+                        <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
+                      </Label>
+                      <Input
+                        value={formData.internal_introducer}
+                        disabled
+                        className="border-emerald-300 bg-emerald-50/50 cursor-not-allowed opacity-80"
+                      />
+                    </div>
+                  )}
+
+                  {formData.mortgage_broker_appointed && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        Mortgage Broker Appointed
+                        <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
+                      </Label>
+                      <Input
+                        value={formData.mortgage_broker_appointed}
+                        disabled
+                        className="border-emerald-300 bg-emerald-50/50 cursor-not-allowed opacity-80"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -576,11 +757,11 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Case...
+                  {isEditMode ? 'Activating Case...' : 'Creating Case...'}
                 </>
               ) : (
                 <>
-                  Create Case & Generate Email →
+                  {isEditMode ? 'Activate Case →' : 'Create Case & Generate Email →'}
                 </>
               )}
             </Button>
