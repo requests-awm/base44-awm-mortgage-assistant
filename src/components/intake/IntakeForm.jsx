@@ -295,6 +295,84 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   // Helper to check if field is from Asana
   const isAsanaField = (fieldName) => asanaFields.has(fieldName);
 
+  // Required fields tracking
+  const REQUIRED_FIELDS = [
+    { key: 'client_name', label: 'Client Name' },
+    { key: 'client_email', label: 'Client Email' },
+    { key: 'client_phone', label: 'Client Phone' },
+    { key: 'property_value', label: 'Property Value' },
+    { key: 'loan_amount', label: 'Loan Amount' },
+    { key: 'purpose', label: 'Mortgage Purpose' },
+    { key: 'category', label: 'Category' },
+    { key: 'annual_income', label: 'Annual Income' },
+    { key: 'income_type', label: 'Employment Type' }
+  ];
+
+  const isFieldFilled = (fieldKey) => {
+    const value = formData[fieldKey];
+    return value !== null && value !== undefined && value !== '';
+  };
+
+  const getFieldStatus = () => {
+    const filled = REQUIRED_FIELDS.filter(f => isFieldFilled(f.key));
+    const missing = REQUIRED_FIELDS.filter(f => !isFieldFilled(f.key));
+    const percentage = Math.round((filled.length / REQUIRED_FIELDS.length) * 100);
+    
+    return {
+      filled: filled.length,
+      total: REQUIRED_FIELDS.length,
+      percentage,
+      missingFields: missing
+    };
+  };
+
+  const fieldStatus = getFieldStatus();
+
+  // Helper to get field class names
+  const getFieldClassName = (fieldKey, hasError = false) => {
+    if (hasError) return 'border-red-300';
+    
+    const isFilled = isFieldFilled(fieldKey);
+    const isRequired = REQUIRED_FIELDS.some(f => f.key === fieldKey);
+    const isFromAsana = isAsanaField(fieldKey);
+    
+    if (isFromAsana) {
+      return 'border-emerald-300 bg-emerald-50/50';
+    }
+    
+    if (isRequired && isEditMode) {
+      if (isFilled) {
+        return 'border-emerald-500';
+      } else {
+        return 'border-amber-400 bg-amber-50/30';
+      }
+    }
+    
+    return '';
+  };
+
+  // Helper to render field label with status icon
+  const FieldLabel = ({ htmlFor, children, fieldKey, className = '' }) => {
+    const isFilled = isFieldFilled(fieldKey);
+    const isRequired = REQUIRED_FIELDS.some(f => f.key === fieldKey);
+    const isFromAsana = isAsanaField(fieldKey);
+
+    return (
+      <Label htmlFor={htmlFor} className={`flex items-center gap-2 ${className}`}>
+        {isRequired && isEditMode && !isFilled && (
+          <span className="text-amber-500">⚠️</span>
+        )}
+        {children}
+        {isFromAsana && (
+          <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
+        )}
+        {isRequired && isEditMode && isFilled && !isFromAsana && (
+          <span className="text-emerald-600 font-semibold">✓</span>
+        )}
+      </Label>
+    );
+  };
+
   return (
     <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
       <CardHeader className="pb-4">
@@ -309,6 +387,46 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
       </CardHeader>
 
       <CardContent>
+        {/* Progress Summary - Edit Mode Only */}
+        {isEditMode && fieldStatus.percentage < 100 && (
+          <div className="mb-6 p-4 rounded-lg bg-amber-50 border border-amber-300">
+            <div className="flex items-start gap-3 mb-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-900 mb-1">
+                  Complete Required Fields to Activate Case
+                </h3>
+                <p className="text-sm text-amber-700">
+                  Progress: {fieldStatus.filled}/{fieldStatus.total} fields complete
+                </p>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden mb-3">
+              <div 
+                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-300"
+                style={{ width: `${fieldStatus.percentage}%` }}
+              />
+            </div>
+
+            {/* Missing Fields List */}
+            {fieldStatus.missingFields.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-800 mb-2">Missing:</p>
+                <div className="grid grid-cols-2 gap-1">
+                  {fieldStatus.missingFields.map(field => (
+                    <div key={field.key} className="text-xs text-amber-700 flex items-center gap-1">
+                      <span className="w-1 h-1 rounded-full bg-amber-600" />
+                      {field.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           {/* Step 1: Case Details */}
           {step === 1 && (
@@ -320,51 +438,59 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               className="space-y-5"
             >
               <div className="space-y-2">
-                <Label htmlFor="client_name" className="flex items-center gap-2">
+                <FieldLabel htmlFor="client_name" fieldKey="client_name">
                   Client Name (from Asana/handover)
-                  {isAsanaField('client_name') && (
-                    <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
-                  )}
-                </Label>
+                </FieldLabel>
                 <Input
                   id="client_name"
                   value={formData.client_name}
                   onChange={(e) => updateField('client_name', e.target.value)}
                   placeholder="Full name"
-                  className={`${errors.client_name ? 'border-red-300' : ''} ${
-                    isAsanaField('client_name') ? 'border-emerald-300 bg-emerald-50/50' : ''
-                  }`}
+                  className={getFieldClassName('client_name', errors.client_name)}
+                  aria-required="true"
+                  aria-invalid={!!errors.client_name}
                 />
                 {errors.client_name && (
                   <p className="text-xs text-red-500">{errors.client_name}</p>
+                )}
+                {!isFieldFilled('client_name') && !errors.client_name && isEditMode && (
+                  <p className="text-xs text-amber-600">Required to activate case</p>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="client_email" className="flex items-center gap-2">
+                  <FieldLabel htmlFor="client_email" fieldKey="client_email">
                     Email Address
-                    {isAsanaField('client_email') && (
-                      <Badge className="bg-emerald-100 text-emerald-700 text-xs">✓ From Asana</Badge>
-                    )}
-                  </Label>
+                  </FieldLabel>
                   <Input
                     id="client_email"
                     type="email"
                     value={formData.client_email}
                     onChange={(e) => updateField('client_email', e.target.value)}
                     placeholder="email@example.com"
-                    className={isAsanaField('client_email') ? 'border-emerald-300 bg-emerald-50/50' : ''}
+                    className={getFieldClassName('client_email')}
+                    aria-required="true"
                   />
+                  {!isFieldFilled('client_email') && isEditMode && (
+                    <p className="text-xs text-amber-600">Required to activate case</p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="client_phone">Phone Number</Label>
+                  <FieldLabel htmlFor="client_phone" fieldKey="client_phone">
+                    Phone Number
+                  </FieldLabel>
                   <Input
                     id="client_phone"
                     value={formData.client_phone}
                     onChange={(e) => updateField('client_phone', e.target.value)}
                     placeholder="+44 ..."
+                    className={getFieldClassName('client_phone')}
+                    aria-required="true"
                   />
+                  {!isFieldFilled('client_phone') && isEditMode && (
+                    <p className="text-xs text-amber-600">Required to activate case</p>
+                  )}
                 </div>
               </div>
 
@@ -471,31 +597,43 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="property_value">Property Value (£)</Label>
+                  <FieldLabel htmlFor="property_value" fieldKey="property_value">
+                    Property Value (£)
+                  </FieldLabel>
                   <Input
                     id="property_value"
                     type="number"
                     value={formData.property_value}
                     onChange={(e) => updateField('property_value', e.target.value)}
                     placeholder="e.g., 500000"
-                    className={errors.property_value ? 'border-red-300' : ''}
+                    className={getFieldClassName('property_value', errors.property_value)}
+                    aria-required="true"
                   />
                   {errors.property_value && (
                     <p className="text-xs text-red-500">{errors.property_value}</p>
                   )}
+                  {!isFieldFilled('property_value') && !errors.property_value && isEditMode && (
+                    <p className="text-xs text-amber-600">Required to activate case</p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="loan_amount">Loan Amount (£)</Label>
+                  <FieldLabel htmlFor="loan_amount" fieldKey="loan_amount">
+                    Loan Amount (£)
+                  </FieldLabel>
                   <Input
                     id="loan_amount"
                     type="number"
                     value={formData.loan_amount}
                     onChange={(e) => updateField('loan_amount', e.target.value)}
                     placeholder="e.g., 375000"
-                    className={errors.loan_amount ? 'border-red-300' : ''}
+                    className={getFieldClassName('loan_amount', errors.loan_amount)}
+                    aria-required="true"
                   />
                   {errors.loan_amount && (
                     <p className="text-xs text-red-500">{errors.loan_amount}</p>
+                  )}
+                  {!isFieldFilled('loan_amount') && !errors.loan_amount && isEditMode && (
+                    <p className="text-xs text-amber-600">Required to activate case</p>
                   )}
                 </div>
               </div>
@@ -521,9 +659,11 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Category</Label>
+                  <FieldLabel fieldKey="category">
+                    Category
+                  </FieldLabel>
                   <Select value={formData.category} onValueChange={(v) => updateField('category', v)}>
-                    <SelectTrigger className={errors.category ? 'border-red-300' : ''}>
+                    <SelectTrigger className={getFieldClassName('category', errors.category)}>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -533,12 +673,17 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     </SelectContent>
                   </Select>
                   {errors.category && <p className="text-xs text-red-500">{errors.category}</p>}
+                  {!isFieldFilled('category') && !errors.category && isEditMode && (
+                    <p className="text-xs text-amber-600">Required to activate case</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Purpose</Label>
+                  <FieldLabel fieldKey="purpose">
+                    Purpose
+                  </FieldLabel>
                   <Select value={formData.purpose} onValueChange={(v) => updateField('purpose', v)}>
-                    <SelectTrigger className={errors.purpose ? 'border-red-300' : ''}>
+                    <SelectTrigger className={getFieldClassName('purpose', errors.purpose)}>
                       <SelectValue placeholder="Select purpose" />
                     </SelectTrigger>
                     <SelectContent>
@@ -548,6 +693,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     </SelectContent>
                   </Select>
                   {errors.purpose && <p className="text-xs text-red-500">{errors.purpose}</p>}
+                  {!isFieldFilled('purpose') && !errors.purpose && isEditMode && (
+                    <p className="text-xs text-amber-600">Required to activate case</p>
+                  )}
                 </div>
               </div>
 
@@ -620,25 +768,33 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               className="space-y-5"
             >
               <div className="space-y-2">
-                <Label htmlFor="annual_income">Annual Income (£)</Label>
+                <FieldLabel htmlFor="annual_income" fieldKey="annual_income">
+                  Annual Income (£)
+                </FieldLabel>
                 <Input
                   id="annual_income"
                   type="number"
                   value={formData.annual_income}
                   onChange={(e) => updateField('annual_income', e.target.value)}
                   placeholder="Gross annual income"
-                  className={errors.annual_income ? 'border-red-300' : ''}
+                  className={getFieldClassName('annual_income', errors.annual_income)}
+                  aria-required="true"
                 />
                 <p className="text-xs text-slate-500">From adviser's fact-find or estimated</p>
                 {errors.annual_income && (
                   <p className="text-xs text-red-500">{errors.annual_income}</p>
                 )}
+                {!isFieldFilled('annual_income') && !errors.annual_income && isEditMode && (
+                  <p className="text-xs text-amber-600">Required to activate case</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label>Employment Type</Label>
+                <FieldLabel fieldKey="income_type">
+                  Employment Type
+                </FieldLabel>
                 <Select value={formData.income_type} onValueChange={(v) => updateField('income_type', v)}>
-                  <SelectTrigger className={errors.income_type ? 'border-red-300' : ''}>
+                  <SelectTrigger className={getFieldClassName('income_type', errors.income_type)}>
                     <SelectValue placeholder="Select employment type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -648,6 +804,9 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   </SelectContent>
                 </Select>
                 {errors.income_type && <p className="text-xs text-red-500">{errors.income_type}</p>}
+                {!isFieldFilled('income_type') && !errors.income_type && isEditMode && (
+                  <p className="text-xs text-amber-600">Required to activate case</p>
+                )}
               </div>
 
               <div className="space-y-2">
