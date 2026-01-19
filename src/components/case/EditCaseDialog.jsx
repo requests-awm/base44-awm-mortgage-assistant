@@ -249,7 +249,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Income Type</Label>
+                <Label>Income Type <span className="text-red-600">*</span></Label>
                 <Select value={formData.income_type} onValueChange={(v) => setFormData({ ...formData, income_type: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select income type" />
