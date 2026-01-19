@@ -40,6 +40,7 @@ const INCOME_TYPES = [
 
 export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   
   // Detect edit mode from URL
