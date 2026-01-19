@@ -302,6 +302,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     
     if (stepNum === 1) {
       if (!formData.client_name) newErrors.client_name = 'Required';
+      if (!formData.client_email) newErrors.client_email = 'Required';
       if (!formData.referring_team_member) newErrors.referring_team_member = 'Required';
       if (!formData.property_value) newErrors.property_value = 'Required';
       if (!formData.loan_amount) newErrors.loan_amount = 'Required';
@@ -315,8 +316,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     }
     
     if (stepNum === 2) {
-      if (!formData.annual_income) newErrors.annual_income = 'Required';
-      if (!formData.income_type) newErrors.income_type = 'Required';
+      // Annual income and income_type are now optional
     }
 
     setErrors(newErrors);
