@@ -201,7 +201,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Purpose</Label>
+                <Label>Purpose <span className="text-red-600">*</span></Label>
                 <Select value={formData.purpose} onValueChange={(v) => setFormData({ ...formData, purpose: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select purpose" />
