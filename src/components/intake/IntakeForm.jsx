@@ -508,15 +508,15 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     // Validate all required fields
     const validationErrors = [];
     if (validateEmail(formData.client_email)) validationErrors.push('email');
-    if (validatePhone(formData.client_phone)) validationErrors.push('phone');
+    // Optional: if (validatePhone(formData.client_phone)) validationErrors.push('phone');
     if (validateTextField(formData.client_name)) validationErrors.push('name');
     if (validatePositiveNumber(formData.property_value)) validationErrors.push('property');
     if (validatePositiveNumber(formData.loan_amount)) validationErrors.push('loan');
     if (validateLoanAmount()) validationErrors.push('loan_vs_property');
-    if (validatePositiveNumber(formData.annual_income)) validationErrors.push('income');
+    // Optional: if (validatePositiveNumber(formData.annual_income)) validationErrors.push('income');
     if (validateDropdown(formData.category)) validationErrors.push('category');
     if (validateDropdown(formData.purpose)) validationErrors.push('purpose');
-    if (validateDropdown(formData.income_type)) validationErrors.push('income_type');
+    // Optional: if (validateDropdown(formData.income_type)) validationErrors.push('income_type');
     
     return validationErrors.length === 0;
   };
