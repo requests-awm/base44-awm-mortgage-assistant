@@ -676,26 +676,21 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   )}
                 </div>
                 <div className="space-y-2">
-                  <FieldLabel htmlFor="client_phone" fieldKey="client_phone">
-                    Phone Number
-                  </FieldLabel>
-                  <Input
-                    id="client_phone"
-                    value={formData.client_phone}
-                    onChange={(e) => updateField('client_phone', e.target.value)}
-                    onBlur={() => handleFieldBlur('client_phone')}
-                    placeholder="+44 ..."
-                    className={getFieldClassName('client_phone', errors.client_phone)}
-                    aria-required="true"
-                    aria-invalid={!!errors.client_phone}
-                  />
-                  {errors.client_phone && (
-                    <p className="text-xs text-red-500">{errors.client_phone}</p>
-                  )}
-                  {!isFieldFilled('client_phone') && isEditMode && (
-                    <p className="text-xs text-amber-600">Required to activate case</p>
-                  )}
-                </div>
+                    <Label htmlFor="client_phone">
+                      Phone Number (optional)
+                    </Label>
+                    <Input
+                      id="client_phone"
+                      value={formData.client_phone}
+                      onChange={(e) => updateField('client_phone', e.target.value)}
+                      onBlur={() => handleFieldBlur('client_phone')}
+                      placeholder="+44 ..."
+                      className={getFieldClassName('client_phone', errors.client_phone)}
+                    />
+                    {errors.client_phone && (
+                      <p className="text-xs text-red-500">{errors.client_phone}</p>
+                    )}
+                  </div>
               </div>
 
               <div className="space-y-2">
