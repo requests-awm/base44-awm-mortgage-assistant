@@ -24,6 +24,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import MetricCard from '@/components/dashboard/MetricCard';
 import CaseCard from '@/components/dashboard/CaseCard';
 import StageColumn from '@/components/dashboard/StageColumn';
+import IncompleteCaseCard from '@/components/dashboard/IncompleteCaseCard';
 
 // Stage groupings for Kanban view
 const STAGE_GROUPS = {
@@ -49,6 +50,7 @@ export default function Dashboard() {
     queryFn: () => base44.auth.me()
   });
   const [expandedSections, setExpandedSections] = useState({
+    incomplete: true,
     urgent: true,
     thisWeek: false,
     sentToClients: true,
@@ -160,6 +162,12 @@ export default function Dashboard() {
     return filteredCases
       .filter(c => ['awaiting_decision', 'decision_chase'].includes(c.stage))
       .sort((a, b) => new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date));
+  };
+
+  const getIncompleteCases = () => {
+    return cases
+      .filter(c => c.case_status === 'incomplete')
+      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
   };
 
   // All Cases table state
@@ -496,6 +504,30 @@ export default function Dashboard() {
         {/* My Work View */}
         <div id="my-work-view" style={{ display: activeTab === 'my-work' ? 'block' : 'none' }}>
           <div className="space-y-8">
+            {/* INCOMPLETE CASES Section */}
+            {getIncompleteCases().length > 0 && (
+              <div>
+                <button
+                  onClick={() => toggleSection('incomplete')}
+                  className="flex items-center justify-between w-full mb-4 group"
+                >
+                  <h2 className="text-lg font-bold text-[#F59E0B] flex items-center gap-3 pl-4 border-l-[3px] border-[#F59E0B]">
+                    ⚠️ INCOMPLETE CASES ({getIncompleteCases().length})
+                    <ChevronDown 
+                      className={`w-5 h-5 transition-transform ${expandedSections.incomplete ? '' : '-rotate-90'}`}
+                    />
+                  </h2>
+                </button>
+                {expandedSections.incomplete && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {getIncompleteCases().map(c => (
+                      <IncompleteCaseCard key={c.id} mortgageCase={c} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* URGENT Section */}
             <div>
               <button
