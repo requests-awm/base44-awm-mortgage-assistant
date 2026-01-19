@@ -1044,11 +1044,8 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.income_type && <p className="text-xs text-red-500">{errors.income_type}</p>}
-                {!isFieldFilled('income_type') && !errors.income_type && isEditMode && (
-                  <p className="text-xs text-amber-600">Required to activate case</p>
-                )}
-              </div>
+                <p className="text-xs text-slate-500">(optional)</p>
+                </div>
 
               <div className="space-y-2">
                 <Label htmlFor="client_deadline">Client Deadline (if known)</Label>
