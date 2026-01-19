@@ -122,14 +122,16 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-slate-900">Client Information</h3>
             <div className="space-y-2">
-              <Label htmlFor="edit_client_name">Client Name</Label>
-              <Input
-                id="edit_client_name"
-                value={formData.client_name}
-                onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                required
-              />
-            </div>
+               <Label htmlFor="edit_client_name">
+                 Client Name <span className="text-red-500">*</span>
+               </Label>
+               <Input
+                 id="edit_client_name"
+                 value={formData.client_name}
+                 onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                 required
+               />
+             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit_client_email">Email</Label>
