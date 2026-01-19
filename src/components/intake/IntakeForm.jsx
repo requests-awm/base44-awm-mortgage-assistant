@@ -106,6 +106,8 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   const [triageFeedback, setTriageFeedback] = useState(null);
   const [isCalculatingTriage, setIsCalculatingTriage] = useState(false);
   const triageTimeoutRef = useRef(null);
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Pre-fill form with existing case data
   useEffect(() => {
@@ -153,11 +155,26 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     }
   }, [existingCase, isEditMode]);
 
+  // Unsaved changes warning
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: null }));
     }
+    setHasUnsavedChanges(true);
   };
 
   // Validation functions
@@ -313,31 +330,85 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
 
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log('[IntakeForm] handleSubmit called');
     
     if (!validateStep(2)) {
       console.log('[IntakeForm] Validation failed');
       return;
     }
-    
-    const ltv = formData.property_value && formData.loan_amount 
-      ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
-      : null;
 
-    const submitData = {
-      ...formData,
-      property_value: parseFloat(formData.property_value) || null,
-      loan_amount: parseFloat(formData.loan_amount) || null,
-      annual_income: parseFloat(formData.annual_income) || null,
-      existing_rate: parseFloat(formData.existing_rate) || null,
-      existing_monthly_payment: parseFloat(formData.existing_monthly_payment) || null,
-      ltv: ltv ? Math.round(ltv * 10) / 10 : null
-    };
+    if (!isFormValid()) {
+      toast.error('Please fill all required fields correctly');
+      return;
+    }
 
-    console.log('[IntakeForm] Submitting data:', submitData);
-    
-    onSubmit(submitData);
+    setIsSubmittingForm(true);
+
+    try {
+      const ltv = formData.property_value && formData.loan_amount 
+        ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
+        : null;
+
+      const loanToIncomeRatio = formData.loan_amount && formData.annual_income
+        ? parseFloat(formData.loan_amount) / parseFloat(formData.annual_income)
+        : null;
+
+      const submitData = {
+        client_name: formData.client_name,
+        client_email: formData.client_email,
+        client_phone: formData.client_phone,
+        referring_team_member: formData.referring_team_member,
+        referring_team: formData.referring_team,
+        property_value: parseFloat(formData.property_value) || null,
+        loan_amount: parseFloat(formData.loan_amount) || null,
+        category: formData.category,
+        purpose: formData.purpose,
+        existing_lender: formData.existing_lender || null,
+        existing_rate: parseFloat(formData.existing_rate) || null,
+        existing_product_type: formData.existing_product_type || null,
+        existing_product_end_date: formData.existing_product_end_date || null,
+        existing_monthly_payment: parseFloat(formData.existing_monthly_payment) || null,
+        switching_reason: formData.switching_reason || null,
+        annual_income: parseFloat(formData.annual_income) || null,
+        income_type: formData.income_type,
+        client_deadline: formData.client_deadline || null,
+        ltv: ltv ? Math.round(ltv * 10) / 10 : null,
+        loan_to_income: loanToIncomeRatio ? Math.round(loanToIncomeRatio * 10) / 10 : null,
+        case_status: 'active',
+        activated_at: new Date().toISOString()
+      };
+
+      if (isEditMode) {
+        // Edit mode: update existing case
+        console.log('[IntakeForm] Updating case:', caseId);
+        
+        await base44.entities.MortgageCase.update(caseId, {
+          ...submitData,
+          asana_last_synced: new Date().toISOString()
+        });
+
+        toast.success(`✅ Case ${existingCase.reference} activated successfully`);
+        setHasUnsavedChanges(false);
+        
+        // Redirect to dashboard with highlight
+        setTimeout(() => {
+          navigate(createPageUrl(`Dashboard?highlight=${caseId}`));
+        }, 500);
+      } else {
+        // Create mode: use parent's onSubmit handler
+        console.log('[IntakeForm] Creating new case');
+        
+        if (onSubmit) {
+          onSubmit(submitData);
+        }
+      }
+    } catch (error) {
+      console.error('[IntakeForm] Failed to save case:', error);
+      toast.error('Failed to save case. Please try again.');
+    } finally {
+      setIsSubmittingForm(false);
+    }
   };
 
   const calculateLTV = () => {
@@ -1081,20 +1152,20 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   console.log('[IntakeForm] Button clicked');
                   handleSubmit();
                 }} 
-                disabled={isSubmitting || !isFormValid()}
+                disabled={isSubmittingForm || !isFormValid()}
                 style={{
                   backgroundColor: isEditMode ? '#F59E0B' : '#2563EB',
                   color: 'white',
                   fontWeight: 600,
                   padding: '12px 24px',
                   borderRadius: '8px',
-                  opacity: (isSubmitting || !isFormValid()) ? 0.6 : 1,
-                  cursor: (isSubmitting || !isFormValid()) ? 'not-allowed' : 'pointer'
+                  opacity: (isSubmittingForm || !isFormValid()) ? 0.6 : 1,
+                  cursor: (isSubmittingForm || !isFormValid()) ? 'not-allowed' : 'pointer'
                 }}
                 className={isEditMode ? 'hover:opacity-90' : 'hover:opacity-90'}
                 title={!isFormValid() ? 'Fill all required fields to continue' : ''}
               >
-                {isSubmitting ? (
+                {isSubmittingForm ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     {isEditMode ? 'Activating Case...' : 'Creating Case...'}
