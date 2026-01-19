@@ -90,28 +90,8 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Validation function for required fields
-  const REQUIRED_FIELDS = [
-    'client_name',
-    'client_email',
-    'client_phone',
-    'property_value',
-    'loan_amount',
-    'purpose',
-    'category',
-    'annual_income',
-    'income_type'
-  ];
-
-  const missingFields = REQUIRED_FIELDS.filter(field => !formData[field] || formData[field].toString().trim() === '');
-  const isFormValid = missingFields.length === 0;
-
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!isFormValid) {
-      return;
-    }
     
     const ltv = formData.property_value && formData.loan_amount 
       ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
@@ -136,25 +116,11 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Validation Errors */}
-          {!isFormValid && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm font-semibold text-red-900 mb-2">Please fill in all required fields:</p>
-              <ul className="text-sm text-red-800 space-y-1 list-disc list-inside">
-                {missingFields.map(field => (
-                  <li key={field}>
-                    {field.replace(/_/g, ' ').charAt(0).toUpperCase() + field.replace(/_/g, ' ').slice(1)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
           {/* Client Details */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-slate-900">Client Information</h3>
             <div className="space-y-2">
-              <Label htmlFor="edit_client_name">Client Name <span className="text-red-600">*</span></Label>
+              <Label htmlFor="edit_client_name">Client Name</Label>
               <Input
                 id="edit_client_name"
                 value={formData.client_name}
@@ -164,7 +130,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit_client_email">Email <span className="text-red-600">*</span></Label>
+                <Label htmlFor="edit_client_email">Email</Label>
                 <Input
                   id="edit_client_email"
                   type="email"
@@ -173,7 +139,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_client_phone">Phone <span className="text-red-600">*</span></Label>
+                <Label htmlFor="edit_client_phone">Phone</Label>
                 <Input
                   id="edit_client_phone"
                   value={formData.client_phone}
@@ -188,7 +154,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             <h3 className="text-sm font-semibold text-slate-900">Mortgage Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Category <span className="text-red-600">*</span></Label>
+                <Label>Category</Label>
                 <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
@@ -201,7 +167,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Purpose <span className="text-red-600">*</span></Label>
+                <Label>Purpose</Label>
                 <Select value={formData.purpose} onValueChange={(v) => setFormData({ ...formData, purpose: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select purpose" />
@@ -229,7 +195,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             <h3 className="text-sm font-semibold text-slate-900">Financial Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit_property_value">Property Value (£) <span className="text-red-600">*</span></Label>
+                <Label htmlFor="edit_property_value">Property Value (£)</Label>
                 <Input
                   id="edit_property_value"
                   type="number"
@@ -238,7 +204,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_loan_amount">Loan Amount (£) <span className="text-red-600">*</span></Label>
+                <Label htmlFor="edit_loan_amount">Loan Amount (£)</Label>
                 <Input
                   id="edit_loan_amount"
                   type="number"
@@ -249,7 +215,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Income Type <span className="text-red-600">*</span></Label>
+                <Label>Income Type</Label>
                 <Select value={formData.income_type} onValueChange={(v) => setFormData({ ...formData, income_type: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select income type" />
@@ -262,7 +228,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_annual_income">Annual Income (£) <span className="text-red-600">*</span></Label>
+                <Label htmlFor="edit_annual_income">Annual Income (£)</Label>
                 <Input
                   id="edit_annual_income"
                   type="number"
@@ -329,7 +295,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving || !isFormValid} className="bg-[#D1B36A] text-[#0E1B2A] font-semibold hover:bg-[#DBC17D]">
+            <Button type="submit" disabled={isSaving} className="bg-[#D1B36A] text-[#0E1B2A] font-semibold hover:bg-[#DBC17D]">
               {isSaving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
