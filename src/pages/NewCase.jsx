@@ -15,6 +15,9 @@ export default function NewCase() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🆕 CREATING NEW CASE');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('[NewCase] Mutation started with data:', data);
       const user = await base44.auth.me();
       console.log('[NewCase] User:', user);
@@ -79,6 +82,8 @@ export default function NewCase() {
       const caseData = {
         ...data,
         reference,
+        case_type: 'case',
+        created_from_asana: false,
         stage: 'intake_received',
         created_by: userIdentifier,
         assigned_to: userIdentifier,
@@ -115,16 +120,19 @@ export default function NewCase() {
         timestamp: new Date().toISOString()
       });
 
+      console.log('✅ Case created successfully:', newCase.reference);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
       return newCase;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries(['mortgageCases']);
-      toast.success('Case created successfully!');
-      navigate(createPageUrl(`CaseCreated?id=${data.id}`));
+      toast.success(`✅ Case ${data.reference} created successfully`);
+      navigate(createPageUrl(`Dashboard?highlight=${data.id}`));
     },
     onError: (error) => {
-      console.error('[NewCase] Mutation error:', error);
-      toast.error('Failed to create case: ' + error.message);
+      console.error('❌ Failed to create case:', error);
+      toast.error('Failed to create case. Please try again.');
     }
   });
 
