@@ -262,7 +262,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_annual_income">Annual Income (£)</Label>
+                <Label htmlFor="edit_annual_income">Annual Income (£) <span className="text-red-600">*</span></Label>
                 <Input
                   id="edit_annual_income"
                   type="number"
