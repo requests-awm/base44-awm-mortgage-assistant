@@ -90,8 +90,28 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Validation function for required fields
+  const REQUIRED_FIELDS = [
+    'client_name',
+    'client_email',
+    'client_phone',
+    'property_value',
+    'loan_amount',
+    'purpose',
+    'category',
+    'annual_income',
+    'income_type'
+  ];
+
+  const missingFields = REQUIRED_FIELDS.filter(field => !formData[field] || formData[field].toString().trim() === '');
+  const isFormValid = missingFields.length === 0;
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!isFormValid) {
+      return;
+    }
     
     const ltv = formData.property_value && formData.loan_amount 
       ? (parseFloat(formData.loan_amount) / parseFloat(formData.property_value)) * 100 
