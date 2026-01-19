@@ -470,13 +470,10 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   const REQUIRED_FIELDS = [
     { key: 'client_name', label: 'Client Name' },
     { key: 'client_email', label: 'Client Email' },
-    { key: 'client_phone', label: 'Client Phone' },
-    { key: 'property_value', label: 'Property Value' },
-    { key: 'loan_amount', label: 'Loan Amount' },
     { key: 'purpose', label: 'Mortgage Purpose' },
     { key: 'category', label: 'Category' },
-    { key: 'annual_income', label: 'Annual Income' },
-    { key: 'income_type', label: 'Employment Type' }
+    { key: 'property_value', label: 'Property Value' },
+    { key: 'loan_amount', label: 'Loan Amount' }
   ];
 
   const isFieldFilled = (fieldKey) => {
