@@ -238,7 +238,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_loan_amount">Loan Amount (£)</Label>
+                <Label htmlFor="edit_loan_amount">Loan Amount (£) <span className="text-red-600">*</span></Label>
                 <Input
                   id="edit_loan_amount"
                   type="number"
