@@ -266,6 +266,20 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             </div>
           </div>
 
+          {/* Asana Integration */}
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="text-sm font-semibold text-slate-900">Asana Integration</h3>
+            <div className="space-y-2">
+              <Label htmlFor="edit_asana_task_gid">Asana Task ID</Label>
+              <Input
+                id="edit_asana_task_gid"
+                value={formData.asana_task_gid}
+                onChange={(e) => setFormData({ ...formData, asana_task_gid: e.target.value })}
+                placeholder="e.g., 1234567890"
+              />
+            </div>
+          </div>
+
           {/* Notes */}
           <div className="space-y-2 pt-4 border-t">
             <Label htmlFor="edit_notes">Notes</Label>
