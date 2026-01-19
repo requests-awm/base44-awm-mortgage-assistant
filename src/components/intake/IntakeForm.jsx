@@ -15,7 +15,7 @@ import RemortgageFields from '@/components/intake/RemortgageFields';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const CATEGORIES = [
   { value: 'residential', label: 'Residential' },
