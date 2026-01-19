@@ -175,11 +175,13 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Purpose</Label>
-                <Select value={formData.purpose} onValueChange={(v) => setFormData({ ...formData, purpose: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select purpose" />
-                  </SelectTrigger>
+                 <Label>
+                   Purpose <span className="text-red-500">*</span>
+                 </Label>
+                 <Select value={formData.purpose} onValueChange={(v) => setFormData({ ...formData, purpose: v })}>
+                   <SelectTrigger>
+                     <SelectValue placeholder="Select purpose" />
+                   </SelectTrigger>
                   <SelectContent>
                     {PURPOSES.map(p => (
                       <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
