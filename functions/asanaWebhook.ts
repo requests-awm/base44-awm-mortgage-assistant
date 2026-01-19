@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// FULL WEBHOOK CODE WITH CORS HEADER FIX
+// FINAL ATTEMPT: WILDCARD EXPOSE HEADERS + 200 OK
 Deno.serve(async (req) => {
     try {
         // Only allow POST requests
@@ -15,10 +15,8 @@ Deno.serve(async (req) => {
         const hookSecret = req.headers.get('X-Hook-Secret');
         const bodyText = await req.text();
 
-        // Log the request
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('📨 ASANA WEBHOOK REQUEST');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log(`⏰ Timestamp: ${timestamp}`);
         console.log(`🔐 Hook Secret Header: ${hookSecret ? 'Present' : 'Absent'}`);
 
@@ -26,17 +24,17 @@ Deno.serve(async (req) => {
         if (hookSecret) {
             console.log('🤝 HANDSHAKE DETECTED');
             console.log(`✅ Storing hook secret: ${hookSecret}`);
-            console.log('✅ Sending 200 OK with X-Hook-Secret header');
+            console.log('✅ Sending 200 OK with Wildcard Expose Headers');
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-            // OPTION 4 FIX: FORCE HEADERS THROUGH GATEWAY
+            // FINAL FIX: Use wildcard to expose ALL headers + 200 OK
+            // Some gateways strip headers on 204 options, so we stick to 200
             return new Response(null, {
                 status: 200,
                 headers: {
                     'X-Hook-Secret': hookSecret,
-                    'Access-Control-Expose-Headers': 'X-Hook-Secret',
-                    'Access-Control-Allow-Headers': 'X-Hook-Secret, Content-Type, X-Hook-Signature',
-                    'Access-Control-Allow-Origin': '*'
+                    'Access-Control-Expose-Headers': '*', // 👈 Force ALL headers to be visible
+                    'Access-Control-Allow-Origin': '*'    // Standard CORS
                 }
             });
         }
@@ -54,7 +52,6 @@ Deno.serve(async (req) => {
 
         const event = eventData.events?.[0];
         if (!event) {
-            console.warn('⚠️ No events in payload');
             return Response.json({ success: true, message: 'No events' }, { status: 200 });
         }
 
@@ -100,7 +97,6 @@ Deno.serve(async (req) => {
         const asanaProjectGid = Deno.env.get('ASANA_PROJECT_GID') || '1212782871770137';
 
         // FETCH DETAILS & CREATE CASE
-        // (Simplified fetching logic to keep code block manageable, but functionality preserved)
         let clientName = 'Asana Task';
         let clientEmail, insightlyId, brokerAppointed, internalIntroducer;
 
