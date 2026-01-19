@@ -173,7 +173,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_client_phone">Phone</Label>
+                <Label htmlFor="edit_client_phone">Phone <span className="text-red-600">*</span></Label>
                 <Input
                   id="edit_client_phone"
                   value={formData.client_phone}
