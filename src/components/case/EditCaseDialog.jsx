@@ -48,6 +48,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
     annual_income: caseData?.annual_income || '',
     client_deadline: caseData?.client_deadline || '',
     rate_expiry_date: caseData?.rate_expiry_date || '',
+    asana_task_gid: caseData?.asana_task_gid || '',
     notes: caseData?.notes || ''
   });
 
