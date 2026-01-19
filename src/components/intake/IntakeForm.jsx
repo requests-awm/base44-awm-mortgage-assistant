@@ -383,15 +383,18 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
       if (isEditMode) {
         // Edit mode: update existing case
         console.log('[IntakeForm] Updating case:', caseId);
-        
+
         await base44.entities.MortgageCase.update(caseId, {
           ...submitData,
           asana_last_synced: new Date().toISOString()
         });
 
+        // Invalidate cache to force dashboard refresh
+        queryClient.invalidateQueries({ queryKey: ['mortgageCases'] });
+
         toast.success(`✅ Case ${existingCase.reference} activated successfully`);
         setHasUnsavedChanges(false);
-        
+
         // Redirect to dashboard with highlight
         setTimeout(() => {
           navigate(createPageUrl(`Dashboard?highlight=${caseId}`));
