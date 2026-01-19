@@ -8,15 +8,12 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 const REQUIRED_FIELDS = [
-  { key: 'property_value', label: 'Property Value' },
-  { key: 'loan_amount', label: 'Loan Amount' },
-  { key: 'annual_income', label: 'Annual Income' },
-  { key: 'income_type', label: 'Employment Type' },
-  { key: 'category', label: 'Category' },
-  { key: 'purpose', label: 'Purpose' },
   { key: 'client_name', label: 'Client Name' },
   { key: 'client_email', label: 'Client Email' },
-  { key: 'client_phone', label: 'Client Phone' }
+  { key: 'purpose', label: 'Mortgage Purpose' },
+  { key: 'category', label: 'Category' },
+  { key: 'property_value', label: 'Property Value' },
+  { key: 'loan_amount', label: 'Loan Amount' }
 ];
 
 export default function IncompleteCaseCard({ mortgageCase }) {
