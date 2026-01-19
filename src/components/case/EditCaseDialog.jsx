@@ -188,7 +188,7 @@ export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSa
             <h3 className="text-sm font-semibold text-slate-900">Mortgage Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>Category <span className="text-red-600">*</span></Label>
                 <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
