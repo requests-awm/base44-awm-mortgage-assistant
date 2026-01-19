@@ -1020,16 +1020,8 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   onBlur={() => handleFieldBlur('annual_income')}
                   placeholder="Gross annual income"
                   className={getFieldClassName('annual_income', errors.annual_income)}
-                  aria-required="true"
-                  aria-invalid={!!errors.annual_income}
-                />
-                <p className="text-xs text-slate-500">From adviser's fact-find or estimated</p>
-                {errors.annual_income && (
-                  <p className="text-xs text-red-500">{errors.annual_income}</p>
-                )}
-                {!isFieldFilled('annual_income') && !errors.annual_income && isEditMode && (
-                  <p className="text-xs text-amber-600">Required to activate case</p>
-                )}
+                  />
+                  <p className="text-xs text-slate-500">From adviser's fact-find or estimated (optional)</p>
               </div>
 
               <div className="space-y-2">
