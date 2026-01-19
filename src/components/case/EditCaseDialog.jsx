@@ -29,6 +29,8 @@ const INCOME_TYPES = [
   { value: 'mixed', label: 'Mixed Income' }
 ];
 
+const REQUIRED_FOR_ACTIVATION = ['client_name', 'client_email', 'purpose', 'category', 'property_value', 'loan_amount'];
+
 export default function EditCaseDialog({ isOpen, onClose, caseData, onSave, isSaving }) {
   const [formData, setFormData] = useState({
     client_name: caseData?.client_name || '',
