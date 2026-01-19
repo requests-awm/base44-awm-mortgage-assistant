@@ -166,7 +166,7 @@ export default function Dashboard() {
 
   const getIncompleteCases = () => {
     return cases
-      .filter(c => c.case_status === 'incomplete')
+      .filter(c => c.case_status === 'incomplete' && c.created_from_asana === true)
       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
   };
 
@@ -512,7 +512,7 @@ export default function Dashboard() {
                   className="flex items-center justify-between w-full mb-4 group"
                 >
                   <h2 className="text-lg font-bold text-[#F59E0B] flex items-center gap-3 pl-4 border-l-[3px] border-[#F59E0B]">
-                    ⚠️ INCOMPLETE CASES ({getIncompleteCases().length})
+                    ⚠️ INCOMPLETE CASES FROM ASANA ({getIncompleteCases().length})
                     <ChevronDown 
                       className={`w-5 h-5 transition-transform ${expandedSections.incomplete ? '' : '-rotate-90'}`}
                     />

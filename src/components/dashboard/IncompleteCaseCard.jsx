@@ -28,7 +28,7 @@ export default function IncompleteCaseCard({ mortgageCase }) {
   const completionPercentage = Math.round((completedFields.length / REQUIRED_FIELDS.length) * 100);
 
   return (
-    <Card className="border-2 border-amber-300 bg-amber-50/30 hover:shadow-lg transition-all cursor-pointer">
+    <Card className="border-l-4 border-l-amber-400 bg-white hover:shadow-lg transition-all cursor-pointer border border-slate-200">
       <Link to={createPageUrl(`CaseDetail?id=${mortgageCase.id}`)}>
         <div className="p-5">
           {/* Header */}
