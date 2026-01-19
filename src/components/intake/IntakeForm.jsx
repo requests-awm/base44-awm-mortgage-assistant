@@ -160,6 +160,81 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     }
   };
 
+  // Validation functions
+  const validateEmail = (email) => {
+    if (!email) return null;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) ? null : 'Please enter a valid email address';
+  };
+
+  const validatePhone = (phone) => {
+    if (!phone) return null;
+    // Accept UK formats: 07123456789, +447123456789, 020 1234 5678, etc.
+    const phoneRegex = /^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$|^(\+44\s?[1-9]\d{1,4}|\(?0[1-9]\d{1,4}\)?)\s?\d{3,4}\s?\d{3,4}$/;
+    return phoneRegex.test(phone.replace(/\s/g, '')) ? null : 'Please enter a valid UK phone number';
+  };
+
+  const validatePositiveNumber = (value, fieldName) => {
+    if (!value) return null;
+    const num = parseFloat(value);
+    if (isNaN(num) || num <= 0) {
+      return 'Must be a positive number';
+    }
+    return null;
+  };
+
+  const validateLoanAmount = () => {
+    if (!formData.loan_amount || !formData.property_value) return null;
+    const loan = parseFloat(formData.loan_amount);
+    const property = parseFloat(formData.property_value);
+    if (loan > property) {
+      return 'Loan amount cannot exceed property value';
+    }
+    return null;
+  };
+
+  const validateTextField = (value, minLength = 2) => {
+    if (!value) return null;
+    return value.length >= minLength ? null : `Must be at least ${minLength} characters`;
+  };
+
+  const validateDropdown = (value) => {
+    return value ? null : 'Please select an option';
+  };
+
+  // Field blur validation
+  const handleFieldBlur = (fieldName) => {
+    let error = null;
+    
+    switch (fieldName) {
+      case 'client_email':
+        error = validateEmail(formData.client_email);
+        break;
+      case 'client_phone':
+        error = validatePhone(formData.client_phone);
+        break;
+      case 'client_name':
+        error = validateTextField(formData.client_name);
+        break;
+      case 'property_value':
+      case 'annual_income':
+        error = validatePositiveNumber(formData[fieldName], fieldName);
+        break;
+      case 'loan_amount':
+        error = validatePositiveNumber(formData.loan_amount, 'loan_amount') || validateLoanAmount();
+        break;
+      case 'category':
+      case 'purpose':
+      case 'income_type':
+        error = validateDropdown(formData[fieldName]);
+        break;
+    }
+    
+    if (error) {
+      setErrors(prev => ({ ...prev, [fieldName]: error }));
+    }
+  };
+
   // Calculate triage when financial data changes
   useEffect(() => {
     const propertyValue = parseFloat(formData.property_value);
@@ -273,7 +348,28 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
     return null;
   };
 
+  const calculateLoanToIncome = () => {
+    if (formData.loan_amount && formData.annual_income) {
+      const ratio = parseFloat(formData.loan_amount) / parseFloat(formData.annual_income);
+      return Math.round(ratio * 10) / 10;
+    }
+    return null;
+  };
+
   const ltv = calculateLTV();
+  const loanToIncome = calculateLoanToIncome();
+
+  // Real-time validation for loan amount vs property value
+  useEffect(() => {
+    if (formData.loan_amount && formData.property_value) {
+      const error = validateLoanAmount();
+      if (error) {
+        setErrors(prev => ({ ...prev, loan_amount: error }));
+      } else if (errors.loan_amount === 'Loan amount cannot exceed property value') {
+        setErrors(prev => ({ ...prev, loan_amount: null }));
+      }
+    }
+  }, [formData.loan_amount, formData.property_value]);
 
   const stepConfig = [
     { num: 1, label: 'Case Details', icon: Building },
@@ -327,6 +423,31 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   };
 
   const fieldStatus = getFieldStatus();
+
+  // Check if form is valid for submission
+  const isFormValid = () => {
+    // All required fields must be filled
+    if (fieldStatus.percentage < 100) return false;
+    
+    // No validation errors
+    const hasErrors = Object.values(errors).some(error => error !== null && error !== undefined);
+    if (hasErrors) return false;
+    
+    // Validate all required fields
+    const validationErrors = [];
+    if (validateEmail(formData.client_email)) validationErrors.push('email');
+    if (validatePhone(formData.client_phone)) validationErrors.push('phone');
+    if (validateTextField(formData.client_name)) validationErrors.push('name');
+    if (validatePositiveNumber(formData.property_value)) validationErrors.push('property');
+    if (validatePositiveNumber(formData.loan_amount)) validationErrors.push('loan');
+    if (validateLoanAmount()) validationErrors.push('loan_vs_property');
+    if (validatePositiveNumber(formData.annual_income)) validationErrors.push('income');
+    if (validateDropdown(formData.category)) validationErrors.push('category');
+    if (validateDropdown(formData.purpose)) validationErrors.push('purpose');
+    if (validateDropdown(formData.income_type)) validationErrors.push('income_type');
+    
+    return validationErrors.length === 0;
+  };
 
   // Helper to get field class names
   const getFieldClassName = (fieldKey, hasError = false) => {
@@ -445,6 +566,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   id="client_name"
                   value={formData.client_name}
                   onChange={(e) => updateField('client_name', e.target.value)}
+                  onBlur={() => handleFieldBlur('client_name')}
                   placeholder="Full name"
                   className={getFieldClassName('client_name', errors.client_name)}
                   aria-required="true"
@@ -468,10 +590,15 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     type="email"
                     value={formData.client_email}
                     onChange={(e) => updateField('client_email', e.target.value)}
+                    onBlur={() => handleFieldBlur('client_email')}
                     placeholder="email@example.com"
-                    className={getFieldClassName('client_email')}
+                    className={getFieldClassName('client_email', errors.client_email)}
                     aria-required="true"
+                    aria-invalid={!!errors.client_email}
                   />
+                  {errors.client_email && (
+                    <p className="text-xs text-red-500">{errors.client_email}</p>
+                  )}
                   {!isFieldFilled('client_email') && isEditMode && (
                     <p className="text-xs text-amber-600">Required to activate case</p>
                   )}
@@ -484,10 +611,15 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     id="client_phone"
                     value={formData.client_phone}
                     onChange={(e) => updateField('client_phone', e.target.value)}
+                    onBlur={() => handleFieldBlur('client_phone')}
                     placeholder="+44 ..."
-                    className={getFieldClassName('client_phone')}
+                    className={getFieldClassName('client_phone', errors.client_phone)}
                     aria-required="true"
+                    aria-invalid={!!errors.client_phone}
                   />
+                  {errors.client_phone && (
+                    <p className="text-xs text-red-500">{errors.client_phone}</p>
+                  )}
                   {!isFieldFilled('client_phone') && isEditMode && (
                     <p className="text-xs text-amber-600">Required to activate case</p>
                   )}
@@ -605,9 +737,11 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     type="number"
                     value={formData.property_value}
                     onChange={(e) => updateField('property_value', e.target.value)}
+                    onBlur={() => handleFieldBlur('property_value')}
                     placeholder="e.g., 500000"
                     className={getFieldClassName('property_value', errors.property_value)}
                     aria-required="true"
+                    aria-invalid={!!errors.property_value}
                   />
                   {errors.property_value && (
                     <p className="text-xs text-red-500">{errors.property_value}</p>
@@ -625,9 +759,11 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                     type="number"
                     value={formData.loan_amount}
                     onChange={(e) => updateField('loan_amount', e.target.value)}
+                    onBlur={() => handleFieldBlur('loan_amount')}
                     placeholder="e.g., 375000"
                     className={getFieldClassName('loan_amount', errors.loan_amount)}
                     aria-required="true"
+                    aria-invalid={!!errors.loan_amount}
                   />
                   {errors.loan_amount && (
                     <p className="text-xs text-red-500">{errors.loan_amount}</p>
@@ -638,22 +774,43 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                 </div>
               </div>
 
-              {ltv && (
-                <div className={`p-4 rounded-xl border ${
-                  ltv <= 75 ? 'bg-emerald-50 border-emerald-200' :
-                  ltv <= 85 ? 'bg-amber-50 border-amber-200' :
-                  ltv <= 95 ? 'bg-orange-50 border-orange-200' :
-                  'bg-red-50 border-red-200'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-slate-700">Loan-to-Value</span>
-                    <span className={`text-lg font-bold ${
-                      ltv <= 75 ? 'text-emerald-600' :
-                      ltv <= 85 ? 'text-amber-600' :
-                      ltv <= 95 ? 'text-orange-600' :
-                      'text-red-600'
-                    }`}>{ltv}%</span>
-                  </div>
+              {/* Derived Fields Display */}
+              {(ltv || loanToIncome) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {ltv && (
+                    <div className={`p-4 rounded-xl border ${
+                      ltv <= 75 ? 'bg-emerald-50 border-emerald-200' :
+                      ltv <= 85 ? 'bg-amber-50 border-amber-200' :
+                      ltv <= 95 ? 'bg-orange-50 border-orange-200' :
+                      'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700">Loan-to-Value</span>
+                        <span className={`text-lg font-bold ${
+                          ltv <= 75 ? 'text-emerald-600' :
+                          ltv <= 85 ? 'text-amber-600' :
+                          ltv <= 95 ? 'text-orange-600' :
+                          'text-red-600'
+                        }`}>{ltv}%</span>
+                      </div>
+                    </div>
+                  )}
+                  {loanToIncome && (
+                    <div className={`p-4 rounded-xl border ${
+                      loanToIncome <= 4.5 ? 'bg-emerald-50 border-emerald-200' :
+                      loanToIncome <= 5.5 ? 'bg-amber-50 border-amber-200' :
+                      'bg-orange-50 border-orange-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700">Loan-to-Income</span>
+                        <span className={`text-lg font-bold ${
+                          loanToIncome <= 4.5 ? 'text-emerald-600' :
+                          loanToIncome <= 5.5 ? 'text-amber-600' :
+                          'text-orange-600'
+                        }`}>{loanToIncome}x</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -662,7 +819,13 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   <FieldLabel fieldKey="category">
                     Category
                   </FieldLabel>
-                  <Select value={formData.category} onValueChange={(v) => updateField('category', v)}>
+                  <Select 
+                    value={formData.category} 
+                    onValueChange={(v) => {
+                      updateField('category', v);
+                      setTimeout(() => handleFieldBlur('category'), 0);
+                    }}
+                  >
                     <SelectTrigger className={getFieldClassName('category', errors.category)}>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -682,7 +845,13 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   <FieldLabel fieldKey="purpose">
                     Purpose
                   </FieldLabel>
-                  <Select value={formData.purpose} onValueChange={(v) => updateField('purpose', v)}>
+                  <Select 
+                    value={formData.purpose} 
+                    onValueChange={(v) => {
+                      updateField('purpose', v);
+                      setTimeout(() => handleFieldBlur('purpose'), 0);
+                    }}
+                  >
                     <SelectTrigger className={getFieldClassName('purpose', errors.purpose)}>
                       <SelectValue placeholder="Select purpose" />
                     </SelectTrigger>
@@ -776,9 +945,11 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   type="number"
                   value={formData.annual_income}
                   onChange={(e) => updateField('annual_income', e.target.value)}
+                  onBlur={() => handleFieldBlur('annual_income')}
                   placeholder="Gross annual income"
                   className={getFieldClassName('annual_income', errors.annual_income)}
                   aria-required="true"
+                  aria-invalid={!!errors.annual_income}
                 />
                 <p className="text-xs text-slate-500">From adviser's fact-find or estimated</p>
                 {errors.annual_income && (
@@ -793,7 +964,13 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                 <FieldLabel fieldKey="income_type">
                   Employment Type
                 </FieldLabel>
-                <Select value={formData.income_type} onValueChange={(v) => updateField('income_type', v)}>
+                <Select 
+                  value={formData.income_type} 
+                  onValueChange={(v) => {
+                    updateField('income_type', v);
+                    setTimeout(() => handleFieldBlur('income_type'), 0);
+                  }}
+                >
                   <SelectTrigger className={getFieldClassName('income_type', errors.income_type)}>
                     <SelectValue placeholder="Select employment type" />
                   </SelectTrigger>
@@ -897,33 +1074,43 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
               Continue to Assessment →
             </Button>
           ) : (
-            <Button 
-              type="button"
-              onClick={() => {
-                console.log('[IntakeForm] Button clicked');
-                handleSubmit();
-              }} 
-              disabled={isSubmitting}
-              style={{
-                backgroundColor: '#D1B36A',
-                color: '#0E1B2A',
-                fontWeight: 600,
-                padding: '12px 24px',
-                borderRadius: '6px'
-              }}
-              className="hover:bg-[#E0C77B]"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {isEditMode ? 'Activating Case...' : 'Creating Case...'}
-                </>
-              ) : (
-                <>
-                  {isEditMode ? 'Activate Case →' : 'Create Case & Generate Email →'}
-                </>
+            <div className="relative">
+              <Button 
+                type="button"
+                onClick={() => {
+                  console.log('[IntakeForm] Button clicked');
+                  handleSubmit();
+                }} 
+                disabled={isSubmitting || !isFormValid()}
+                style={{
+                  backgroundColor: isEditMode ? '#F59E0B' : '#2563EB',
+                  color: 'white',
+                  fontWeight: 600,
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  opacity: (isSubmitting || !isFormValid()) ? 0.6 : 1,
+                  cursor: (isSubmitting || !isFormValid()) ? 'not-allowed' : 'pointer'
+                }}
+                className={isEditMode ? 'hover:opacity-90' : 'hover:opacity-90'}
+                title={!isFormValid() ? 'Fill all required fields to continue' : ''}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {isEditMode ? 'Activating Case...' : 'Creating Case...'}
+                  </>
+                ) : (
+                  <>
+                    {isEditMode ? 'Activate Case' : 'Create Case'}
+                  </>
+                )}
+              </Button>
+              {!isFormValid() && !isSubmitting && (
+                <p className="text-xs text-slate-500 mt-2 text-right">
+                  Fill all required fields to continue
+                </p>
               )}
-            </Button>
+            </div>
           )}
         </div>
         
