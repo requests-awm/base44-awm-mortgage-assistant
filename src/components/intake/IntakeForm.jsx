@@ -1173,8 +1173,11 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
             <div className="relative">
               <Button 
                 type="button"
-                onClick={() => {
-                  console.log('[IntakeForm] Button clicked');
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('🔘 BUTTON CLICKED');
+                  console.log('🔘 Form valid?', isFormValid());
+                  console.log('🔘 Is submitting?', isSubmittingForm);
                   handleSubmit();
                 }} 
                 disabled={isSubmittingForm || !isFormValid()}
