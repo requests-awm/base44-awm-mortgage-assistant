@@ -389,16 +389,15 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
           asana_last_synced: new Date().toISOString()
         });
 
-        // Invalidate cache to force dashboard refresh
-        queryClient.invalidateQueries({ queryKey: ['mortgageCases'] });
+        // Invalidate ALL relevant caches to force dashboard refresh
+        await queryClient.invalidateQueries({ queryKey: ['mortgageCases'] });
+        await queryClient.invalidateQueries({ queryKey: ['mortgageCase', caseId] });
 
         toast.success(`✅ Case ${existingCase.reference} activated successfully`);
         setHasUnsavedChanges(false);
 
-        // Redirect to dashboard with highlight
-        setTimeout(() => {
-          navigate(createPageUrl(`Dashboard?highlight=${caseId}`));
-        }, 500);
+        // Redirect to dashboard immediately
+        navigate(createPageUrl(`Dashboard?highlight=${caseId}`));
       } else {
         // Create mode: use parent's onSubmit handler
         console.log('[IntakeForm] Creating new case');
