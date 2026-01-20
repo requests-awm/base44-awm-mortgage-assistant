@@ -53,6 +53,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const STAGE_CONFIG = {
   intake_received: { label: 'Intake Received', color: 'bg-slate-100 text-slate-700' },
