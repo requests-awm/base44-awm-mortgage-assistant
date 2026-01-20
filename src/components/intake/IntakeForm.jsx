@@ -928,10 +928,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   </FieldLabel>
                   <Select 
                     value={formData.category} 
-                    onValueChange={(v) => {
-                      updateField('category', v);
-                      setTimeout(() => handleFieldBlur('category'), 0);
-                    }}
+                    onValueChange={(v) => updateField('category', v)}
                   >
                     <SelectTrigger className={getFieldClassName('category', errors.category)}>
                       <SelectValue placeholder="Select category" />
@@ -954,10 +951,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   </FieldLabel>
                   <Select 
                     value={formData.purpose} 
-                    onValueChange={(v) => {
-                      updateField('purpose', v);
-                      setTimeout(() => handleFieldBlur('purpose'), 0);
-                    }}
+                    onValueChange={(v) => updateField('purpose', v)}
                   >
                     <SelectTrigger className={getFieldClassName('purpose', errors.purpose)}>
                       <SelectValue placeholder="Select purpose" />
@@ -1065,10 +1059,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                 </FieldLabel>
                 <Select 
                   value={formData.income_type} 
-                  onValueChange={(v) => {
-                    updateField('income_type', v);
-                    setTimeout(() => handleFieldBlur('income_type'), 0);
-                  }}
+                  onValueChange={(v) => updateField('income_type', v)}
                 >
                   <SelectTrigger className={getFieldClassName('income_type', errors.income_type)}>
                     <SelectValue placeholder="Select employment type" />
