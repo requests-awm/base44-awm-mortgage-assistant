@@ -406,6 +406,16 @@ export default function Dashboard() {
           >
             All Cases
           </button>
+          <button
+            onClick={() => handleTabChange('incomplete-cases')}
+            className={`pb-3 text-[20px] font-bold transition-all border-b-[4px] ${
+              activeTab === 'incomplete-cases'
+                ? 'text-[#D1B36A] border-[#D1B36A]'
+                : 'text-[#0E1B2A] border-transparent'
+            }`}
+          >
+            Incomplete Cases
+          </button>
         </div>
 
         {/* Filters & View Toggle */}
@@ -504,30 +514,6 @@ export default function Dashboard() {
         {/* My Work View */}
         <div id="my-work-view" style={{ display: activeTab === 'my-work' ? 'block' : 'none' }}>
           <div className="space-y-8">
-            {/* INCOMPLETE CASES Section */}
-            {getIncompleteCases().length > 0 && (
-              <div>
-                <button
-                  onClick={() => toggleSection('incomplete')}
-                  className="flex items-center justify-between w-full mb-4 group"
-                >
-                  <h2 className="text-lg font-bold text-[#F59E0B] flex items-center gap-3 pl-4 border-l-[3px] border-[#F59E0B]">
-                    ⚠️ INCOMPLETE CASES FROM ASANA ({getIncompleteCases().length})
-                    <ChevronDown 
-                      className={`w-5 h-5 transition-transform ${expandedSections.incomplete ? '' : '-rotate-90'}`}
-                    />
-                  </h2>
-                </button>
-                {expandedSections.incomplete && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {getIncompleteCases().map(c => (
-                      <IncompleteCaseCard key={c.id} mortgageCase={c} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* URGENT Section */}
             <div>
               <button
@@ -886,6 +872,27 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Incomplete Cases View */}
+        <div id="incomplete-cases-view" style={{ display: activeTab === 'incomplete-cases' ? 'block' : 'none' }}>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-[#0E1B2A] mb-2">Incomplete Cases from Asana</h2>
+            <p className="text-slate-500">Cases awaiting completion via intake form</p>
+          </div>
+
+          {getIncompleteCases().length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg border border-slate-200">
+              <CheckCircle className="w-12 h-12 mb-3 text-emerald-500" />
+              <p className="text-slate-600 font-medium">No incomplete cases. All caught up! ✓</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {getIncompleteCases().map(c => (
+                <IncompleteCaseCard key={c.id} mortgageCase={c} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
