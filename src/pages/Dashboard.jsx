@@ -51,8 +51,8 @@ export default function Dashboard() {
   });
   const [expandedSections, setExpandedSections] = useState({
     incomplete: true,
-    urgent: true,
-    thisWeek: false,
+    urgent: false,
+    thisWeek: true,
     sentToClients: true,
     waiting: false
   });
