@@ -332,14 +332,18 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
   const handleSubmit = async () => {
-    console.log('[IntakeForm] handleSubmit called');
+    console.log('🔵 ========== SUBMIT STARTED ==========');
+    console.log('🔵 Edit Mode?', isEditMode);
+    console.log('🔵 Case ID:', caseId);
+    console.log('🔵 Existing Case Reference:', existingCase?.reference);
     
     if (!validateStep(2)) {
-      console.log('[IntakeForm] Validation failed');
+      console.log('❌ Validation failed at step 2');
       return;
     }
 
     if (!isFormValid()) {
+      console.log('❌ Form validation failed');
       toast.error('Please fill all required fields correctly');
       return;
     }
@@ -381,34 +385,71 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
       };
 
       if (isEditMode) {
-        // Edit mode: update existing case
-        console.log('[IntakeForm] Updating case:', caseId);
-
-        await base44.entities.MortgageCase.update(caseId, {
-          ...submitData,
-          asana_last_synced: new Date().toISOString()
+        console.log('🟡 ========== EDIT MODE - ACTIVATING CASE ==========');
+        console.log('🟡 Updating case ID:', caseId);
+        console.log('🟡 Submit data:', {
+          case_status: submitData.case_status,
+          activated_at: submitData.activated_at,
+          client_name: submitData.client_name,
+          property_value: submitData.property_value,
+          loan_amount: submitData.loan_amount,
+          ltv: submitData.ltv
         });
 
+        const updatePayload = {
+          ...submitData,
+          asana_last_synced: new Date().toISOString()
+        };
+
+        console.log('🟡 Calling base44.entities.MortgageCase.update...');
+        const updateResult = await base44.entities.MortgageCase.update(caseId, updatePayload);
+        console.log('✅ Update returned:', updateResult);
+        console.log('✅ Update result case_status:', updateResult?.case_status);
+        console.log('✅ Update result activated_at:', updateResult?.activated_at);
+
+        // Verify the update actually saved
+        console.log('🔍 Verifying update saved to database...');
+        const verifyResult = await base44.entities.MortgageCase.filter({ id: caseId });
+        const verifiedCase = verifyResult[0];
+        console.log('🔍 Verification query returned:', verifiedCase);
+        console.log('🔍 Verified case_status:', verifiedCase?.case_status);
+        console.log('🔍 Verified activated_at:', verifiedCase?.activated_at);
+
+        if (verifiedCase?.case_status !== 'active') {
+          console.error('❌ CRITICAL: Case status did not update! Still:', verifiedCase?.case_status);
+          throw new Error('Database update failed - case status is still incomplete');
+        }
+
+        console.log('✅ Database update verified successful');
+
         // Invalidate ALL relevant caches to force dashboard refresh
+        console.log('🔄 Invalidating query cache...');
         await queryClient.invalidateQueries({ queryKey: ['mortgageCases'] });
         await queryClient.invalidateQueries({ queryKey: ['mortgageCase', caseId] });
+        await queryClient.refetchQueries({ queryKey: ['mortgageCases'] });
+        console.log('✅ Cache invalidated and refetched');
 
         toast.success(`✅ Case ${existingCase.reference} activated successfully`);
         setHasUnsavedChanges(false);
 
         // Redirect to dashboard immediately
-        navigate(createPageUrl(`Dashboard?highlight=${caseId}`));
+        console.log('🔄 Redirecting to dashboard...');
+        navigate(createPageUrl('Dashboard'));
+        console.log('✅ ========== SUBMIT COMPLETE ==========');
       } else {
-        // Create mode: use parent's onSubmit handler
-        console.log('[IntakeForm] Creating new case');
+        console.log('🟢 ========== CREATE MODE ==========');
+        console.log('🟢 Creating new case via parent onSubmit');
         
         if (onSubmit) {
           onSubmit(submitData);
         }
       }
     } catch (error) {
-      console.error('[IntakeForm] Failed to save case:', error);
-      toast.error('Failed to save case. Please try again.');
+      console.error('❌ ========== SUBMIT ERROR ==========');
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      console.error('❌ Full error:', error);
+      toast.error(`Failed to save case: ${error.message}`);
     } finally {
       setIsSubmittingForm(false);
     }
