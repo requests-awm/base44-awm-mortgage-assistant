@@ -94,6 +94,7 @@ export default function CaseDetail() {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState('confidence');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [selectedLenderDetail, setSelectedLenderDetail] = useState(null);
 
   const { data: caseData, isLoading } = useQuery({
     queryKey: ['mortgageCase', caseId],
@@ -108,6 +109,11 @@ export default function CaseDetail() {
     queryKey: ['auditLogs', caseId],
     queryFn: () => base44.entities.AuditLog.filter({ case_id: caseId }, '-created_date'),
     enabled: !!caseId
+  });
+
+  const { data: allLenders = [] } = useQuery({
+    queryKey: ['lenders'],
+    queryFn: () => base44.entities.Lender.list()
   });
 
   const updateMutation = useMutation({
@@ -487,12 +493,12 @@ export default function CaseDetail() {
     }).format(value);
   };
 
-  const CATEGORY_LABELS = {
-    high_street: 'High Street',
-    building_society: 'Building Society',
-    specialist: 'Specialist',
-    private_bank: 'Private Bank',
-    challenger: 'Challenger'
+  const LENDER_TYPE_LABELS = {
+    'High Street': 'High Street',
+    'Building Society': 'Building Society',
+    'Specialist': 'Specialist',
+    'Private Bank': 'Private Bank',
+    'Challenger': 'Challenger'
   };
 
   const getConfidenceColor = (confidence) => {
@@ -819,50 +825,49 @@ export default function CaseDetail() {
                                     )}
                                   </button>
                                 </TableHead>
-                                <TableHead className="font-semibold">Notes</TableHead>
+                                <TableHead className="font-semibold">Action</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {sortedMatchedLenders.map((lender, idx) => (
-                                <TableRow key={idx}>
-                                  <TableCell className="font-medium">{lender.name}</TableCell>
-                                  <TableCell>
-                                    <Badge variant="outline" className="text-xs">
-                                      {CATEGORY_LABELS[lender.category] || lender.category || 'Unknown'}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge className={`${getConfidenceColor(lender.confidence)} border font-semibold`}>
-                                      {lender.confidence}%
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell>
-                                    <span className="font-medium text-slate-700">{lender.max_ltv}%</span>
-                                  </TableCell>
-                                  <TableCell>
-                                    {lender.notes ? (
-                                      lender.notes.length > 50 ? (
-                                        <TooltipProvider>
-                                          <Tooltip>
-                                            <TooltipTrigger asChild>
-                                              <button className="text-sm text-slate-600 hover:text-slate-900 text-left">
-                                                {lender.notes.substring(0, 50)}...
-                                              </button>
-                                            </TooltipTrigger>
-                                            <TooltipContent className="max-w-xs">
-                                              <p className="text-sm">{lender.notes}</p>
-                                            </TooltipContent>
-                                          </Tooltip>
-                                        </TooltipProvider>
+                              {sortedMatchedLenders.map((lender, idx) => {
+                                // Find full lender details
+                                const fullLender = allLenders.find(l => 
+                                  l.name === lender.name || l.short_name === lender.short_name
+                                );
+
+                                return (
+                                  <TableRow key={idx}>
+                                    <TableCell className="font-medium">{lender.name}</TableCell>
+                                    <TableCell>
+                                      <Badge variant="outline" className="text-xs">
+                                        {fullLender?.type || 'Unknown'}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge className={`${getConfidenceColor(lender.confidence)} border font-semibold`}>
+                                        {lender.confidence}%
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <span className="font-medium text-slate-700">{lender.max_ltv}%</span>
+                                    </TableCell>
+                                    <TableCell>
+                                      {fullLender ? (
+                                        <Button
+                                          variant="link"
+                                          size="sm"
+                                          onClick={() => setSelectedLenderDetail(fullLender)}
+                                          className="text-blue-600 hover:text-blue-700 p-0 h-auto font-normal"
+                                        >
+                                          Open Lender
+                                        </Button>
                                       ) : (
-                                        <span className="text-sm text-slate-600">{lender.notes}</span>
-                                      )
-                                    ) : (
-                                      <span className="text-sm text-slate-400">—</span>
-                                    )}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
+                                        <span className="text-sm text-slate-400">—</span>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
                             </TableBody>
                           </Table>
                         </div>
@@ -1438,6 +1443,118 @@ export default function CaseDetail() {
           onClose={() => setIsEmailModalOpen(false)}
           caseData={caseData}
         />
+
+        {/* Lender Detail Modal */}
+        <Dialog open={!!selectedLenderDetail} onOpenChange={(open) => !open && setSelectedLenderDetail(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            {selectedLenderDetail && (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center justify-between pr-8">
+                    <div>
+                      <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+                        {selectedLenderDetail.name}
+                        {selectedLenderDetail.criteria_url && (
+                          <a 
+                            href={selectedLenderDetail.criteria_url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <ExternalLink className="w-5 h-5" />
+                          </a>
+                        )}
+                      </DialogTitle>
+                      <p className="text-slate-500 mt-1">{selectedLenderDetail.type}</p>
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-8 py-4">
+                  {/* Key Criteria Grid */}
+                  <div className="grid grid-cols-2 gap-6 p-5 bg-slate-50 rounded-xl border border-slate-100">
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">Residential</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Max LTV:</span>
+                          <span className="font-semibold">{selectedLenderDetail.max_ltv_residential}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Min Income:</span>
+                          <span className="font-semibold">£{(selectedLenderDetail.min_income || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Self-Employed:</span>
+                          <span className={selectedLenderDetail.self_employed_accepted ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                            {selectedLenderDetail.self_employed_accepted ? "Accepted" : "No"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Later Life:</span>
+                          <span className={selectedLenderDetail.later_life_products ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                            {selectedLenderDetail.later_life_products ? "Available" : "No"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">Buy-to-Let</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Max LTV:</span>
+                          <span className="font-semibold">{selectedLenderDetail.max_ltv_btl}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Ltd Company:</span>
+                          <span className={selectedLenderDetail.ltd_company_btl ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                            {selectedLenderDetail.ltd_company_btl ? "Accepted" : "No"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Strengths & Weaknesses */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold text-emerald-700 flex items-center gap-2 mb-2">
+                        <CheckCircle className="w-4 h-4" /> Strengths
+                      </h3>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                        {selectedLenderDetail.strengths || "No strengths listed."}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-amber-700 flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-4 h-4" /> Weaknesses
+                      </h3>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                        {selectedLenderDetail.weaknesses || "No weaknesses listed."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Notable Criteria */}
+                  {selectedLenderDetail.notable_criteria && (
+                    <div>
+                      <h3 className="font-semibold text-slate-900 mb-2">Notable Criteria</h3>
+                      <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border-l-4 border-blue-500">
+                        {selectedLenderDetail.notable_criteria}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Last Updated */}
+                  <div className="text-xs text-slate-400 text-center pt-4 border-t">
+                    Last updated: {selectedLenderDetail.last_updated ? format(new Date(selectedLenderDetail.last_updated), 'dd MMM yyyy') : 'Never'}
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
