@@ -128,7 +128,7 @@ export default function NewCase() {
     onSuccess: (data) => {
       queryClient.invalidateQueries(['mortgageCases']);
       toast.success(`✅ Case ${data.reference} created successfully`);
-      navigate(createPageUrl(`Dashboard?highlight=${data.id}`));
+      navigate(createPageUrl(`CaseCreated?id=${data.id}`));
     },
     onError: (error) => {
       console.error('❌ Failed to create case:', error);
