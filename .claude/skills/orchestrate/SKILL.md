@@ -28,10 +28,11 @@ Execute structured, multi-phase project implementation with:
 
 When user runs `/orchestrate [project-name]`:
 
-1. Create project structure from templates
-2. Start Phase 1: Research & Discovery
-3. Proceed through phases automatically (if validations pass)
-4. Track progress via JSON + Markdown + Git
+1. **Auto-initialize git** (if not already a repo)
+2. Create project structure from templates
+3. Start Phase 1: Research & Discovery
+4. Proceed through phases automatically (if validations pass)
+5. Track progress via JSON + Markdown + Git
 
 ---
 
@@ -380,16 +381,52 @@ Copy and populate templates when creating orchestration structure.
 
 ---
 
+## Git Auto-Initialization
+
+The orchestration system automatically ensures git is ready before starting:
+
+### Pre-Flight Checks
+1. **Is this a git repo?** If no, run `git init`
+2. **Does .gitignore exist?** If no, create standard .gitignore
+3. **Any commits?** If no, create initial commit with current files
+4. **Git identity configured?** Required - will error if not set
+
+### .gitignore Template
+If no `.gitignore` exists, create one with:
+- Environment files (.env, secrets/)
+- Dependencies (node_modules/, venv/)
+- Build artifacts (dist/, build/)
+- IDE settings (.vscode/, .idea/)
+- OS files (.DS_Store, Thumbs.db)
+- Logs and temp files
+- Project-specific: temp/, scratch/
+
+### Why Auto-Initialize?
+- Ensures all framework features (branches, tags, checkpoints) work
+- Prevents "not a git repo" errors mid-orchestration
+- Creates clean baseline before work begins
+- Makes resumability reliable
+
+---
+
 ## Command Reference
 
 ### `/orchestrate [project-name]`
 
 Start new orchestration:
-1. Create `orchestration/` folder structure
-2. Initialize `status.json` from template
-3. Create `source-of-truth.md`
-4. Create git branch `orchestrate/01-research-discovery`
-5. Begin Phase 1 Q&A
+1. **Auto-initialize git** (if not already a repo)
+   ```bash
+   # Check if git repo exists
+   git rev-parse --git-dir 2>/dev/null || git init
+
+   # If no commits exist, create initial commit
+   git log --oneline -1 2>/dev/null || (git add . && git commit -m "Initial commit before orchestration")
+   ```
+2. Create `orchestration/` folder structure
+3. Initialize `status.json` from template
+4. Create `source-of-truth.md`
+5. Create git branch `orchestrate/01-research-discovery`
+6. Begin Phase 1 Q&A
 
 ### `/orchestrate status`
 

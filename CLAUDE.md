@@ -225,3 +225,39 @@ The outcome logger:
 4. Saves to `frameworks/outcomes.json`
 
 Historical outcomes improve future recommendations by weighting frameworks that worked well for similar tasks.
+
+---
+
+## Git Configuration
+
+### Repository Strategy
+This project uses **per-project repositories**:
+- Each project folder is its own git repo
+- Global Claude config (`~/.claude/`) is NOT tracked
+- Clean separation allows easy sharing of individual projects
+
+### Git Identity
+```
+Name: Marko
+Email: the.wildfire.reviews@gmail.com
+GitHub: WildfireReviews
+```
+
+### Auto-Initialization
+Frameworks automatically initialize git when starting new work:
+- `/orchestrate` - Checks for git repo, initializes if needed
+- Creates `.gitignore` with best practices
+- Makes initial commit before starting work
+
+### Branch Strategy
+| Context | Branch Pattern |
+|---------|---------------|
+| Main development | `main` |
+| Features | `feature/[name]` |
+| Orchestration phases | `orchestrate/[phase-id]-[name]` |
+
+### Commit Co-authorship
+All Claude-assisted commits include:
+```
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+```
