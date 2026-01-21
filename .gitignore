@@ -80,3 +80,4 @@ scratch/
 coverage/
 .nyc_output/
 *.lcov
+nul

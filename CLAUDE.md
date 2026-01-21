@@ -34,8 +34,8 @@ Automated mortgage triage system for Ascot Wealth Management.
 - **Progress Tracker:** PROGRESS.md
 - **n8n Build Guide:** n8n/N8N_WORKFLOW_BUILD_INSTRUCTIONS.md
 - **n8n Setup:** n8n/N8N_SETUP_GUIDE.md
-- **Project Brief:** PROJECT_BRIEF_AND_PRD.md
-- **Agent Instructions:** AGENTS.md
+- **Project Brief:** archive/PROJECT_BRIEF_AND_PRD.md
+- **Agent Instructions:** archive/AGENTS.md
 
 ## Constraints (Base44 Quirks)
 - No nested API paths (`/asana/webhook` fails, use `/asanaWebhook`)
@@ -67,6 +67,7 @@ Invoke-RestMethod -Uri "https://app.asana.com/api/1.0/webhooks?workspace=1205556
 
 | Skill | Purpose | Usage |
 |-------|---------|-------|
+| `/git` | Beginner-friendly git operations with safety | Git push, pull, branch, undo |
 | `/test-api` | Test Base44 or Asana API endpoints | Debugging API issues |
 | `/check-progress` | Summarize project status from PROGRESS.md | Quick status check |
 | `/validate-config` | Validate all GIDs, API keys, endpoints | Setup verification |
