@@ -1,0 +1,416 @@
+{
+  "name": "Asana to Base44 - Custom Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "asana-mortgage-webhook",
+        "options": {
+          "responseMode": "onReceived",
+          "responseData": ""
+        }
+      },
+      "id": "webhook-receiver",
+      "name": "Asana Webhook Receiver",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "asana-mortgage-webhook",
+      "notes": "Receives webhook events from Asana. URL will be shown after saving."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-hook-secret",
+              "leftValue": "={{ $json.headers['x-hook-secret'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              }
+            }
+          ]
+        }
+      },
+      "id": "is-handshake",
+      "name": "Is Handshake?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300],
+      "notes": "Checks if this is Asana's initial handshake request"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "X-Hook-Secret",
+                "value": "={{ $('Asana Webhook Receiver').item.json.headers['x-hook-secret'] }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "handshake-response",
+      "name": "Respond to Handshake",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [680, 200],
+      "notes": "Returns the X-Hook-Secret header to complete Asana handshake"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-action-added",
+              "leftValue": "={{ $json.body.events?.[0]?.action }}",
+              "rightValue": "added",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "is-task-added",
+      "name": "Is Task Added to Section?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 400],
+      "notes": "Only process 'added' events (task moved to section)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract event data from Asana webhook payload\nconst webhookData = $input.item.json;\nconst event = webhookData.body?.events?.[0];\n\nif (!event) {\n  return { json: { skip: true, reason: 'No event data' } };\n}\n\nconst taskGid = event.resource?.gid;\nconst sectionGid = event.parent?.gid;\n\n// Stage 6 Section GID (AI Triage Dashboard)\nconst STAGE_6_SECTION = '1212791395605236';\n\n// Check if task was added to Stage 6\nif (sectionGid !== STAGE_6_SECTION) {\n  return { \n    json: { \n      skip: true, \n      reason: `Task added to section ${sectionGid}, not Stage 6 (${STAGE_6_SECTION})` \n    } \n  };\n}\n\nreturn {\n  json: {\n    skip: false,\n    task_gid: taskGid,\n    section_gid: sectionGid,\n    action: event.action,\n    event_type: event.type\n  }\n};"
+      },
+      "id": "parse-event",
+      "name": "Parse Asana Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400],
+      "notes": "Extracts task GID and checks if it's Stage 6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-not-skip",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": "={{false}}",
+              "operator": {
+                "type": "boolean",
+                "operation": "false"
+              }
+            }
+          ]
+        }
+      },
+      "id": "should-process",
+      "name": "Should Process?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 400],
+      "notes": "Only continue if task is in Stage 6"
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "get",
+        "id": "={{ $json.task_gid }}",
+        "options": {
+          "opt_fields": "name,gid,custom_fields,memberships.section.gid,memberships.section.name"
+        }
+      },
+      "id": "get-task-details",
+      "name": "Get Task Details",
+      "type": "n8n-nodes-base.asana",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "credentials": {
+        "asanaApi": {
+          "id": "REPLACE_WITH_YOUR_ASANA_CREDENTIAL_ID",
+          "name": "Asana PAT - Operations"
+        }
+      },
+      "notes": "Fetches full task details including custom fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract custom fields from Asana task\nconst task = $input.item.json;\n\n// Custom Field GIDs (from your Asana setup)\nconst FIELD_GIDS = {\n  clientName: '1202694315710867',\n  clientEmail: '1202694285232176',\n  insightlyId: '1202693938754570',\n  brokerAppointed: '1211493772039109',\n  internalIntroducer: '1212556552447200'\n};\n\n// Extract values from custom fields array\nlet clientName = task.name || 'Unknown Client';\nlet clientEmail = null;\nlet insightlyId = null;\nlet brokerAppointed = null;\nlet internalIntroducer = null;\n\nif (task.custom_fields && Array.isArray(task.custom_fields)) {\n  task.custom_fields.forEach(field => {\n    if (field.gid === FIELD_GIDS.clientName && field.text_value) {\n      clientName = field.text_value;\n    }\n    if (field.gid === FIELD_GIDS.clientEmail && field.text_value) {\n      clientEmail = field.text_value;\n    }\n    if (field.gid === FIELD_GIDS.insightlyId && field.text_value) {\n      insightlyId = field.text_value;\n    }\n    if (field.gid === FIELD_GIDS.brokerAppointed && field.text_value) {\n      brokerAppointed = field.text_value;\n    }\n    if (field.gid === FIELD_GIDS.internalIntroducer && field.text_value) {\n      internalIntroducer = field.text_value;\n    }\n  });\n}\n\n// Generate case reference\nconst year = new Date().getFullYear();\nconst randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');\nconst caseReference = `AWM-${year}-W${randomSuffix}`;\n\nreturn {\n  json: {\n    // Task identifiers\n    asana_task_gid: task.gid,\n    asana_project_gid: '1212782871770137',\n    asana_section: task.memberships?.[0]?.section?.gid || null,\n    \n    // Generated reference\n    case_reference: caseReference,\n    \n    // Extracted client data\n    client_name: clientName,\n    client_email: clientEmail,\n    insightly_id: insightlyId,\n    internal_introducer: internalIntroducer,\n    mortgage_broker_appointed: brokerAppointed,\n    \n    // Default values for new case\n    case_type: 'case',\n    case_status: 'incomplete',\n    created_from_asana: true,\n    stage: 'intake_received',\n    asana_last_synced: new Date().toISOString(),\n    \n    // Keep original task name for comment\n    original_task_name: task.name\n  }\n};"
+      },
+      "id": "extract-fields",
+      "name": "Extract Custom Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 300],
+      "notes": "Maps Asana custom fields to Base44 MortgageCase fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://awm-mortgage-assistant-3c3f74bb.base44.app/api/apps/695d6a9a166167143c3f74bb/functions/createCaseFromN8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_key",
+              "value": "3ceb0486ed434a999e612290fe6d9482"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"asana_task_gid\": \"{{ $json.asana_task_gid }}\",\n  \"asana_project_gid\": \"{{ $json.asana_project_gid }}\",\n  \"asana_section\": \"{{ $json.asana_section }}\",\n  \"case_reference\": \"{{ $json.case_reference }}\",\n  \"client_name\": \"{{ $json.client_name }}\",\n  \"client_email\": \"{{ $json.client_email }}\",\n  \"insightly_id\": \"{{ $json.insightly_id }}\",\n  \"internal_introducer\": \"{{ $json.internal_introducer }}\",\n  \"mortgage_broker_appointed\": \"{{ $json.mortgage_broker_appointed }}\",\n  \"case_type\": \"{{ $json.case_type }}\",\n  \"case_status\": \"{{ $json.case_status }}\",\n  \"created_from_asana\": {{ $json.created_from_asana }},\n  \"stage\": \"{{ $json.stage }}\"\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "call-base44",
+      "name": "Create Case in Base44",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1780, 300],
+      "notes": "Calls Base44 endpoint to create MortgageCase"
+    },
+    {
+      "parameters": {
+        "resource": "taskComment",
+        "operation": "create",
+        "id": "={{ $('Extract Custom Fields').item.json.asana_task_gid }}",
+        "text": "=🔗 **CASE LINKED TO BASE44**\n\n**Reference:** {{ $('Extract Custom Fields').item.json.case_reference }}\n**Status:** Awaiting intake completion\n**Created:** {{ new Date().toISOString().split('T')[0] }}\n\n_This case is now visible in the Base44 dashboard under \"Incomplete Cases\"._"
+      },
+      "id": "post-comment",
+      "name": "Post Confirmation to Asana",
+      "type": "n8n-nodes-base.asana",
+      "typeVersion": 1,
+      "position": [2000, 300],
+      "credentials": {
+        "asanaApi": {
+          "id": "REPLACE_WITH_YOUR_ASANA_CREDENTIAL_ID",
+          "name": "Asana PAT - Operations"
+        }
+      },
+      "notes": "Posts confirmation comment back to Asana task"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"success\": true, \"message\": \"Event processed\" }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2220, 300],
+      "notes": "Returns success to Asana"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"success\": true, \"message\": \"Skipped - not Stage 6\" }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "skip-response",
+      "name": "Skip Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1340, 500],
+      "notes": "Returns 200 for non-Stage 6 events (Asana expects 200)"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"success\": true, \"message\": \"Not an add event\" }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "ignore-response",
+      "name": "Ignore Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 500],
+      "notes": "Returns 200 for non-add events"
+    }
+  ],
+  "connections": {
+    "Asana Webhook Receiver": {
+      "main": [
+        [
+          {
+            "node": "Is Handshake?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Handshake?": {
+      "main": [
+        [
+          {
+            "node": "Respond to Handshake",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Task Added to Section?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Task Added to Section?": {
+      "main": [
+        [
+          {
+            "node": "Parse Asana Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignore Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Asana Event": {
+      "main": [
+        [
+          {
+            "node": "Should Process?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Process?": {
+      "main": [
+        [
+          {
+            "node": "Get Task Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Task Details": {
+      "main": [
+        [
+          {
+            "node": "Extract Custom Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Custom Fields": {
+      "main": [
+        [
+          {
+            "node": "Create Case in Base44",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Case in Base44": {
+      "main": [
+        [
+          {
+            "node": "Post Confirmation to Asana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Confirmation to Asana": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Asana Integration",
+      "createdAt": "2026-01-20T00:00:00.000Z",
+      "updatedAt": "2026-01-20T00:00:00.000Z"
+    },
+    {
+      "name": "Mortgage System",
+      "createdAt": "2026-01-20T00:00:00.000Z",
+      "updatedAt": "2026-01-20T00:00:00.000Z"
+    },
+    {
+      "name": "Custom Webhook",
+      "createdAt": "2026-01-20T00:00:00.000Z",
+      "updatedAt": "2026-01-20T00:00:00.000Z"
+    }
+  ],
+  "triggerCount": 1,
+  "pinData": {}
+}

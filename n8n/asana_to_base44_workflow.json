@@ -1,0 +1,285 @@
+{
+  "name": "Asana to Base44 - Mortgage Case Creator",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "getAll",
+        "project": "1212782871770137",
+        "returnAll": false,
+        "limit": 1,
+        "options": {
+          "opt_fields": "name,gid,custom_fields,memberships.section.gid,memberships.section.name"
+        }
+      },
+      "id": "asana-trigger-placeholder",
+      "name": "Asana Trigger",
+      "type": "n8n-nodes-base.asanaTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "credentials": {
+        "asanaApi": {
+          "id": "REPLACE_WITH_YOUR_ASANA_CREDENTIAL_ID",
+          "name": "Asana PAT"
+        }
+      },
+      "notes": "SETUP REQUIRED: Connect your Asana credentials and select the project"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.memberships?.[0]?.section?.gid }}",
+              "operation": "equals",
+              "value2": "1212791395605236"
+            }
+          ]
+        }
+      },
+      "id": "filter-stage6",
+      "name": "Filter: Stage 6 Only",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "notes": "Only process tasks moved to 'AI Triage Dashboard' section (Stage 6)"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract custom fields from Asana task\nconst task = $input.item.json;\n\n// Custom Field GIDs (from your Asana setup)\nconst FIELD_GIDS = {\n  clientName: '1202694315710867',\n  clientEmail: '1202694285232176',\n  insightlyId: '1202693938754570',\n  brokerAppointed: '1211493772039109',\n  internalIntroducer: '1212556552447200'\n};\n\n// Extract values from custom fields array\nlet clientName = task.name || 'Unknown Client';\nlet clientEmail = null;\nlet insightlyId = null;\nlet brokerAppointed = null;\nlet internalIntroducer = null;\n\nif (task.custom_fields && Array.isArray(task.custom_fields)) {\n  task.custom_fields.forEach(field => {\n    if (field.gid === FIELD_GIDS.clientName && field.text_value) {\n      clientName = field.text_value;\n    }\n    if (field.gid === FIELD_GIDS.clientEmail && field.text_value) {\n      clientEmail = field.text_value;\n    }\n    if (field.gid === FIELD_GIDS.insightlyId && field.text_value) {\n      insightlyId = field.text_value;\n    }\n    if (field.gid === FIELD_GIDS.brokerAppointed && field.text_value) {\n      brokerAppointed = field.text_value;\n    }\n    if (field.gid === FIELD_GIDS.internalIntroducer && field.text_value) {\n      internalIntroducer = field.text_value;\n    }\n  });\n}\n\n// Generate case reference\nconst year = new Date().getFullYear();\nconst randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');\nconst caseReference = `AWM-${year}-W${randomSuffix}`;\n\nreturn {\n  json: {\n    // Task identifiers\n    asana_task_gid: task.gid,\n    asana_project_gid: '1212782871770137',\n    asana_section: task.memberships?.[0]?.section?.gid || null,\n    \n    // Generated reference\n    case_reference: caseReference,\n    \n    // Extracted client data\n    client_name: clientName,\n    client_email: clientEmail,\n    insightly_id: insightlyId,\n    internal_introducer: internalIntroducer,\n    mortgage_broker_appointed: brokerAppointed,\n    \n    // Default values for new case\n    case_type: 'case',\n    case_status: 'incomplete',\n    created_from_asana: true,\n    stage: 'intake_received',\n    asana_last_synced: new Date().toISOString(),\n    \n    // Keep original task name for comment\n    original_task_name: task.name\n  }\n};"
+      },
+      "id": "extract-fields",
+      "name": "Extract Custom Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "notes": "Maps Asana custom fields to Base44 MortgageCase fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://awm-mortgage-assistant-3c3f74bb.base44.app/api/apps/695d6a9a166167143c3f74bb/functions/createCaseFromN8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_key",
+              "value": "3ceb0486ed434a999e612290fe6d9482"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "asana_task_gid",
+              "value": "={{ $json.asana_task_gid }}"
+            },
+            {
+              "name": "asana_project_gid",
+              "value": "={{ $json.asana_project_gid }}"
+            },
+            {
+              "name": "asana_section",
+              "value": "={{ $json.asana_section }}"
+            },
+            {
+              "name": "case_reference",
+              "value": "={{ $json.case_reference }}"
+            },
+            {
+              "name": "client_name",
+              "value": "={{ $json.client_name }}"
+            },
+            {
+              "name": "client_email",
+              "value": "={{ $json.client_email }}"
+            },
+            {
+              "name": "insightly_id",
+              "value": "={{ $json.insightly_id }}"
+            },
+            {
+              "name": "internal_introducer",
+              "value": "={{ $json.internal_introducer }}"
+            },
+            {
+              "name": "mortgage_broker_appointed",
+              "value": "={{ $json.mortgage_broker_appointed }}"
+            },
+            {
+              "name": "case_type",
+              "value": "={{ $json.case_type }}"
+            },
+            {
+              "name": "case_status",
+              "value": "={{ $json.case_status }}"
+            },
+            {
+              "name": "created_from_asana",
+              "value": "={{ $json.created_from_asana }}"
+            },
+            {
+              "name": "stage",
+              "value": "={{ $json.stage }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "call-base44",
+      "name": "Create Case in Base44",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300],
+      "notes": "Calls Base44 endpoint to create MortgageCase"
+    },
+    {
+      "parameters": {
+        "resource": "taskComment",
+        "operation": "create",
+        "taskId": "={{ $('Extract Custom Fields').item.json.asana_task_gid }}",
+        "text": "=\ud83d\udd17 **CASE LINKED TO BASE44**\n\n**Reference:** {{ $('Extract Custom Fields').item.json.case_reference }}\n**Status:** Awaiting intake completion\n**Created:** {{ new Date().toISOString().split('T')[0] }}\n\n_This case is now visible in the Base44 dashboard under \"Incomplete Cases\"._"
+      },
+      "id": "post-comment",
+      "name": "Post Confirmation to Asana",
+      "type": "n8n-nodes-base.asana",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "credentials": {
+        "asanaApi": {
+          "id": "REPLACE_WITH_YOUR_ASANA_CREDENTIAL_ID",
+          "name": "Asana PAT"
+        }
+      },
+      "notes": "Posts confirmation comment back to Asana task"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.statusCode }}",
+              "operation": "equal",
+              "value2": 200
+            }
+          ]
+        }
+      },
+      "id": "check-success",
+      "name": "Check Base44 Response",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 500],
+      "notes": "Only post Asana comment if Base44 succeeded"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "error_message",
+              "value": "=Base44 case creation failed for task {{ $('Extract Custom Fields').item.json.asana_task_gid }}"
+            }
+          ]
+        }
+      },
+      "id": "error-handler",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [1120, 500],
+      "notes": "Logs failed case creations for debugging"
+    }
+  ],
+  "connections": {
+    "Asana Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter: Stage 6 Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: Stage 6 Only": {
+      "main": [
+        [
+          {
+            "node": "Extract Custom Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Custom Fields": {
+      "main": [
+        [
+          {
+            "node": "Create Case in Base44",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Case in Base44": {
+      "main": [
+        [
+          {
+            "node": "Check Base44 Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Base44 Response": {
+      "main": [
+        [
+          {
+            "node": "Post Confirmation to Asana",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Asana Integration",
+      "createdAt": "2026-01-20T00:00:00.000Z",
+      "updatedAt": "2026-01-20T00:00:00.000Z"
+    },
+    {
+      "name": "Mortgage System",
+      "createdAt": "2026-01-20T00:00:00.000Z",
+      "updatedAt": "2026-01-20T00:00:00.000Z"
+    }
+  ],
+  "triggerCount": 1,
+  "pinData": {}
+}

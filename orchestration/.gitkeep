@@ -1,0 +1,13 @@
+# Orchestration Folder
+
+This folder contains orchestration artifacts when running `/orchestrate [project-name]`.
+
+Structure after orchestration starts:
+- source-of-truth.md
+- status.json
+- decision-log.md
+- ambiguity-reports/
+- 01-research-discovery/
+- 02-planning/
+- 03-implementation/
+- 04-validation/

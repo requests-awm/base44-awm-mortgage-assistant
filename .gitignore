@@ -1,0 +1,82 @@
+# ======================
+# Environment & Secrets
+# ======================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials.json
+secrets/
+
+# ======================
+# Dependencies
+# ======================
+node_modules/
+vendor/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# ======================
+# Build Artifacts
+# ======================
+dist/
+build/
+out/
+*.dll
+*.exe
+*.o
+*.so
+
+# ======================
+# IDE & Editor
+# ======================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# ======================
+# OS Generated
+# ======================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ======================
+# Logs & Debug
+# ======================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log
+
+# ======================
+# Project Specific
+# ======================
+temp/
+scratch/
+
+# ======================
+# Orchestration (optional - uncomment to ignore)
+# ======================
+# orchestration/status.json
+# orchestration/ambiguity-reports/
+
+# ======================
+# Test Coverage
+# ======================
+coverage/
+.nyc_output/
+*.lcov
