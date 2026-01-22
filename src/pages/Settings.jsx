@@ -102,7 +102,7 @@ export default function Settings() {
           <Button
             onClick={() => saveMutation.mutate()}
             disabled={!hasChanges || saveMutation.isPending}
-            className="bg-slate-900 hover:bg-slate-800"
+            className="bg-[#D1B36A] text-[#0E1B2A] hover:bg-[#DBC17D] font-semibold"
           >
             {saveMutation.isPending ? (
               <>
