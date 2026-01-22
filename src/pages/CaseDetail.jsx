@@ -1347,7 +1347,7 @@ export default function CaseDetail() {
                 <Card className="border-0 shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <User className="w-4 h-4 text-blue-500" />
+                      <User className="w-4 h-4 text-[#D1B36A]" />
                       Client Communications Notes
                     </CardTitle>
                   </CardHeader>
@@ -1361,9 +1361,10 @@ export default function CaseDetail() {
                       />
                       <Button
                         size="sm"
+                        variant="outline"
                         onClick={() => handleAddNote('client')}
                         disabled={!newNote.client.trim() || addNoteMutation.isPending}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="border-[#D1B36A] text-[#D1B36A] hover:bg-[#D1B36A] hover:text-[#0E1B2A]"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Add Note
@@ -1373,9 +1374,9 @@ export default function CaseDetail() {
                     <div className="space-y-3 mt-4">
                       {notes.client?.length > 0 ? (
                         notes.client.map((note, idx) => (
-                          <div key={idx} className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                          <div key={idx} className="p-3 bg-[#F5F1E8] rounded-lg border border-[#E8DCC8]">
                             <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.text}</p>
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-blue-200">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#E8DCC8]">
                               <div className="text-xs text-slate-500">
                                 {note.created_by} • {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
                               </div>
@@ -1401,7 +1402,7 @@ export default function CaseDetail() {
                 <Card className="border-0 shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <Building className="w-4 h-4 text-purple-500" />
+                      <Building className="w-4 h-4 text-[#D1B36A]" />
                       Lender Communication Notes
                     </CardTitle>
                   </CardHeader>
@@ -1415,9 +1416,10 @@ export default function CaseDetail() {
                       />
                       <Button
                         size="sm"
+                        variant="outline"
                         onClick={() => handleAddNote('lender')}
                         disabled={!newNote.lender.trim() || addNoteMutation.isPending}
-                        className="bg-purple-600 hover:bg-purple-700"
+                        className="border-[#D1B36A] text-[#D1B36A] hover:bg-[#D1B36A] hover:text-[#0E1B2A]"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Add Note
@@ -1427,9 +1429,9 @@ export default function CaseDetail() {
                     <div className="space-y-3 mt-4">
                       {notes.lender?.length > 0 ? (
                         notes.lender.map((note, idx) => (
-                          <div key={idx} className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                          <div key={idx} className="p-3 bg-[#F5F1E8] rounded-lg border border-[#E8DCC8]">
                             <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.text}</p>
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-purple-200">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#E8DCC8]">
                               <div className="text-xs text-slate-500">
                                 {note.created_by} • {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
                               </div>
@@ -1455,7 +1457,7 @@ export default function CaseDetail() {
                 <Card className="border-0 shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <StickyNote className="w-4 h-4 text-amber-500" />
+                      <StickyNote className="w-4 h-4 text-[#D1B36A]" />
                       Broker Notes (Internal)
                     </CardTitle>
                   </CardHeader>
@@ -1469,9 +1471,10 @@ export default function CaseDetail() {
                       />
                       <Button
                         size="sm"
+                        variant="outline"
                         onClick={() => handleAddNote('broker')}
                         disabled={!newNote.broker.trim() || addNoteMutation.isPending}
-                        className="bg-amber-600 hover:bg-amber-700"
+                        className="border-[#D1B36A] text-[#D1B36A] hover:bg-[#D1B36A] hover:text-[#0E1B2A]"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Add Note
@@ -1481,9 +1484,9 @@ export default function CaseDetail() {
                     <div className="space-y-3 mt-4">
                       {notes.broker?.length > 0 ? (
                         notes.broker.map((note, idx) => (
-                          <div key={idx} className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                          <div key={idx} className="p-3 bg-[#F5F1E8] rounded-lg border border-[#E8DCC8]">
                             <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.text}</p>
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-amber-200">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#E8DCC8]">
                               <div className="text-xs text-slate-500">
                                 {note.created_by} • {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
                               </div>
