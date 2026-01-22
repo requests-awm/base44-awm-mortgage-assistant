@@ -659,10 +659,9 @@ export default function CaseDetail() {
               )}
 
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => setIsEmailModalOpen(true)}
-                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                className="bg-[#D1B36A] text-[#0E1B2A] font-semibold hover:bg-[#DBC17D]"
               >
                 <Mail className="w-4 h-4 mr-1" />
                 Email
