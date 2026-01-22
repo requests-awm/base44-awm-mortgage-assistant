@@ -1287,39 +1287,7 @@ export default function CaseDetail() {
             {/* Case Information */}
             <CaseInfoCard caseData={caseData} />
 
-            {/* Client Portal Link */}
-            {caseData.client_email && (
-              <Card className="border-0 shadow-sm bg-gradient-to-br from-indigo-50 to-blue-50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <ExternalLink className="w-4 h-4 text-indigo-600" />
-                    Client Portal
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-slate-600 mb-3">
-                    Share this link with the client to view their report and respond
-                  </p>
-                  <div className="flex gap-2">
-                    <Input 
-                      value={`${window.location.origin}/portal/${caseData.reference}`}
-                      readOnly
-                      className="text-xs bg-white/80"
-                    />
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/portal/${caseData.reference}`);
-                        toast.success('Link copied');
-                      }}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
             {/* Key Dates */}
             <Card className="border-0 shadow-sm">
               <CardHeader className="pb-3">
