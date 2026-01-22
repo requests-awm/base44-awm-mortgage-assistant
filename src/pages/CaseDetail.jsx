@@ -12,7 +12,7 @@ import {
   FileText, Play, Pause, CheckCircle, AlertTriangle,
   MessageSquare, Send, RefreshCw, Loader2, Eye,
   Calendar, Mail, Phone, ExternalLink, ShieldCheck,
-  Edit, Trash2, ArrowUpDown
+  Edit, Trash2, ArrowUpDown, Plus, StickyNote
 } from 'lucide-react';
 import {
   Table,
@@ -29,6 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import IndicativeReport from '@/components/case/IndicativeReport';
@@ -101,6 +102,8 @@ export default function CaseDetail() {
   const [sortBy, setSortBy] = useState('confidence');
   const [sortOrder, setSortOrder] = useState('desc');
   const [selectedLenderDetail, setSelectedLenderDetail] = useState(null);
+  const [newNote, setNewNote] = useState({ client: '', lender: '', broker: '' });
+  const [notes, setNotes] = useState({ client: [], lender: [], broker: [] });
 
   const { data: caseData, isLoading } = useQuery({
     queryKey: ['mortgageCase', caseId],
@@ -121,6 +124,13 @@ export default function CaseDetail() {
     queryKey: ['lenders'],
     queryFn: () => base44.entities.Lender.list()
   });
+
+  // Load notes from case data
+  React.useEffect(() => {
+    if (caseData?.broker_notes) {
+      setNotes(caseData.broker_notes);
+    }
+  }, [caseData]);
 
   const updateMutation = useMutation({
     mutationFn: async (updates) => {
@@ -468,6 +478,68 @@ export default function CaseDetail() {
     }
   });
 
+  const addNoteMutation = useMutation({
+    mutationFn: async ({ category, noteText }) => {
+      const user = await base44.auth.me();
+      const timestamp = new Date().toISOString();
+      
+      const newNoteEntry = {
+        text: noteText,
+        created_by: user?.email,
+        created_at: timestamp
+      };
+
+      const updatedNotes = {
+        ...notes,
+        [category]: [...(notes[category] || []), newNoteEntry]
+      };
+
+      await base44.entities.MortgageCase.update(caseId, {
+        broker_notes: updatedNotes
+      });
+
+      return updatedNotes;
+    },
+    onSuccess: (updatedNotes) => {
+      setNotes(updatedNotes);
+      setNewNote({ client: '', lender: '', broker: '' });
+      toast.success('Note added');
+      queryClient.invalidateQueries(['mortgageCase', caseId]);
+    },
+    onError: (error) => {
+      toast.error('Failed to add note: ' + error.message);
+    }
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: async ({ category, noteIndex }) => {
+      const updatedNotes = {
+        ...notes,
+        [category]: notes[category].filter((_, idx) => idx !== noteIndex)
+      };
+
+      await base44.entities.MortgageCase.update(caseId, {
+        broker_notes: updatedNotes
+      });
+
+      return updatedNotes;
+    },
+    onSuccess: (updatedNotes) => {
+      setNotes(updatedNotes);
+      toast.success('Note deleted');
+      queryClient.invalidateQueries(['mortgageCase', caseId]);
+    },
+    onError: (error) => {
+      toast.error('Failed to delete note: ' + error.message);
+    }
+  });
+
+  const handleAddNote = (category) => {
+    if (newNote[category].trim()) {
+      addNoteMutation.mutate({ category, noteText: newNote[category] });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -660,6 +732,7 @@ export default function CaseDetail() {
               <TabsList className="bg-white/80 mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="communications">Communications</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
 
@@ -1267,6 +1340,170 @@ export default function CaseDetail() {
                     </CardContent>
                   </Card>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="notes" className="space-y-6">
+                {/* Client Communications Notes */}
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <User className="w-4 h-4 text-blue-500" />
+                      Client Communications Notes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder="Add a note about client communications..."
+                        value={newNote.client}
+                        onChange={(e) => setNewNote({ ...newNote, client: e.target.value })}
+                        className="min-h-[80px]"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddNote('client')}
+                        disabled={!newNote.client.trim() || addNoteMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Note
+                      </Button>
+                    </div>
+
+                    <div className="space-y-3 mt-4">
+                      {notes.client?.length > 0 ? (
+                        notes.client.map((note, idx) => (
+                          <div key={idx} className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.text}</p>
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-blue-200">
+                              <div className="text-xs text-slate-500">
+                                {note.created_by} • {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteNoteMutation.mutate({ category: 'client', noteIndex: idx })}
+                                className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500 text-center py-6">No client communication notes yet</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Lender Communication Notes */}
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Building className="w-4 h-4 text-purple-500" />
+                      Lender Communication Notes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder="Add a note about lender communications..."
+                        value={newNote.lender}
+                        onChange={(e) => setNewNote({ ...newNote, lender: e.target.value })}
+                        className="min-h-[80px]"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddNote('lender')}
+                        disabled={!newNote.lender.trim() || addNoteMutation.isPending}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Note
+                      </Button>
+                    </div>
+
+                    <div className="space-y-3 mt-4">
+                      {notes.lender?.length > 0 ? (
+                        notes.lender.map((note, idx) => (
+                          <div key={idx} className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.text}</p>
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-purple-200">
+                              <div className="text-xs text-slate-500">
+                                {note.created_by} • {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteNoteMutation.mutate({ category: 'lender', noteIndex: idx })}
+                                className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500 text-center py-6">No lender communication notes yet</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Broker Notes */}
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <StickyNote className="w-4 h-4 text-amber-500" />
+                      Broker Notes (Internal)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder="Add internal broker notes..."
+                        value={newNote.broker}
+                        onChange={(e) => setNewNote({ ...newNote, broker: e.target.value })}
+                        className="min-h-[80px]"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddNote('broker')}
+                        disabled={!newNote.broker.trim() || addNoteMutation.isPending}
+                        className="bg-amber-600 hover:bg-amber-700"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Note
+                      </Button>
+                    </div>
+
+                    <div className="space-y-3 mt-4">
+                      {notes.broker?.length > 0 ? (
+                        notes.broker.map((note, idx) => (
+                          <div key={idx} className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.text}</p>
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-amber-200">
+                              <div className="text-xs text-slate-500">
+                                {note.created_by} • {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteNoteMutation.mutate({ category: 'broker', noteIndex: idx })}
+                                className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500 text-center py-6">No broker notes yet</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="activity">
