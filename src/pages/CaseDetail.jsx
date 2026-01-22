@@ -730,6 +730,7 @@ export default function CaseDetail() {
             <Tabs defaultValue="overview">
               <TabsList className="bg-white/80 mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="matched-lenders">Matched Lenders</TabsTrigger>
                 <TabsTrigger value="communications">Communications</TabsTrigger>
                 <TabsTrigger value="notes">Notes</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
@@ -791,126 +792,7 @@ export default function CaseDetail() {
                   </CardContent>
                 </Card>
 
-                {/* Matched Lenders */}
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Building className="w-4 h-4 text-slate-500" />
-                      Matched Lenders
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {(caseData.total_lender_matches || 0) === 0 ? (
-                      <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                        <span>No lenders matched - review criteria in Lender Checks tab</span>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="overflow-x-auto">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-slate-50">
-                                <TableHead>
-                                  <button
-                                    onClick={() => handleSort('name')}
-                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
-                                  >
-                                    Lender Name
-                                    {sortBy === 'name' && (
-                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-                                    )}
-                                  </button>
-                                </TableHead>
-                                <TableHead>
-                                  <button
-                                    onClick={() => handleSort('category')}
-                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
-                                  >
-                                    Type
-                                    {sortBy === 'category' && (
-                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-                                    )}
-                                  </button>
-                                </TableHead>
-                                <TableHead>
-                                  <button
-                                    onClick={() => handleSort('confidence')}
-                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
-                                  >
-                                    Confidence
-                                    {sortBy === 'confidence' && (
-                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-                                    )}
-                                  </button>
-                                </TableHead>
-                                <TableHead>
-                                  <button
-                                    onClick={() => handleSort('max_ltv')}
-                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
-                                  >
-                                    Max LTV
-                                    {sortBy === 'max_ltv' && (
-                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-                                    )}
-                                  </button>
-                                </TableHead>
-                                <TableHead className="font-semibold">Action</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {sortedMatchedLenders.map((lender, idx) => {
-                                // Find full lender details
-                                const fullLender = allLenders.find(l => 
-                                  l.name === lender.name || l.short_name === lender.short_name
-                                );
 
-                                return (
-                                  <TableRow key={idx}>
-                                    <TableCell className="font-medium">{lender.name}</TableCell>
-                                    <TableCell>
-                                      <Badge variant="outline" className="text-xs">
-                                        {fullLender?.type || 'Unknown'}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                      <Badge className={`${getConfidenceColor(lender.confidence)} border font-semibold`}>
-                                        {lender.confidence}%
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                      <span className="font-medium text-slate-700">{lender.max_ltv}%</span>
-                                    </TableCell>
-                                    <TableCell>
-                                      {fullLender ? (
-                                        <Button
-                                          variant="link"
-                                          size="sm"
-                                          onClick={() => setSelectedLenderDetail(fullLender)}
-                                          className="text-blue-600 hover:text-blue-700 p-0 h-auto font-normal"
-                                        >
-                                          Open Lender
-                                        </Button>
-                                      ) : (
-                                        <span className="text-sm text-slate-400">—</span>
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                                );
-                              })}
-                            </TableBody>
-                          </Table>
-                        </div>
-
-                        {caseData.lender_match_calculated_at && (
-                          <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 text-right">
-                            Last calculated: {formatDistanceToNow(new Date(caseData.lender_match_calculated_at), { addSuffix: true })}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
 
                 {/* Current Mortgage Details */}
                 {caseData.purpose === 'remortgage' && (caseData.existing_lender || caseData.existing_rate || caseData.existing_product_end_date) && (
@@ -1229,6 +1111,129 @@ export default function CaseDetail() {
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              <TabsContent value="matched-lenders">
+                {/* Matched Lenders */}
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Building className="w-4 h-4 text-slate-500" />
+                      Matched Lenders
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(caseData.total_lender_matches || 0) === 0 ? (
+                      <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                        <span>No lenders matched - review criteria in Lender Checks tab</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-slate-50">
+                                <TableHead>
+                                  <button
+                                    onClick={() => handleSort('name')}
+                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                                  >
+                                    Lender Name
+                                    {sortBy === 'name' && (
+                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                                    )}
+                                  </button>
+                                </TableHead>
+                                <TableHead>
+                                  <button
+                                    onClick={() => handleSort('category')}
+                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                                  >
+                                    Type
+                                    {sortBy === 'category' && (
+                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                                    )}
+                                  </button>
+                                </TableHead>
+                                <TableHead>
+                                  <button
+                                    onClick={() => handleSort('confidence')}
+                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                                  >
+                                    Confidence
+                                    {sortBy === 'confidence' && (
+                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                                    )}
+                                  </button>
+                                </TableHead>
+                                <TableHead>
+                                  <button
+                                    onClick={() => handleSort('max_ltv')}
+                                    className="flex items-center gap-1 hover:text-slate-900 font-semibold"
+                                  >
+                                    Max LTV
+                                    {sortBy === 'max_ltv' && (
+                                      <span className="text-xs">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                                    )}
+                                  </button>
+                                </TableHead>
+                                <TableHead className="font-semibold">Action</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {sortedMatchedLenders.map((lender, idx) => {
+                                // Find full lender details
+                                const fullLender = allLenders.find(l => 
+                                  l.name === lender.name || l.short_name === lender.short_name
+                                );
+
+                                return (
+                                  <TableRow key={idx}>
+                                    <TableCell className="font-medium">{lender.name}</TableCell>
+                                    <TableCell>
+                                      <Badge variant="outline" className="text-xs">
+                                        {fullLender?.type || 'Unknown'}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge className={`${getConfidenceColor(lender.confidence)} border font-semibold`}>
+                                        {lender.confidence}%
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <span className="font-medium text-slate-700">{lender.max_ltv}%</span>
+                                    </TableCell>
+                                    <TableCell>
+                                      {fullLender ? (
+                                        <Button
+                                          variant="link"
+                                          size="sm"
+                                          onClick={() => setSelectedLenderDetail(fullLender)}
+                                          className="text-blue-600 hover:text-blue-700 p-0 h-auto font-normal"
+                                        >
+                                          Open Lender
+                                        </Button>
+                                      ) : (
+                                        <span className="text-sm text-slate-400">—</span>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        {caseData.lender_match_calculated_at && (
+                          <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 text-right">
+                            Last calculated: {formatDistanceToNow(new Date(caseData.lender_match_calculated_at), { addSuffix: true })}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="communications">
