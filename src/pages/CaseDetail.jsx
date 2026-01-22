@@ -660,6 +660,7 @@ export default function CaseDetail() {
               <TabsList className="bg-white/80 mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="communications">Communications</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
 
@@ -1264,6 +1265,67 @@ export default function CaseDetail() {
                           AI-assisted lender communications will be available in the next phase
                         </p>
                       </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="notes">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Client Notes */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <User className="w-4 h-4 text-slate-500" />
+                        Client Notes
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea 
+                        placeholder="Add notes about client communications, preferences, or important details..."
+                        className="min-h-[200px] mb-3"
+                        value={caseData.client_notes || ''}
+                        onChange={(e) => updateMutation.mutate({ client_notes: e.target.value })}
+                      />
+                      <p className="text-xs text-slate-500">Notes about the client and their preferences</p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Lender Notes */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Building className="w-4 h-4 text-slate-500" />
+                        Lender Notes
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea 
+                        placeholder="Add notes about lender communications, requirements, or follow-ups..."
+                        className="min-h-[200px] mb-3"
+                        value={caseData.lender_notes || ''}
+                        onChange={(e) => updateMutation.mutate({ lender_notes: e.target.value })}
+                      />
+                      <p className="text-xs text-slate-500">Notes about lender interactions and requirements</p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Broker Notes */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-slate-500" />
+                        Broker Notes
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea 
+                        placeholder="Add internal broker notes, reminders, or case observations..."
+                        className="min-h-[200px] mb-3"
+                        value={caseData.broker_notes || ''}
+                        onChange={(e) => updateMutation.mutate({ broker_notes: e.target.value })}
+                      />
+                      <p className="text-xs text-slate-500">Internal notes for broker team</p>
                     </CardContent>
                   </Card>
                 </div>
