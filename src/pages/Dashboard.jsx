@@ -520,7 +520,7 @@ export default function Dashboard() {
                 onClick={() => toggleSection('urgent')}
                 className="flex items-center justify-between w-full mb-4 group"
               >
-                <h2 className="text-lg font-bold text-[#EF4444] flex items-center gap-3 pl-4 border-l-[3px] border-[#EF4444]">
+                <h2 className="text-lg font-bold text-[#0E1B2A] flex items-center gap-3 pl-4 border-l-[3px] border-[#D1B36A]">
                   URGENT ({getUrgentCases().length})
                   <ChevronDown 
                     className={`w-5 h-5 transition-transform ${expandedSections.urgent ? '' : '-rotate-90'}`}
