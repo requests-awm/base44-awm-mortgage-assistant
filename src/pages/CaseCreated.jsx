@@ -88,7 +88,7 @@ export default function CaseCreated() {
           <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-emerald-600" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Case Created Successfully</h1>
+          <h1 className="text-[25.5px] font-bold text-slate-900 mb-2">Case Created Successfully</h1>
           <p className="text-slate-500">
             Ready for next steps
           </p>
@@ -160,7 +160,7 @@ export default function CaseCreated() {
           <Button
             onClick={handleGenerateEmail}
             disabled={isGenerating}
-            className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg"
+            className="w-full h-14 text-lg bg-[#D1B36A] hover:bg-[#DBC17D] text-[#0E1B2A] font-semibold shadow-lg"
           >
             {isGenerating ? (
               <>
@@ -170,7 +170,7 @@ export default function CaseCreated() {
             ) : (
               <>
                 <Mail className="w-5 h-5 mr-2" />
-                📧 Generate Email Draft
+                Generate Email Draft
               </>
             )}
           </Button>
