@@ -740,7 +740,7 @@ export default function CaseDetail() {
                 {/* Case Summary */}
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Category</p>
                         <p className="font-medium text-slate-900">
@@ -763,6 +763,12 @@ export default function CaseDetail() {
                         <p className="text-xs text-slate-500 mb-1">Loan Amount</p>
                         <p className="font-medium text-slate-900">
                           {formatCurrency(caseData.loan_amount)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Matched Lenders</p>
+                        <p className="font-medium text-slate-900">
+                          {caseData.total_lender_matches || 0} lenders
                         </p>
                       </div>
                     </div>
