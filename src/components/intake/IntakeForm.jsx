@@ -1172,16 +1172,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, initialData = {} })
                   handleSubmit();
                 }} 
                 disabled={isSubmittingForm || !isFormValid()}
-                style={{
-                  backgroundColor: isEditMode ? '#F59E0B' : '#2563EB',
-                  color: 'white',
-                  fontWeight: 600,
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  opacity: (isSubmittingForm || !isFormValid()) ? 0.6 : 1,
-                  cursor: (isSubmittingForm || !isFormValid()) ? 'not-allowed' : 'pointer'
-                }}
-                className={isEditMode ? 'hover:opacity-90' : 'hover:opacity-90'}
+                className="bg-[#D1B36A] hover:bg-[#DBC17D] text-[#0E1B2A] font-semibold px-6 py-3 rounded-lg shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
                 title={!isFormValid() ? 'Fill all required fields to continue' : ''}
               >
                 {isSubmittingForm ? (
