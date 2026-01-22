@@ -88,17 +88,7 @@ export default function CaseTimeline({ logs = [] }) {
                   </div>
                 )}
 
-                {/* Details */}
-                {log.details && Object.keys(log.details).length > 0 && (
-                  <div className="mt-2 p-2 bg-slate-50 rounded text-xs text-slate-600">
-                    {Object.entries(log.details).map(([key, value]) => (
-                      <div key={key} className="flex gap-2">
-                        <span className="text-slate-400">{key}:</span>
-                        <span>{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+
               </div>
             </div>
           );
