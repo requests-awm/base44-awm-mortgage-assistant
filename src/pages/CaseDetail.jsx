@@ -1361,10 +1361,9 @@ export default function CaseDetail() {
                       />
                       <Button
                         size="sm"
-                        variant="outline"
                         onClick={() => handleAddNote('client')}
                         disabled={!newNote.client.trim() || addNoteMutation.isPending}
-                        className="border-[#D1B36A] text-[#D1B36A] hover:bg-[#D1B36A] hover:text-[#0E1B2A]"
+                        className="bg-transparent border border-[#D1B36A] text-[#0E1B2A] font-semibold shadow hover:bg-[#D1B36A]"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Add Note
@@ -1416,10 +1415,9 @@ export default function CaseDetail() {
                       />
                       <Button
                         size="sm"
-                        variant="outline"
                         onClick={() => handleAddNote('lender')}
                         disabled={!newNote.lender.trim() || addNoteMutation.isPending}
-                        className="border-[#D1B36A] text-[#D1B36A] hover:bg-[#D1B36A] hover:text-[#0E1B2A]"
+                        className="bg-transparent border border-[#D1B36A] text-[#0E1B2A] font-semibold shadow hover:bg-[#D1B36A]"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Add Note
@@ -1471,10 +1469,9 @@ export default function CaseDetail() {
                       />
                       <Button
                         size="sm"
-                        variant="outline"
                         onClick={() => handleAddNote('broker')}
                         disabled={!newNote.broker.trim() || addNoteMutation.isPending}
-                        className="border-[#D1B36A] text-[#D1B36A] hover:bg-[#D1B36A] hover:text-[#0E1B2A]"
+                        className="bg-transparent border border-[#D1B36A] text-[#0E1B2A] font-semibold shadow hover:bg-[#D1B36A]"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Add Note
