@@ -1160,88 +1160,113 @@ export default function CaseDetail() {
               </TabsContent>
 
               <TabsContent value="communications">
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Email Communications</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {caseData.email_status === 'not_generated' ? (
-                      <div className="text-sm text-slate-500 space-y-3">
-                        <p>No email communications yet</p>
-                        <Button
-                          size="sm"
-                          onClick={() => setIsEmailModalOpen(true)}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <Mail className="w-4 h-4 mr-2" />
-                          Generate Email with AI
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {/* Status Badge */}
-                        <div className="flex items-center gap-2">
-                          {caseData.email_status === 'draft' && (
-                            <Badge className="bg-blue-100 text-blue-700">
-                              ✉️ Draft Ready
-                            </Badge>
-                          )}
-                          {caseData.email_status === 'sent' && (
-                            <Badge className="bg-emerald-100 text-emerald-700">
-                              ✓ Sent
-                            </Badge>
-                          )}
-                          {caseData.email_status === 'failed' && (
-                            <Badge className="bg-red-100 text-red-700">
-                              ⚠️ Generation Failed
-                            </Badge>
-                          )}
-                          <span className="text-xs text-slate-500">v{caseData.email_version || 1}</span>
-                        </div>
-
-                        {/* Subject Preview */}
-                        {caseData.email_subject && (
-                          <div className="border-l-2 border-blue-200 pl-3">
-                            <p className="text-xs text-slate-500 mb-1">Subject:</p>
-                            <p className="font-medium text-sm text-slate-900">{caseData.email_subject}</p>
-                          </div>
-                        )}
-
-                        {/* Body Preview */}
-                        {caseData.email_draft && (
-                          <div className="border-l-2 border-slate-200 pl-3">
-                            <p className="text-xs text-slate-500 mb-1">Preview:</p>
-                            <p className="text-sm text-slate-600">
-                              {caseData.email_draft.substring(0, 120)}...
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Timeline */}
-                        <div className="text-xs text-slate-500 space-y-1">
-                          {caseData.email_generated_at && (
-                            <p>Generated: {formatDistanceToNow(new Date(caseData.email_generated_at), { addSuffix: true })}</p>
-                          )}
-                          {caseData.email_sent_at && (
-                            <p>Sent: {format(new Date(caseData.email_sent_at), 'dd MMM yyyy HH:mm')} by {caseData.email_sent_by}</p>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Client Communications */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <User className="w-4 h-4 text-slate-500" />
+                        Client Communications
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {caseData.email_status === 'not_generated' ? (
+                        <div className="text-sm text-slate-500 space-y-3">
+                          <p>No communications yet</p>
                           <Button
                             size="sm"
-                            variant="outline"
                             onClick={() => setIsEmailModalOpen(true)}
+                            className="bg-blue-600 hover:bg-blue-700"
                           >
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Full Draft
+                            <Mail className="w-4 h-4 mr-2" />
+                            Generate Email with AI
                           </Button>
                         </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {/* Status Badge */}
+                          <div className="flex items-center gap-2">
+                            {caseData.email_status === 'draft' && (
+                              <Badge className="bg-blue-100 text-blue-700">
+                                ✉️ Draft Ready
+                              </Badge>
+                            )}
+                            {caseData.email_status === 'sent' && (
+                              <Badge className="bg-emerald-100 text-emerald-700">
+                                ✓ Sent
+                              </Badge>
+                            )}
+                            {caseData.email_status === 'failed' && (
+                              <Badge className="bg-red-100 text-red-700">
+                                ⚠️ Generation Failed
+                              </Badge>
+                            )}
+                            <span className="text-xs text-slate-500">v{caseData.email_version || 1}</span>
+                          </div>
+
+                          {/* Subject Preview */}
+                          {caseData.email_subject && (
+                            <div className="border-l-2 border-blue-200 pl-3">
+                              <p className="text-xs text-slate-500 mb-1">Subject:</p>
+                              <p className="font-medium text-sm text-slate-900">{caseData.email_subject}</p>
+                            </div>
+                          )}
+
+                          {/* Body Preview */}
+                          {caseData.email_draft && (
+                            <div className="border-l-2 border-slate-200 pl-3">
+                              <p className="text-xs text-slate-500 mb-1">Preview:</p>
+                              <p className="text-sm text-slate-600">
+                                {caseData.email_draft.substring(0, 120)}...
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Timeline */}
+                          <div className="text-xs text-slate-500 space-y-1">
+                            {caseData.email_generated_at && (
+                              <p>Generated: {formatDistanceToNow(new Date(caseData.email_generated_at), { addSuffix: true })}</p>
+                            )}
+                            {caseData.email_sent_at && (
+                              <p>Sent: {format(new Date(caseData.email_sent_at), 'dd MMM yyyy HH:mm')} by {caseData.email_sent_by}</p>
+                            )}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setIsEmailModalOpen(true)}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              View Full Draft
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Lender Communications */}
+                  <Card className="border-0 shadow-sm bg-slate-50/50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Building className="w-4 h-4 text-slate-500" />
+                        Lender Communications
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8">
+                        <Building className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="text-sm text-slate-500 mb-1">Coming Soon</p>
+                        <p className="text-xs text-slate-400">
+                          AI-assisted lender communications will be available in the next phase
+                        </p>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="activity">
