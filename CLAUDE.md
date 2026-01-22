@@ -63,11 +63,93 @@ $headers = @{ "Authorization" = "Bearer 2/1205556174146758/1210879318362399:c3d8
 Invoke-RestMethod -Uri "https://app.asana.com/api/1.0/webhooks?workspace=1205556174146758" -Headers $headers
 ```
 
+## MCP Servers
+
+### Context7 - Up-to-Date Library Documentation
+
+Context7 MCP dynamically injects up-to-date, version-specific documentation into Claude's context.
+
+**Installation:**
+```bash
+claude mcp add context7 -- npx -y @upstash/context7-mcp
+```
+
+**Usage:**
+```
+"use context7 for asana api"
+"use context7 for base44"
+"use context7 for n8n"
+```
+
+**Benefits:**
+- No more outdated documentation
+- Version-specific code examples
+- Critical for Base44's undocumented quirks and API limitations
+
+## Plugins
+
+### Code-Simplifier - Anthropic's Internal Code Cleaner
+
+Refactors code for clarity while preserving exact functionality. Uses Opus model.
+
+**Installation:**
+```bash
+claude plugin install code-simplifier
+```
+
+**Usage:**
+```
+/plugin install code-simplifier
+# Then in session:
+"Simplify the n8n webhook handler code"
+```
+
+**Features:**
+- 20-30% reduction in token usage
+- Follows CLAUDE.md standards automatically
+- Never changes functionality, only clarity
+
+## Git Worktree - Parallel Agent Development
+
+Git worktrees allow multiple agents to work on different branches simultaneously without conflicts.
+
+### Commands
+
+```bash
+# Create worktree for new feature
+git worktree add ../base44-n8n-integration feature/n8n-webhook
+
+# Create worktree for parallel bug fix
+git worktree add ../base44-intake-fix feature/intake-bug
+
+# List all worktrees
+git worktree list
+
+# Remove when done
+git worktree remove ../base44-n8n-integration
+```
+
+### Workflow
+
+1. **Main worktree:** `c:\Claude Code CHats\` (main branch)
+2. **Agent 2 worktree:** `c:\base44-n8n-integration\` (feature/n8n-webhook)
+3. **Agent 3 worktree:** `c:\base44-intake-fix\` (feature/intake-bug)
+
+All worktrees share the same `.git` directory - lightweight and synchronized.
+
+### Use Cases
+
+- One agent builds n8n webhook integration
+- Another agent fixes intake form bug
+- Third agent updates documentation
+- All work in parallel without waiting or conflicts
+
 ## Custom Skills Available
 
 | Skill | Purpose | Usage |
 |-------|---------|-------|
 | `/git` | Beginner-friendly git operations with safety | Git push, pull, branch, undo |
+| `/research` | Background research agent, saves to Obsidian | `/research [topic] --deep` |
 | `/test-api` | Test Base44 or Asana API endpoints | Debugging API issues |
 | `/check-progress` | Summarize project status from PROGRESS.md | Quick status check |
 | `/validate-config` | Validate all GIDs, API keys, endpoints | Setup verification |
@@ -262,3 +344,30 @@ All Claude-assisted commits include:
 ```
 Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
+
+---
+
+## Session End Behaviors
+
+When Claude detects session end signals (e.g., "done", "thanks", "that's all", "finished", closing phrases):
+
+### Auto-Actions
+1. **Sync to Obsidian** - Run Claude Vault to sync this session to `ObsidianVault/conversations/`
+2. **Suggest /log-outcome** - If framework was used, prompt to log results
+
+### Sync Command
+```powershell
+cd "C:\Users\Marko\Documents\ObsidianVault"
+C:\Users\Marko\claude-vault\venv\Scripts\python.exe -c "import sys; sys.stdout.reconfigure(encoding='utf-8'); from claude_vault.cli import app; app()" sync "C:\Users\Marko\.claude"
+```
+
+### Session End Detection
+Trigger on phrases like:
+- "done", "finished", "that's all", "thanks", "all good"
+- "wrap up", "end session", "closing out"
+- User explicitly closing or saying goodbye
+
+### What Gets Synced
+- Current session → `conversations/[date]-[title].md`
+- Frontmatter includes: date, tags, message count, related sessions
+- Research links are preserved via Obsidian backlinks
