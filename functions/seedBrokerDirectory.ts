@@ -38,11 +38,11 @@ Deno.serve(async (req) => {
 
     for (const broker of brokers) {
       // Check if broker already exists
-      const existing = await base44.asServiceRole.entities.BrokerDirectory.findOne({
+      const existing = await base44.asServiceRole.entities.BrokerDirectory.filter({
         broker_email: broker.broker_email
       });
 
-      if (existing) {
+      if (existing && existing.length > 0) {
         console.log(`[SEED] Broker already exists: ${broker.display_name}`);
         results.push({ status: 'skipped', broker: broker.display_name });
         continue;

@@ -53,11 +53,11 @@ Deno.serve(async (req) => {
 
     for (const team of teams) {
       // Check if team already exists
-      const existing = await base44.asServiceRole.entities.TeamDirectory.findOne({
+      const existing = await base44.asServiceRole.entities.TeamDirectory.filter({
         team_name: team.team_name
       });
 
-      if (existing) {
+      if (existing && existing.length > 0) {
         console.log(`[SEED] Team already exists: ${team.team_name}`);
         results.push({ status: 'skipped', team: team.team_name });
         continue;
