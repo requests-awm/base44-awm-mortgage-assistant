@@ -20,15 +20,15 @@ Deno.serve(async (req) => {
 
     console.log('[SEED] Starting EmailSettings seed...');
 
-    // Check if settings already exist
-    const existing = await base44.entities.EmailSettings.findOne({});
+    // Check if settings already exist using filter
+    const existing = await base44.entities.EmailSettings.filter({});
 
-    if (existing) {
+    if (existing && existing.length > 0) {
       console.log('[SEED] EmailSettings already exist, skipping seed');
       return Response.json({
         success: true,
         message: 'EmailSettings already exist',
-        settings: existing
+        settings: existing[0]
       });
     }
 

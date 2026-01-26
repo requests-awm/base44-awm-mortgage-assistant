@@ -28,10 +28,11 @@ Deno.serve(async (req) => {
     }
 
     // Query TeamDirectory
-    const team = await base44.entities.TeamDirectory.findOne({
+    const teamResults = await base44.entities.TeamDirectory.filter({
       team_name: team_name,
       active: true
     });
+    const team = teamResults && teamResults.length > 0 ? teamResults[0] : null;
 
     if (!team) {
       console.log('[LOOKUP] Team not found in directory:', team_name);

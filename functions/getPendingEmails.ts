@@ -48,19 +48,21 @@ Deno.serve(async (req) => {
 
         // Lookup broker name
         if (caseData.mortgage_broker_appointed) {
-          const brokerLookup = await base44.entities.BrokerDirectory.findOne({
+          const brokerResults = await base44.entities.BrokerDirectory.filter({
             broker_email: caseData.mortgage_broker_appointed,
             active: true
           });
+          const brokerLookup = brokerResults && brokerResults.length > 0 ? brokerResults[0] : null;
           brokerName = brokerLookup?.display_name || null;
         }
 
         // Lookup team email
         if (caseData.referring_team) {
-          const teamLookup = await base44.entities.TeamDirectory.findOne({
+          const teamResults = await base44.entities.TeamDirectory.filter({
             team_name: caseData.referring_team,
             active: true
           });
+          const teamLookup = teamResults && teamResults.length > 0 ? teamResults[0] : null;
           teamEmail = teamLookup?.team_email || null;
         }
 

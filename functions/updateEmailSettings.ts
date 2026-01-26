@@ -28,7 +28,8 @@ Deno.serve(async (req) => {
     console.log('[SETTINGS] Updating email settings...');
 
     // Get current settings
-    let settings = await base44.entities.EmailSettings.findOne({});
+    const settingsResults = await base44.entities.EmailSettings.filter({});
+    let settings = settingsResults && settingsResults.length > 0 ? settingsResults[0] : null;
 
     if (!settings) {
       // Create settings if they don't exist
@@ -67,7 +68,8 @@ Deno.serve(async (req) => {
     }
 
     // Get updated settings
-    const updated = await base44.entities.EmailSettings.findOne({});
+    const updatedResults = await base44.entities.EmailSettings.filter({});
+    const updated = updatedResults && updatedResults.length > 0 ? updatedResults[0] : null;
 
     // Create audit log
     const user = await base44.auth.me();

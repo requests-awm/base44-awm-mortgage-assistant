@@ -16,7 +16,8 @@ Deno.serve(async (req) => {
     console.log('[SETTINGS] Fetching email settings...');
 
     // Get settings (should only be one record)
-    const settings = await base44.entities.EmailSettings.findOne({});
+    const settingsResults = await base44.entities.EmailSettings.filter({});
+    const settings = settingsResults && settingsResults.length > 0 ? settingsResults[0] : null;
 
     if (!settings) {
       console.log('[SETTINGS] No settings found, returning defaults');

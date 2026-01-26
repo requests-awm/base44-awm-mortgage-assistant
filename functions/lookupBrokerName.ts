@@ -28,10 +28,11 @@ Deno.serve(async (req) => {
     }
 
     // Query BrokerDirectory
-    const broker = await base44.entities.BrokerDirectory.findOne({
+    const brokerResults = await base44.entities.BrokerDirectory.filter({
       broker_email: broker_email,
       active: true
     });
+    const broker = brokerResults && brokerResults.length > 0 ? brokerResults[0] : null;
 
     if (!broker) {
       console.log('[LOOKUP] Broker not found in directory:', broker_email);
