@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { broker_email } = await req.json();
 
-    console.log('[LOOKUP] Finding broker name for:', broker_email);
+    console.log('[LOOKUP] Finding broker display name for:', broker_email);
 
     if (!broker_email) {
       console.log('[LOOKUP] No broker email provided');
