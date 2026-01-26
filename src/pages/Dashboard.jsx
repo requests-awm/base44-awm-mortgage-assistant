@@ -326,7 +326,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       <div className="max-w-[1600px] mx-auto p-6 lg:p-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
