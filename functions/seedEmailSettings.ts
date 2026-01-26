@@ -7,24 +7,28 @@
  * Usage: Run once during Phase 3-01 schema setup
  */
 
-export default async function seedEmailSettings(context: any) {
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+
     console.log('[SEED] Starting EmailSettings seed...');
 
     // Check if settings already exist
-    const existing = await context.entities.EmailSettings.findOne({});
+    const existing = await base44.entities.EmailSettings.findOne({});
 
     if (existing) {
       console.log('[SEED] EmailSettings already exist, skipping seed');
-      return {
+      return Response.json({
         success: true,
         message: 'EmailSettings already exist',
         settings: existing
-      };
+      });
     }
 
     // Create default settings
-    const settings = await context.entities.EmailSettings.create({
+    const settings = await base44.entities.EmailSettings.create({
       batch_send_time: '16:00', // 4 PM UK time (default)
       batch_send_timezone: 'Europe/London',
       batch_send_enabled: true,
@@ -38,17 +42,17 @@ export default async function seedEmailSettings(context: any) {
 
     console.log('[SEED] EmailSettings created:', settings);
 
-    return {
+    return Response.json({
       success: true,
       message: 'EmailSettings seeded successfully',
       settings
-    };
+    });
 
   } catch (error) {
     console.error('[SEED] EmailSettings seed failed:', error);
-    return {
+    return Response.json({
       success: false,
       error: error.message
-    };
+    }, { status: 500 });
   }
-}
+});

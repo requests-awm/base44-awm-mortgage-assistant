@@ -7,18 +7,22 @@
  * Returns: Current email settings including batch_send_time
  */
 
-export default async function getEmailSettings(context: any) {
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+
     console.log('[SETTINGS] Fetching email settings...');
 
     // Get settings (should only be one record)
-    const settings = await context.entities.EmailSettings.findOne({});
+    const settings = await base44.entities.EmailSettings.findOne({});
 
     if (!settings) {
       console.log('[SETTINGS] No settings found, returning defaults');
 
       // Return defaults if not seeded yet
-      return {
+      return Response.json({
         success: true,
         settings: {
           batch_send_time: '16:00',
@@ -28,12 +32,12 @@ export default async function getEmailSettings(context: any) {
           sender_email: 'requests@ascotwm.com',
           max_batch_size: 50
         }
-      };
+      });
     }
 
     console.log('[SETTINGS] Found settings:', settings);
 
-    return {
+    return Response.json({
       success: true,
       settings: {
         batch_send_time: settings.batch_send_time,
@@ -46,14 +50,14 @@ export default async function getEmailSettings(context: any) {
         retry_max_attempts: settings.retry_max_attempts,
         updated_at: settings.updated_at
       }
-    };
+    });
 
   } catch (error) {
     console.error('[SETTINGS] Failed to fetch settings:', error);
-    return {
+    return Response.json({
       success: false,
       error: error.message,
       settings: null
-    };
+    }, { status: 500 });
   }
-}
+});

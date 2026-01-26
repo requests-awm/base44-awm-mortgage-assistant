@@ -9,48 +9,53 @@
  * @returns Team group email address, or null if not found
  */
 
-export default async function lookupTeamEmail(context: any, { team_name }: { team_name: string }) {
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    const { team_name } = await req.json();
+
     console.log('[LOOKUP] Finding team email for:', team_name);
 
     if (!team_name) {
       console.log('[LOOKUP] No team name provided');
-      return {
+      return Response.json({
         success: false,
         team_email: null,
         message: 'No team name provided'
-      };
+      });
     }
 
     // Query TeamDirectory
-    const team = await context.entities.TeamDirectory.findOne({
+    const team = await base44.entities.TeamDirectory.findOne({
       team_name: team_name,
       active: true
     });
 
     if (!team) {
       console.log('[LOOKUP] Team not found in directory:', team_name);
-      return {
+      return Response.json({
         success: false,
         team_email: null,
         message: `Team not found: ${team_name}`
-      };
+      });
     }
 
     console.log('[LOOKUP] Found team email:', team.team_email);
 
-    return {
+    return Response.json({
       success: true,
       team_email: team.team_email,
       team_name: team.team_name
-    };
+    });
 
   } catch (error) {
     console.error('[LOOKUP] Team lookup failed:', error);
-    return {
+    return Response.json({
       success: false,
       team_email: null,
       error: error.message
-    };
+    }, { status: 500 });
   }
-}
+});

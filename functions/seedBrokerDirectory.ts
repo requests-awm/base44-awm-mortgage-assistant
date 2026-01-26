@@ -7,8 +7,12 @@
  * Usage: Run once during Phase 3-01 schema setup
  */
 
-export default async function seedBrokerDirectory(context: any) {
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+
     console.log('[SEED] Starting BrokerDirectory seed...');
 
     const brokers = [
@@ -28,7 +32,7 @@ export default async function seedBrokerDirectory(context: any) {
 
     for (const broker of brokers) {
       // Check if broker already exists
-      const existing = await context.entities.BrokerDirectory.findOne({
+      const existing = await base44.entities.BrokerDirectory.findOne({
         broker_email: broker.broker_email
       });
 
@@ -39,24 +43,24 @@ export default async function seedBrokerDirectory(context: any) {
       }
 
       // Create broker
-      const created = await context.entities.BrokerDirectory.create(broker);
+      const created = await base44.entities.BrokerDirectory.create(broker);
       console.log(`[SEED] Created broker: ${broker.display_name}`);
       results.push({ status: 'created', broker: broker.display_name, id: created.id });
     }
 
     console.log('[SEED] BrokerDirectory seed complete');
 
-    return {
+    return Response.json({
       success: true,
       message: 'BrokerDirectory seeded successfully',
       results
-    };
+    });
 
   } catch (error) {
     console.error('[SEED] BrokerDirectory seed failed:', error);
-    return {
+    return Response.json({
       success: false,
       error: error.message
-    };
+    }, { status: 500 });
   }
-}
+});

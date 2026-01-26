@@ -16,21 +16,18 @@
  * - Creates AuditLog entry for compliance
  */
 
-export default async function confirmEmailSent(
-  context: any,
-  {
-    case_id,
-    zapier_task_id,
-    gmail_message_id,
-    sent_at
-  }: {
-    case_id: string;
-    zapier_task_id?: string;
-    gmail_message_id?: string;
-    sent_at?: string;
-  }
-) {
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    const {
+      case_id,
+      zapier_task_id,
+      gmail_message_id,
+      sent_at
+    } = await req.json();
+
     console.log('[CONFIRM] Confirming email sent for case:', case_id);
 
     if (!case_id) {
@@ -38,7 +35,7 @@ export default async function confirmEmailSent(
     }
 
     // Fetch case
-    const caseData = await context.entities.MortgageCase.findById(case_id);
+    const caseData = await base44.entities.MortgageCase.findById(case_id);
 
     if (!caseData) {
       throw new Error(`Case not found: ${case_id}`);
@@ -66,12 +63,12 @@ export default async function confirmEmailSent(
       updateData.email_sent_at = new Date().toISOString();
     }
 
-    await context.entities.MortgageCase.update(case_id, updateData);
+    await base44.entities.MortgageCase.update(case_id, updateData);
 
     console.log('[CONFIRM] Case updated successfully');
 
     // Create audit log entry
-    await context.entities.AuditLog.create({
+    await base44.entities.AuditLog.create({
       case_id: case_id,
       action: 'Email sent via Zapier',
       action_category: 'delivery',
@@ -88,7 +85,7 @@ export default async function confirmEmailSent(
 
     console.log('[CONFIRM] Audit log created');
 
-    return {
+    return Response.json({
       success: true,
       message: 'Email delivery confirmed',
       case_id,
@@ -96,14 +93,14 @@ export default async function confirmEmailSent(
       sent_at: updateData.email_sent_at,
       zapier_task_id,
       gmail_message_id
-    };
+    });
 
   } catch (error) {
     console.error('[CONFIRM] Failed to confirm email sent:', error);
-    return {
+    return Response.json({
       success: false,
       error: error.message,
       case_id
-    };
+    }, { status: 500 });
   }
-}
+});

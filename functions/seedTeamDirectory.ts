@@ -7,8 +7,12 @@
  * Usage: Run once during Phase 3-01 schema setup
  */
 
-export default async function seedTeamDirectory(context: any) {
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+
     console.log('[SEED] Starting TeamDirectory seed...');
 
     const teams = [
@@ -43,7 +47,7 @@ export default async function seedTeamDirectory(context: any) {
 
     for (const team of teams) {
       // Check if team already exists
-      const existing = await context.entities.TeamDirectory.findOne({
+      const existing = await base44.entities.TeamDirectory.findOne({
         team_name: team.team_name
       });
 
@@ -54,24 +58,24 @@ export default async function seedTeamDirectory(context: any) {
       }
 
       // Create team
-      const created = await context.entities.TeamDirectory.create(team);
+      const created = await base44.entities.TeamDirectory.create(team);
       console.log(`[SEED] Created team: ${team.team_name}`);
       results.push({ status: 'created', team: team.team_name, id: created.id });
     }
 
     console.log('[SEED] TeamDirectory seed complete');
 
-    return {
+    return Response.json({
       success: true,
       message: 'TeamDirectory seeded successfully',
       results
-    };
+    });
 
   } catch (error) {
     console.error('[SEED] TeamDirectory seed failed:', error);
-    return {
+    return Response.json({
       success: false,
       error: error.message
-    };
+    }, { status: 500 });
   }
-}
+});

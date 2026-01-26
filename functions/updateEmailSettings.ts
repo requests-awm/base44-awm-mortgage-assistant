@@ -9,38 +9,31 @@
  * @param settings - Object with settings to update
  */
 
-export default async function updateEmailSettings(
-  context: any,
-  {
-    batch_send_time,
-    batch_send_timezone,
-    batch_send_enabled,
-    instant_send_enabled,
-    sender_email,
-    max_batch_size,
-    retry_failed_sends,
-    retry_max_attempts
-  }: {
-    batch_send_time?: string;
-    batch_send_timezone?: string;
-    batch_send_enabled?: boolean;
-    instant_send_enabled?: boolean;
-    sender_email?: string;
-    max_batch_size?: number;
-    retry_failed_sends?: boolean;
-    retry_max_attempts?: number;
-  }
-) {
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    const {
+      batch_send_time,
+      batch_send_timezone,
+      batch_send_enabled,
+      instant_send_enabled,
+      sender_email,
+      max_batch_size,
+      retry_failed_sends,
+      retry_max_attempts
+    } = await req.json();
+
     console.log('[SETTINGS] Updating email settings...');
 
     // Get current settings
-    let settings = await context.entities.EmailSettings.findOne({});
+    let settings = await base44.entities.EmailSettings.findOne({});
 
     if (!settings) {
       // Create settings if they don't exist
       console.log('[SETTINGS] No existing settings, creating new...');
-      settings = await context.entities.EmailSettings.create({
+      settings = await base44.entities.EmailSettings.create({
         batch_send_time: batch_send_time || '16:00',
         batch_send_timezone: batch_send_timezone || 'Europe/London',
         batch_send_enabled: batch_send_enabled !== undefined ? batch_send_enabled : true,
@@ -68,17 +61,17 @@ export default async function updateEmailSettings(
       if (retry_failed_sends !== undefined) updateData.retry_failed_sends = retry_failed_sends;
       if (retry_max_attempts !== undefined) updateData.retry_max_attempts = retry_max_attempts;
 
-      await context.entities.EmailSettings.update(settings.id, updateData);
+      await base44.entities.EmailSettings.update(settings.id, updateData);
 
       console.log('[SETTINGS] Settings updated');
     }
 
     // Get updated settings
-    const updated = await context.entities.EmailSettings.findOne({});
+    const updated = await base44.entities.EmailSettings.findOne({});
 
     // Create audit log
-    const user = await context.auth.me();
-    await context.entities.AuditLog.create({
+    const user = await base44.auth.me();
+    await base44.entities.AuditLog.create({
       action: 'Email settings updated',
       action_category: 'configuration',
       actor: 'user',
@@ -91,7 +84,7 @@ export default async function updateEmailSettings(
       }
     });
 
-    return {
+    return Response.json({
       success: true,
       message: 'Email settings updated successfully',
       settings: {
@@ -105,13 +98,13 @@ export default async function updateEmailSettings(
         retry_max_attempts: updated.retry_max_attempts,
         updated_at: updated.updated_at
       }
-    };
+    });
 
   } catch (error) {
     console.error('[SETTINGS] Failed to update settings:', error);
-    return {
+    return Response.json({
       success: false,
       error: error.message
-    };
+    }, { status: 500 });
   }
-}
+});

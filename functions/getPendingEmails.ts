@@ -12,14 +12,18 @@
  * Returns: Array of cases with enriched data (broker name, team email)
  */
 
-export default async function getPendingEmails(context: any) {
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+
     console.log('[GET_PENDING] Fetching pending emails...');
 
     const now = new Date().toISOString();
 
     // Query cases ready to send
-    const pendingCases = await context.entities.MortgageCase.find({
+    const pendingCases = await base44.entities.MortgageCase.find({
       zapier_trigger_pending: true,
       email_status: 'scheduled',
       email_scheduled_send_time: { $lte: now }
@@ -28,12 +32,12 @@ export default async function getPendingEmails(context: any) {
     console.log(`[GET_PENDING] Found ${pendingCases.length} pending cases`);
 
     if (pendingCases.length === 0) {
-      return {
+      return Response.json({
         success: true,
         message: 'No pending emails to send',
         count: 0,
         emails: []
-      };
+      });
     }
 
     // Enrich each case with broker name and team email
@@ -44,7 +48,7 @@ export default async function getPendingEmails(context: any) {
 
         // Lookup broker name
         if (caseData.mortgage_broker_appointed) {
-          const brokerLookup = await context.entities.BrokerDirectory.findOne({
+          const brokerLookup = await base44.entities.BrokerDirectory.findOne({
             broker_email: caseData.mortgage_broker_appointed,
             active: true
           });
@@ -53,7 +57,7 @@ export default async function getPendingEmails(context: any) {
 
         // Lookup team email
         if (caseData.referring_team) {
-          const teamLookup = await context.entities.TeamDirectory.findOne({
+          const teamLookup = await base44.entities.TeamDirectory.findOne({
             team_name: caseData.referring_team,
             active: true
           });
@@ -77,21 +81,21 @@ export default async function getPendingEmails(context: any) {
 
     console.log(`[GET_PENDING] Enriched ${enrichedEmails.length} emails with broker/team data`);
 
-    return {
+    return Response.json({
       success: true,
       message: `Found ${enrichedEmails.length} emails ready to send`,
       count: enrichedEmails.length,
       emails: enrichedEmails,
       fetched_at: now
-    };
+    });
 
   } catch (error) {
     console.error('[GET_PENDING] Failed to fetch pending emails:', error);
-    return {
+    return Response.json({
       success: false,
       error: error.message,
       count: 0,
       emails: []
-    };
+    }, { status: 500 });
   }
-}
+});
