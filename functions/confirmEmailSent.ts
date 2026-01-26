@@ -1,5 +1,5 @@
 /**
- * Confirm Email Sent - Zapier Callback
+ * Confirm Email Sent - Zapier Callback Function
  *
  * Purpose: Update MortgageCase after Zapier successfully sends email
  * Called by Zapier webhook after Gmail delivery
