@@ -5,6 +5,7 @@
  * for email CC functionality
  *
  * Usage: Run once during Phase 3-01 schema setup
+ * Version: 2.0 (fixed filter query)
  */
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
