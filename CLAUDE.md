@@ -111,38 +111,152 @@ claude plugin install code-simplifier
 
 ## Git Worktree - Parallel Agent Development
 
-Git worktrees allow multiple agents to work on different branches simultaneously without conflicts.
+Git worktrees allow multiple agents to work on different branches simultaneously without conflicts. Each worktree is a separate working directory linked to the same `.git` repository.
 
 ### Commands
 
 ```bash
 # Create worktree for new feature
-git worktree add ../base44-n8n-integration feature/n8n-webhook
+git worktree add C:\base44-n8n-integration -b feature/n8n-webhook
 
 # Create worktree for parallel bug fix
-git worktree add ../base44-intake-fix feature/intake-bug
+git worktree add C:\base44-intake-fix -b feature/intake-bug
 
 # List all worktrees
 git worktree list
 
-# Remove when done
-git worktree remove ../base44-n8n-integration
+# Remove when done (merge first!)
+git worktree remove C:\base44-n8n-integration
+
+# Prune stale references
+git worktree prune
 ```
 
-### Workflow
+### Current Setup
 
-1. **Main worktree:** `c:\Claude Code CHats\` (main branch)
-2. **Agent 2 worktree:** `c:\base44-n8n-integration\` (feature/n8n-webhook)
-3. **Agent 3 worktree:** `c:\base44-intake-fix\` (feature/intake-bug)
+**Active Worktrees:**
+```
+C:\Claude Code CHats       → main branch
+C:\base44-n8n-integration  → feature/n8n-webhook
+C:\base44-intake-fix       → feature/intake-bug
+```
 
 All worktrees share the same `.git` directory - lightweight and synchronized.
 
-### Use Cases
+### Parallel Agent Workflow
 
-- One agent builds n8n webhook integration
-- Another agent fixes intake form bug
-- Third agent updates documentation
-- All work in parallel without waiting or conflicts
+**Step 1: Open multiple terminals**
+```powershell
+# Terminal 1 (Main - Documentation)
+cd "C:\Claude Code CHats"
+claude
+
+# Terminal 2 (n8n Integration)
+cd "C:\base44-n8n-integration"
+claude
+
+# Terminal 3 (Intake Bug Fix)
+cd "C:\base44-intake-fix"
+claude
+```
+
+**Step 2: Each agent works independently**
+- Agent 1: Updates docs, runs tests, reviews PRs
+- Agent 2: Builds n8n webhook integration
+- Agent 3: Fixes intake form persistence bug
+
+**Step 3: Merge when complete**
+```bash
+# Switch to main worktree
+cd "C:\Claude Code CHats"
+
+# Merge feature branches
+git merge feature/n8n-webhook
+git merge feature/intake-bug
+
+# Push to remote
+git push origin main
+
+# Clean up worktrees
+git worktree remove C:\base44-n8n-integration
+git worktree remove C:\base44-intake-fix
+```
+
+### Benefits
+
+- **No conflicts:** Each agent has isolated working directory
+- **Shared history:** All worktrees see same commits/branches
+- **Fast switching:** No need to stash/commit before switching
+- **Lightweight:** Worktrees share `.git` (no duplicate clones)
+
+### Common Issues
+
+**Worktree locked:**
+```bash
+git worktree remove --force C:\path\to\worktree
+git worktree prune
+```
+
+**Branch already checked out:**
+```bash
+# Each branch can only be checked out in ONE worktree at a time
+# Create a new branch instead
+git worktree add C:\new-worktree -b new-branch-name
+```
+
+## VoltAgent Subagents
+
+Specialized subagent library with 100+ domain experts. **Installed categories:**
+
+### voltagent-core-dev (11 agents)
+- **api-designer** - REST and GraphQL API architect
+- **backend-developer** - Server-side expert for scalable APIs
+- **frontend-developer** - UI/UX specialist (React, Vue, Angular)
+- **fullstack-developer** - End-to-end feature development
+- **microservices-architect** - Distributed systems designer
+- **websocket-engineer** - Real-time communication specialist
+- (+ 5 more: electron-pro, graphql-architect, mobile-developer, ui-designer, wordpress-master)
+
+### voltagent-qa-sec (8 agents)
+- **code-reviewer** - Code quality and best practices
+- **security-auditor** - Security vulnerability assessment
+- **compliance-auditor** - FCA compliance checking (critical for this project!)
+- **qa-expert** - Test strategy and quality assurance
+- **penetration-tester** - Security testing expert
+- (+ 3 more: performance-engineer, accessibility-tester, debugger)
+
+### voltagent-dev-exp (7 agents)
+- **documentation-engineer** - Technical writing and API docs
+- **cli-developer** - Command-line tool development
+- **mcp-developer** - MCP server development
+- **git-workflow-manager** - Git strategy and automation
+- (+ 3 more: build-engineer, legacy-modernizer, refactoring-specialist)
+
+### Usage
+
+Invoke subagents by asking for them by role:
+```
+"I need the api-designer to review the Base44 endpoint structure"
+"Can the compliance-auditor check this code for FCA requirements?"
+"Have the documentation-engineer write API docs for the webhook"
+```
+
+### Managing Plugins
+
+```bash
+# List installed plugins
+claude plugin list
+
+# Disable a category
+claude plugin disable voltagent-core-dev@voltagent-subagents
+
+# Re-enable
+claude plugin enable voltagent-core-dev@voltagent-subagents
+
+# Install additional categories
+claude plugin install voltagent-lang@voltagent-subagents      # Language specialists
+claude plugin install voltagent-infra@voltagent-subagents     # DevOps/cloud
+```
 
 ## Custom Skills Available
 
@@ -371,3 +485,18 @@ Trigger on phrases like:
 - Current session → `conversations/[date]-[title].md`
 - Frontmatter includes: date, tags, message count, related sessions
 - Research links are preserved via Obsidian backlinks
+
+### File Naming Convention
+- Format: `YYYY-MM-DD-descriptive-title.md`
+- Title is extracted from first meaningful user message
+- Metadata tags (`<ide_selection>`, `<ide_opened_file>`) are automatically stripped
+- Title is limited to 60 characters for readability
+- Example: `2026-01-21-the-user-is-working-on-a-base44-n8n-asana-integrat.md`
+
+### Rename Existing Conversations
+If old conversations have metadata-heavy names, use the rename script:
+```powershell
+cd C:\Users\Marko\claude-vault
+python rename_conversations.py              # Dry run
+python rename_conversations.py --apply      # Apply changes
+```

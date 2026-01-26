@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(framework-select)",
+      "Skill(framework-select:*)",
+      "Skill(orchestrate)",
+      "Skill(orchestrate:*)",
+      "mcp__context7__query-docs"
+    ]
+  }
+}

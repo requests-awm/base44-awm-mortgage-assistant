@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TARA_HANDOVER_LENDER_KNOWLEDGE_CAPTURE</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#taras-handover-lender-knowledge-capture-setup"
+id="toc-taras-handover-lender-knowledge-capture-setup">Tara’s Handover:
+Lender Knowledge Capture Setup</a>
+<ul>
+<li><a href="#what-this-project-is-about"
+id="toc-what-this-project-is-about">What This Project Is About</a></li>
+<li><a href="#the-3-phase-process-overview"
+id="toc-the-3-phase-process-overview">The 3-Phase Process
+(Overview)</a></li>
+<li><a href="#your-tasks-checklist" id="toc-your-tasks-checklist">Your
+Tasks Checklist</a></li>
+<li><a
+href="#task-1-create-phase-0-google-form-lender-familiarity-checklist"
+id="toc-task-1-create-phase-0-google-form-lender-familiarity-checklist">TASK
+1: Create Phase 0 Google Form (Lender Familiarity Checklist)</a>
+<ul>
+<li><a href="#step-by-step-instructions"
+id="toc-step-by-step-instructions">Step-by-Step Instructions</a></li>
+</ul></li>
+<li><a href="#task-2-send-phase-0-form-to-brokers"
+id="toc-task-2-send-phase-0-form-to-brokers">TASK 2: Send Phase 0 Form
+to Brokers</a>
+<ul>
+<li><a href="#email-template-send-to-nwabisa"
+id="toc-email-template-send-to-nwabisa">Email Template (Send to
+Nwabisa)</a></li>
+</ul></li>
+<li><a href="#task-3-review-responses-create-priority-list"
+id="toc-task-3-review-responses-create-priority-list">TASK 3: Review
+Responses &amp; Create Priority List</a>
+<ul>
+<li><a href="#step-1-download-responses"
+id="toc-step-1-download-responses">Step 1: Download Responses</a></li>
+<li><a href="#step-2-create-overlap-spreadsheet"
+id="toc-step-2-create-overlap-spreadsheet">Step 2: Create Overlap
+Spreadsheet</a></li>
+<li><a href="#step-3-sort-by-priority"
+id="toc-step-3-sort-by-priority">Step 3: Sort by Priority</a></li>
+<li><a href="#step-4-count-total-recordings-needed"
+id="toc-step-4-count-total-recordings-needed">Step 4: Count Total
+Recordings Needed</a></li>
+</ul></li>
+<li><a href="#task-4-create-phase-1-google-form-contact-details"
+id="toc-task-4-create-phase-1-google-form-contact-details">TASK 4:
+Create Phase 1 Google Form (Contact Details)</a>
+<ul>
+<li><a href="#step-by-step-instructions-1"
+id="toc-step-by-step-instructions-1">Step-by-Step Instructions</a></li>
+</ul></li>
+<li><a href="#task-5-send-phase-1-forms-to-brokers"
+id="toc-task-5-send-phase-1-forms-to-brokers">TASK 5: Send Phase 1 Forms
+to Brokers</a>
+<ul>
+<li><a href="#how-to-efficiently-create-multiple-forms"
+id="toc-how-to-efficiently-create-multiple-forms">How to Efficiently
+Create Multiple Forms</a></li>
+<li><a href="#email-template-for-brokers"
+id="toc-email-template-for-brokers">Email Template for Brokers</a></li>
+</ul></li>
+<li><a href="#task-6-decide-interview-approach"
+id="toc-task-6-decide-interview-approach">TASK 6: Decide Interview
+Approach</a>
+<ul>
+<li><a href="#mandatory-priority-1-lenders-must-be-live-interviews"
+id="toc-mandatory-priority-1-lenders-must-be-live-interviews">MANDATORY:
+Priority 1 Lenders MUST Be Live Interviews</a></li>
+<li><a href="#how-to-decide" id="toc-how-to-decide">How to
+Decide</a></li>
+</ul></li>
+<li><a href="#task-7-set-up-recording-folder-structure"
+id="toc-task-7-set-up-recording-folder-structure">TASK 7: Set Up
+Recording Folder Structure</a>
+<ul>
+<li><a href="#step-1-create-shared-drive-folder"
+id="toc-step-1-create-shared-drive-folder">Step 1: Create Shared Drive
+Folder</a></li>
+<li><a href="#step-2-set-permissions"
+id="toc-step-2-set-permissions">Step 2: Set Permissions</a></li>
+<li><a href="#step-3-create-naming-convention-document"
+id="toc-step-3-create-naming-convention-document">Step 3: Create Naming
+Convention Document</a></li>
+</ul></li>
+<li><a href="#task-8a-self-recorded-approach---send-instructions"
+id="toc-task-8a-self-recorded-approach---send-instructions">TASK 8A:
+Self-Recorded Approach - Send Instructions</a>
+<ul>
+<li><a href="#email-template" id="toc-email-template">Email
+Template</a></li>
+</ul></li>
+<li><a href="#task-8b-self-recorded-approach---qa-first-3"
+id="toc-task-8b-self-recorded-approach---qa-first-3">TASK 8B:
+Self-Recorded Approach - QA First 3</a>
+<ul>
+<li><a href="#qa-checklist-watch-each-recording"
+id="toc-qa-checklist-watch-each-recording">QA Checklist (Watch Each
+Recording)</a></li>
+<li><a href="#feedback-categories" id="toc-feedback-categories">Feedback
+Categories</a></li>
+<li><a href="#feedback-email-template-if-improvements-needed"
+id="toc-feedback-email-template-if-improvements-needed">Feedback Email
+Template (if improvements needed)</a></li>
+<li><a href="#approval-email-template"
+id="toc-approval-email-template">Approval Email Template</a></li>
+</ul></li>
+<li><a href="#task-8c-live-interview-approach---conduct-interviews"
+id="toc-task-8c-live-interview-approach---conduct-interviews">TASK 8C:
+Live Interview Approach - Conduct Interviews</a>
+<ul>
+<li><a href="#scheduling-strategy"
+id="toc-scheduling-strategy">Scheduling Strategy</a></li>
+<li><a href="#live-interview-process"
+id="toc-live-interview-process">Live Interview Process</a></li>
+<li><a href="#zoom-transcript-setup-important"
+id="toc-zoom-transcript-setup-important">Zoom Transcript Setup
+(IMPORTANT)</a></li>
+<li><a href="#interview-scheduling-email-template"
+id="toc-interview-scheduling-email-template">Interview Scheduling Email
+Template</a></li>
+<li><a href="#tips-for-live-interviews"
+id="toc-tips-for-live-interviews">Tips for Live Interviews</a></li>
+</ul></li>
+<li><a href="#task-9-track-progress" id="toc-task-9-track-progress">TASK
+9: Track Progress</a>
+<ul>
+<li><a href="#create-simple-tracking-spreadsheet"
+id="toc-create-simple-tracking-spreadsheet">Create Simple Tracking
+Spreadsheet</a></li>
+<li><a href="#send-weekly-progress-email"
+id="toc-send-weekly-progress-email">Send Weekly Progress Email</a></li>
+</ul></li>
+<li><a href="#common-issues-how-to-handle-them"
+id="toc-common-issues-how-to-handle-them">Common Issues &amp; How to
+Handle Them</a>
+<ul>
+<li><a href="#issue-1-broker-doesnt-submit-forms-on-time"
+id="toc-issue-1-broker-doesnt-submit-forms-on-time">Issue 1: Broker
+Doesn’t Submit Forms on Time</a></li>
+<li><a href="#issue-2-broker-submits-recording-with-poor-audio"
+id="toc-issue-2-broker-submits-recording-with-poor-audio">Issue 2:
+Broker Submits Recording with Poor Audio</a></li>
+<li><a href="#issue-3-broker-says-i-dont-know-to-many-questions"
+id="toc-issue-3-broker-says-i-dont-know-to-many-questions">Issue 3:
+Broker Says “I Don’t Know” to Many Questions</a></li>
+<li><a href="#issue-4-form-link-broken-or-not-working"
+id="toc-issue-4-form-link-broken-or-not-working">Issue 4: Form Link
+Broken or Not Working</a></li>
+</ul></li>
+<li><a href="#task-10-final-deliverable---share-transcript-links"
+id="toc-task-10-final-deliverable---share-transcript-links">TASK 10:
+Final Deliverable - Share Transcript Links</a>
+<ul>
+<li><a href="#what-to-deliver" id="toc-what-to-deliver">What to
+Deliver</a></li>
+<li><a href="#email-template-to-project-lead"
+id="toc-email-template-to-project-lead">Email Template to Project
+Lead</a></li>
+</ul></li>
+<li><a href="#handover-complete---what-happens-next"
+id="toc-handover-complete---what-happens-next">Handover Complete - What
+Happens Next?</a></li>
+<li><a href="#files-youll-need" id="toc-files-youll-need">Files You’ll
+Need</a></li>
+<li><a href="#timeline-summary" id="toc-timeline-summary">Timeline
+Summary</a>
+<ul>
+<li><a href="#if-self-recorded-approach"
+id="toc-if-self-recorded-approach">If Self-Recorded Approach:</a></li>
+<li><a href="#if-live-interview-approach"
+id="toc-if-live-interview-approach">If Live Interview Approach:</a></li>
+</ul></li>
+<li><a href="#questions" id="toc-questions">Questions?</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="taras-handover-lender-knowledge-capture-setup">Tara’s Handover:
+Lender Knowledge Capture Setup</h1>
+<p><strong>Project:</strong> Base44 Mortgage Assistant - Lender
+Knowledge Base <strong>Your Role:</strong> Admin &amp; Setup (Google
+Forms creation, broker coordination) <strong>Timeline:</strong> 2 weeks
+<strong>Estimated Time:</strong> 3-4 hours total setup time</p>
+<hr />
+<h2 id="what-this-project-is-about">What This Project Is About</h2>
+<p>We’re building a knowledge base of broker insights for the Base44
+mortgage assistant. Nwabisa and Dextter have years of tribal knowledge
+about UK lenders that isn’t on any website - this is what makes them
+great brokers.</p>
+<p><strong>Your job:</strong> Ensure the interviews happen and we get
+transcripts - whether that’s via Zoom clips (brokers record themselves)
+OR you conducting live interviews with them.</p>
+<p><strong>Not your job:</strong> You don’t need to transcribe, filter
+responses, or enter data into Notion. Just get us the interview
+recordings/transcripts with links.</p>
+<hr />
+<h2 id="the-3-phase-process-overview">The 3-Phase Process
+(Overview)</h2>
+<pre><code>PHASE 0: Lender Familiarity Checklist
+↓ (Tara reviews, creates priority list)
+PHASE 1: Basic Contact Details Form
+↓ (Brokers complete async)
+PHASE 2: Knowledge Capture Interviews
+↓ (Tara conducts interviews OR brokers record Zoom clips)
+PHASE 3: Transcript Filtering &amp; Notion Entry
+(Handled separately - project lead filters transcripts and enters into Notion)</code></pre>
+<p><strong>Your involvement:</strong> Phases 0-2 (setup + ensure
+interviews happen + provide transcript links) <strong>Your
+deliverable:</strong> Interview recordings/transcripts with links
+(either Zoom clips or live interview recordings)</p>
+<hr />
+<h2 id="your-tasks-checklist">Your Tasks Checklist</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" /><strong>Task 1:</strong> Create
+Phase 0 Google Form (Lender Familiarity Checklist) - 30
+mins</label></li>
+<li><label><input type="checkbox" /><strong>Task 2:</strong> Send Phase
+0 form to Nwabisa &amp; Dextter - 5 mins</label></li>
+<li><label><input type="checkbox" /><strong>Task 3:</strong> Review form
+responses &amp; create priority spreadsheet - 20 mins</label></li>
+<li><label><input type="checkbox" /><strong>Task 4:</strong> Create
+Phase 1 Google Form (Contact Details) - 20 mins</label></li>
+<li><label><input type="checkbox" /><strong>Task 5:</strong> Send Phase
+1 forms to brokers (only for lenders they checked) - 10
+mins</label></li>
+<li><label><input type="checkbox" /><strong>Task 6:</strong> Decide
+interview approach with brokers (self-recorded vs live interviews) - 15
+mins</label></li>
+<li><label><input type="checkbox" /><strong>Task 7:</strong> Set up
+recording folder structure + send instructions - 10 mins</label></li>
+<li><label><input type="checkbox" /><strong>Task 8:</strong> Conduct
+live interviews OR QA first 3 self-recordings - 30 mins to 3 hours
+(depends on approach)</label></li>
+<li><label><input type="checkbox" /><strong>Task 9:</strong> Ensure all
+interviews happen &amp; provide transcript links - ongoing, 5
+mins/day</label></li>
+<li><label><input type="checkbox" /><strong>Task 10:</strong> Share
+final recordings/transcript links with project lead - 10
+mins</label></li>
+</ul>
+<p><strong>Total time:</strong> ~3-4 hours (self-recorded approach) OR
+~15-20 hours (live interview approach)</p>
+<hr />
+<h2
+id="task-1-create-phase-0-google-form-lender-familiarity-checklist">TASK
+1: Create Phase 0 Google Form (Lender Familiarity Checklist)</h2>
+<p><strong>Purpose:</strong> Find out which lenders each broker has
+actually worked with (3+ cases in last 2 years)</p>
+<p><strong>Time:</strong> 30 minutes</p>
+<h3 id="step-by-step-instructions">Step-by-Step Instructions</h3>
+<h4 id="step-1-create-new-google-form">Step 1: Create New Google
+Form</h4>
+<ol type="1">
+<li>Go to <a href="https://forms.google.com">forms.google.com</a></li>
+<li>Click <strong>+ Blank form</strong></li>
+<li>Title: <code>Lender Familiarity Checklist - [Broker Name]</code>
+<ul>
+<li>Create TWO separate forms: one for Nwabisa, one for Dextter</li>
+<li>This lets you track responses separately</li>
+</ul></li>
+</ol>
+<h4 id="step-2-form-settings">Step 2: Form Settings</h4>
+<ol type="1">
+<li>Click <strong>Settings</strong> (gear icon)</li>
+<li><strong>General tab:</strong>
+<ul>
+<li>✅ Collect email addresses</li>
+<li>✅ Limit to 1 response</li>
+<li>✅ Allow response editing</li>
+</ul></li>
+<li><strong>Presentation tab:</strong>
+<ul>
+<li>✅ Show progress bar</li>
+<li>Confirmation message (see below)</li>
+</ul></li>
+</ol>
+<p><strong>Confirmation message:</strong></p>
+<pre><code>✅ Checklist submitted successfully!
+
+NEXT STEPS:
+1. You&#39;ll receive a Google Form for each lender you checked (basic contact details - 5 mins each)
+2. After completing those forms, you&#39;ll record Zoom clips for each lender (8-10 mins each)
+
+Timeline:
+- Week 1: Complete contact detail forms
+- Week 2: Record Zoom clips
+
+Questions? Contact Tara.</code></pre>
+<h4 id="step-3-section-1---instructions">Step 3: Section 1 -
+Instructions</h4>
+<ol type="1">
+<li>Click <strong>+ Add section</strong></li>
+<li>Title: <code>Which Lenders Do You Actually Know?</code></li>
+<li>Description:</li>
+</ol>
+<pre><code>We&#39;re building a knowledge base for the Base44 mortgage assistant.
+
+ONLY check the box if you meet ALL of these criteria:
+✅ Placed at least 3 cases with them in the last 2 years
+✅ Have direct experience with their underwriting process
+✅ Can speak to their criteria quirks (not just website info)
+
+If you&#39;ve only placed 1-2 cases or just heard about them, leave it unchecked.
+
+This will take 5-10 minutes. Be honest - better to skip lenders you don&#39;t know well.</code></pre>
+<h4 id="step-4-add-checkbox-question">Step 4: Add Checkbox Question</h4>
+<ol type="1">
+<li>Click <strong>+ Add question</strong></li>
+<li>Question type: <strong>Checkboxes</strong> (allows multiple
+selection)</li>
+<li>Question text:
+<code>Check ONLY the lenders you have substantial experience with (3+ cases in last 2 years)</code></li>
+<li><strong>Required:</strong> Yes</li>
+</ol>
+<h4 id="step-5-add-lender-options-copy-paste-this-list">Step 5: Add
+Lender Options (COPY-PASTE THIS LIST)</h4>
+<p><strong>IMPORTANT:</strong> Copy this entire list and paste into the
+checkbox options.</p>
+<pre><code>Accord Mortgages (Yorkshire BS)
+Aldermore
+Atom Bank
+Barclays
+Beverley Building Society
+Bluestone Mortgages
+Buckinghamshire Building Society
+Cambridge Building Society
+Chorley Building Society
+Coventry Building Society
+Cumberland Building Society
+Darlington Building Society
+Dudley Building Society
+Foundation Home Loans
+Furness Building Society
+Hanley Economic Building Society
+Hampshire Trust Bank
+Hinckley &amp; Rugby Building Society
+HSBC
+Ipswich Building Society
+Kensington Mortgages
+Kent Reliance (OSB Group)
+Leeds Building Society
+Leek United Building Society
+Lloyds Bank
+Loughborough Building Society
+Manchester Building Society
+Marsden Building Society
+Masthaven Bank
+Melton Mowbray Building Society
+Metro Bank
+Monmouthshire Building Society
+Mortgage Works (Nationwide BTL)
+NatWest
+Nationwide Building Society
+Newbury Building Society
+Newcastle Building Society
+Nottingham Building Society
+Paragon Bank
+Penrith Building Society
+Pepper Money
+Precise Mortgages
+Principality Building Society
+Progressive Building Society
+Saffron Building Society
+Santander
+Scarborough Building Society
+Shawbrook Bank
+Skipton Building Society
+Stafford Railway Building Society
+Swansea Building Society
+Teachers&#39; Building Society
+Tipton &amp; Coseley Building Society
+Together Money
+TSB
+United Trust Bank
+Vernon Building Society
+Virgin Money
+West Bromwich Building Society
+Yorkshire Building Society</code></pre>
+<p><strong>Note:</strong> This list has ~55 mainstream lenders. If you
+want to add more specialist lenders (bridging, equity release, etc.),
+see the full list in <code>LENDER_FAMILIARITY_CHECKLIST.md</code>.</p>
+<h4 id="step-6-add-other-lenders-question">Step 6: Add “Other Lenders”
+Question</h4>
+<ol type="1">
+<li>Click <strong>+ Add question</strong></li>
+<li>Question type: <strong>Paragraph</strong></li>
+<li>Question text:
+<code>Are there any other lenders you've worked with that aren't on this list?</code></li>
+<li>Helper text:
+<code>List any lenders we missed, especially smaller building societies.</code></li>
+<li><strong>Required:</strong> No</li>
+</ol>
+<h4 id="step-7-add-experience-summary-questions">Step 7: Add Experience
+Summary Questions</h4>
+<ol type="1">
+<li>Click <strong>+ Add question</strong></li>
+<li>Question type: <strong>Short answer</strong></li>
+<li>Question text:
+<code>How many total lenders did you check above?</code></li>
+<li>Validation: <strong>Number</strong> between 0 and 100</li>
+<li><strong>Required:</strong> Yes</li>
+</ol>
+<hr />
+<ol type="1">
+<li>Click <strong>+ Add question</strong></li>
+<li>Question type: <strong>Paragraph</strong></li>
+<li>Question text:
+<code>Which 10 lenders do you place the MOST cases with? (List in order of volume)</code></li>
+<li>Helper text:</li>
+</ol>
+<pre><code>List your top 10 lenders by volume:
+1. [Lender name]
+2. [Lender name]
+...
+
+This helps us prioritize which lenders to capture first.</code></pre>
+<ol start="5" type="1">
+<li><strong>Required:</strong> Yes</li>
+</ol>
+<h4 id="step-8-get-shareable-link">Step 8: Get Shareable Link</h4>
+<ol type="1">
+<li>Click <strong>Send</strong> (top right)</li>
+<li>Click <strong>Link</strong> icon (chain link)</li>
+<li>✅ Shorten URL</li>
+<li>Click <strong>Copy</strong></li>
+<li>Save link somewhere (you’ll need it for Task 2)</li>
+</ol>
+<h4 id="step-9-repeat-for-second-broker">Step 9: Repeat for Second
+Broker</h4>
+<ul>
+<li><strong>Duplicate the form</strong> (File &gt; Make a copy)</li>
+<li>Change title to other broker’s name</li>
+<li>Get new shareable link</li>
+</ul>
+<hr />
+<h2 id="task-2-send-phase-0-form-to-brokers">TASK 2: Send Phase 0 Form
+to Brokers</h2>
+<p><strong>Time:</strong> 5 minutes</p>
+<h3 id="email-template-send-to-nwabisa">Email Template (Send to
+Nwabisa)</h3>
+<p><strong>Subject:</strong> ACTION REQUIRED: Lender Familiarity
+Checklist (5-10 mins)</p>
+<p><strong>Body:</strong></p>
+<pre><code>Hi Nwabisa,
+
+We&#39;re building a lender knowledge base for the Base44 mortgage assistant. Before we start recording sessions, we need to know which lenders you have substantial experience with.
+
+📋 TASK: Complete this checklist (5-10 mins)
+[Insert Google Form link]
+
+WHAT TO CHECK:
+✅ Only lenders where you&#39;ve placed 3+ cases in the last 2 years
+✅ Only lenders you know well (can speak to their quirks, not just website criteria)
+
+WHY THIS MATTERS:
+You&#39;ll only record sessions for lenders you CHECK. If you check 60 lenders, you&#39;ll do 60 recordings. If you check 40, you&#39;ll do 40. Be selective.
+
+DEADLINE: Complete within 24 hours (it&#39;s quick!)
+
+WHAT&#39;S NEXT:
+After you submit, you&#39;ll receive follow-up forms to capture basic contact details for each lender, then you&#39;ll record Zoom clips walking through the tribal knowledge questions.
+
+Questions? Let me know.
+
+Thanks,
+Tara</code></pre>
+<p><strong>Send identical email to Dextter</strong> (with his form
+link)</p>
+<hr />
+<h2 id="task-3-review-responses-create-priority-list">TASK 3: Review
+Responses &amp; Create Priority List</h2>
+<p><strong>Time:</strong> 20 minutes</p>
+<p><strong>When:</strong> After both brokers submit (give them 24
+hours)</p>
+<h3 id="step-1-download-responses">Step 1: Download Responses</h3>
+<ol type="1">
+<li>Open Google Form</li>
+<li>Click <strong>Responses</strong> tab</li>
+<li>Click <strong>More</strong> (3 dots) &gt; <strong>Download responses
+(.csv)</strong></li>
+<li>Do this for BOTH forms (Nwabisa + Dextter)</li>
+</ol>
+<h3 id="step-2-create-overlap-spreadsheet">Step 2: Create Overlap
+Spreadsheet</h3>
+<p>Open Google Sheets and create this structure:</p>
+<table>
+<thead>
+<tr>
+<th>Lender</th>
+<th>Nwabisa</th>
+<th>Dextter</th>
+<th>Priority</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Barclays</td>
+<td>✅</td>
+<td>✅</td>
+<td>High</td>
+<td>Both know</td>
+</tr>
+<tr>
+<td>HSBC</td>
+<td>✅</td>
+<td>❌</td>
+<td>Medium</td>
+<td>Only Nwabisa</td>
+</tr>
+<tr>
+<td>Santander</td>
+<td>❌</td>
+<td>✅</td>
+<td>Medium</td>
+<td>Only Dextter</td>
+</tr>
+<tr>
+<td>[etc.]</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to fill it in:</strong> 1. List all lenders from the
+checkbox list 2. Mark ✅ if broker checked that lender 3. Priority: -
+<strong>High</strong> = Both brokers checked it OR it’s in someone’s top
+10 - <strong>Medium</strong> = Only one broker checked it -
+<strong>Low</strong> = Neither checked it (skip these entirely)</p>
+<h3 id="step-3-sort-by-priority">Step 3: Sort by Priority</h3>
+<p><strong>CRITICAL:</strong> If the broker indicated they have a
+<strong>strong relationship</strong> with a lender (e.g., mentioned in
+“top 10” or noted as a frequent partner), mark these as <strong>PRIORITY
+1 - In-Person Interview</strong>.</p>
+<ol type="1">
+<li>Sort spreadsheet by <strong>Priority</strong> column:
+<ul>
+<li><strong>Priority 1 (In-Person):</strong> Strong relationship lenders
+(top 10 + frequent partners)</li>
+<li><strong>Priority 2 (High):</strong> Both brokers know OR high
+volume</li>
+<li><strong>Priority 3 (Medium):</strong> Only one broker knows</li>
+<li><strong>Priority 4 (Low):</strong> Neither knows (delete these
+rows)</li>
+</ul></li>
+<li>Add a column: <strong>Interview Type</strong>
+<ul>
+<li>Priority 1 lenders = “In-Person Interview” (Tara conducts live)</li>
+<li>Priority 2-3 lenders = “Self-Recorded OR Live” (decide with
+broker)</li>
+</ul></li>
+<li>Share this spreadsheet with the project lead</li>
+</ol>
+<h3 id="step-4-count-total-recordings-needed">Step 4: Count Total
+Recordings Needed</h3>
+<ul>
+<li>Count rows where Nwabisa = ✅ (she’ll do this many)</li>
+<li>Count rows where Dextter = ✅ (he’ll do this many)</li>
+<li><strong>Count Priority 1 lenders</strong> (must be live interviews -
+schedule first)</li>
+<li>Send totals to project lead</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code>Nwabisa checked 55 lenders = 55 recordings
+  - Priority 1 (strong relationships): 10 lenders → LIVE INTERVIEWS FIRST
+  - Priority 2-3: 45 lenders → Self-recorded OR live
+
+Dextter checked 70 lenders = 70 recordings
+  - Priority 1 (strong relationships): 12 lenders → LIVE INTERVIEWS FIRST
+  - Priority 2-3: 58 lenders → Self-recorded OR live
+
+Overlap: 40 lenders (both will record separately)
+Total unique lenders: 85 lenders
+Priority 1 live interviews to schedule: 22 total (10 + 12)</code></pre>
+<hr />
+<h2 id="task-4-create-phase-1-google-form-contact-details">TASK 4:
+Create Phase 1 Google Form (Contact Details)</h2>
+<p><strong>Purpose:</strong> Capture BDM contact details and numeric
+ratings for each lender</p>
+<p><strong>Time:</strong> 20 minutes (you’ll reuse this template for all
+lenders)</p>
+<h3 id="step-by-step-instructions-1">Step-by-Step Instructions</h3>
+<h4 id="step-1-create-new-google-form-1">Step 1: Create New Google
+Form</h4>
+<ol type="1">
+<li>Go to <a href="https://forms.google.com">forms.google.com</a></li>
+<li>Click <strong>+ Blank form</strong></li>
+<li>Title: <code>Lender Contact Details - [LENDER NAME]</code>
+<ul>
+<li>You’ll create ONE template, then duplicate it for each lender</li>
+</ul></li>
+</ol>
+<h4 id="step-2-form-settings-1">Step 2: Form Settings</h4>
+<ol type="1">
+<li>Click <strong>Settings</strong> (gear icon)</li>
+<li><strong>General tab:</strong>
+<ul>
+<li>✅ Collect email addresses</li>
+<li>✅ Limit to 1 response per person</li>
+</ul></li>
+<li><strong>Presentation tab:</strong>
+<ul>
+<li>Confirmation message:
+<code>✅ Submitted! You can edit this form anytime if details change.</code></li>
+</ul></li>
+</ol>
+<h4 id="step-3-add-questions-copy-this-exact-structure">Step 3: Add
+Questions (COPY THIS EXACT STRUCTURE)</h4>
+<p><strong>Section 1: Your Info</strong></p>
+<p><strong>Q1:</strong> Which broker are you? - Type: <strong>Multiple
+choice</strong> - Options: Nwabisa | Dextter - Required: Yes</p>
+<hr />
+<p><strong>Section 2: Lender Experience</strong></p>
+<p><strong>Q2:</strong> How long have you been working with [LENDER
+NAME]? - Type: <strong>Multiple choice</strong> - Options: - Less than 6
+months - 6-12 months - 1-2 years - 2-5 years - 5+ years - Required:
+Yes</p>
+<p><strong>Q3:</strong> How many cases have you placed with them in the
+last 12 months? - Type: <strong>Multiple choice</strong> - Options: -
+0-5 cases - 6-10 cases - 11-20 cases - 21-50 cases - 50+ cases -
+Required: Yes</p>
+<hr />
+<p><strong>Section 3: BDM &amp; Contact Details</strong></p>
+<p><strong>Q4:</strong> Main BDM Contact Name - Type: <strong>Short
+answer</strong> - Required: Yes</p>
+<p><strong>Q5:</strong> BDM Phone Number - Type: <strong>Short
+answer</strong> - Validation: None (phone formats vary) - Required:
+No</p>
+<p><strong>Q6:</strong> BDM Email Address - Type: <strong>Short
+answer</strong> - Validation: Email - Required: No</p>
+<p><strong>Q7:</strong> How responsive is the BDM/underwriting team?
+(1-10 scale) - Type: <strong>Linear scale</strong> - Scale: 1 (Very
+slow) to 10 (Very responsive) - Required: Yes</p>
+<hr />
+<p><strong>Section 4: Processing Times</strong></p>
+<p><strong>Q8:</strong> Current REAL turnaround time from submission to
+mortgage offer - Type: <strong>Multiple choice</strong> - Options: - 1-3
+days - 4-7 days - 8-14 days - 15-21 days - 21+ days - Varies
+significantly - Required: Yes</p>
+<p><strong>Q9:</strong> Typical valuation turnaround time - Type:
+<strong>Multiple choice</strong> - Options: - 1-3 days - 4-7 days - 8-14
+days - 14+ days - Varies significantly - Required: Yes</p>
+<p><strong>Q10:</strong> Are their Mortgage in Principle (MIP) decisions
+instant or manual? - Type: <strong>Multiple choice</strong> - Options: -
+Instant (automated) - Manual review (under 24 hours) - Manual review
+(1-3 days) - Don’t bother with MIPs for this lender - Required: Yes</p>
+<p><strong>Q11:</strong> How would you rate their broker portal? (1-10
+scale) - Type: <strong>Linear scale</strong> - Scale: 1 (Terrible) to 10
+(Excellent) - Required: Yes</p>
+<hr />
+<p><strong>Section 5: Competitive Positioning</strong></p>
+<p><strong>Q12:</strong> What type of case is this lender PERFECT for? -
+Type: <strong>Paragraph</strong> - Helper text: e.g., “Best for
+self-employed with 1 year accounts”, “Go-to for flats above shops” -
+Required: Yes</p>
+<p><strong>Q13:</strong> When would you AVOID using them, even if they
+fit criteria? - Type: <strong>Paragraph</strong> - Helper text: e.g.,
+“If client needs speed”, “If case has ANY complexity” - Required:
+Yes</p>
+<p><strong>Q14:</strong> Who is their closest competitor, and how do
+they differ? - Type: <strong>Paragraph</strong> - Helper text: e.g.,
+“Similar to Lender X but faster” - Required: No</p>
+<hr />
+<p><strong>Section 6: Quick Rating</strong></p>
+<p><strong>Q15:</strong> On a scale of 1-10, how likely are you to use
+them again? - Type: <strong>Linear scale</strong> - Scale: 1 (Never
+again) to 10 (Always my first choice) - Required: Yes</p>
+<hr />
+<h4 id="step-4-save-as-template">Step 4: Save as Template</h4>
+<ol type="1">
+<li>Click <strong>More</strong> (3 dots) &gt; <strong>Make a
+copy</strong></li>
+<li>Save this as your TEMPLATE</li>
+<li>You’ll duplicate this for each lender</li>
+</ol>
+<hr />
+<h2 id="task-5-send-phase-1-forms-to-brokers">TASK 5: Send Phase 1 Forms
+to Brokers</h2>
+<p><strong>Time:</strong> 10 minutes (after you create all forms)</p>
+<h3 id="how-to-efficiently-create-multiple-forms">How to Efficiently
+Create Multiple Forms</h3>
+<p>You need to create one form per lender (e.g., 55 forms for Nwabisa,
+70 for Dextter).</p>
+<p><strong>Efficient method:</strong></p>
+<ol type="1">
+<li>Open your TEMPLATE form</li>
+<li>For each lender from your priority spreadsheet:
+<ul>
+<li>File &gt; Make a copy</li>
+<li>Rename: <code>Lender Contact Details - [LENDER NAME]</code></li>
+<li>Update form title (replace [LENDER NAME] placeholder in
+questions)</li>
+<li>Get shareable link</li>
+<li>Paste link into a spreadsheet (track which forms you’ve
+created)</li>
+</ul></li>
+</ol>
+<p><strong>Shortcut:</strong> Use Find &amp; Replace - After
+duplicating, press Ctrl+H (Find &amp; Replace) - Find:
+<code>[LENDER NAME]</code> - Replace: <code>Barclays</code> (or whatever
+the actual lender is) - This updates all instances at once</p>
+<h3 id="email-template-for-brokers">Email Template for Brokers</h3>
+<p><strong>Subject:</strong> Week 1 Task: Contact Detail Forms (5 mins
+each)</p>
+<p><strong>Body:</strong></p>
+<pre><code>Hi [Nwabisa/Dextter],
+
+Thanks for completing the familiarity checklist! You checked [X] lenders, so you&#39;ll complete [X] contact detail forms this week.
+
+📋 TASK: Complete these forms (5 mins each, do them at your own pace)
+
+HIGH PRIORITY (Your top 10 - do these first):
+1. [Lender Name] - [Form link]
+2. [Lender Name] - [Form link]
+...
+
+MEDIUM PRIORITY (Complete these next):
+11. [Lender Name] - [Form link]
+12. [Lender Name] - [Form link]
+...
+
+DEADLINE: Complete all forms by end of Week 1 (Friday)
+
+TIP:
+- Keep your contact list handy (you&#39;ll need BDM names/emails)
+- You can edit responses later if details change
+- Do 5-10 per day to avoid burnout
+
+NEXT WEEK: You&#39;ll record Zoom clips (8-10 mins each) walking through tribal knowledge questions.
+
+Questions? Let me know.
+
+Thanks,
+Tara</code></pre>
+<hr />
+<h2 id="task-6-decide-interview-approach">TASK 6: Decide Interview
+Approach</h2>
+<p><strong>Time:</strong> 15 minutes</p>
+<p><strong>When:</strong> After Phase 1 forms are complete</p>
+<h3 id="mandatory-priority-1-lenders-must-be-live-interviews">MANDATORY:
+Priority 1 Lenders MUST Be Live Interviews</h3>
+<p><strong>From your priority spreadsheet (Task 3):</strong> - All
+<strong>Priority 1</strong> lenders (strong relationships, top 10) →
+<strong>MUST be live interviews</strong> - Why? These are the most
+important lenders - you want best quality insights</p>
+<p><strong>For remaining lenders (Priority 2-3), you have
+options:</strong></p>
+<h4
+id="option-a-self-recorded-zoom-clips-brokers-work-independently">OPTION
+A: Self-Recorded Zoom Clips (Brokers work independently)</h4>
+<ul>
+<li><strong>Pro:</strong> Brokers work at their own pace, no scheduling
+needed</li>
+<li><strong>Con:</strong> You need to QA first few recordings to ensure
+quality</li>
+<li><strong>Your time:</strong> ~3-4 hours total (setup + QA)</li>
+<li><strong>Best for:</strong> If brokers are comfortable recording
+themselves</li>
+</ul>
+<h4 id="option-b-live-interviews-you-conduct-them-on-zoom">OPTION B:
+Live Interviews (You conduct them on Zoom)</h4>
+<ul>
+<li><strong>Pro:</strong> You control quality, can probe for details,
+get better answers</li>
+<li><strong>Con:</strong> Requires scheduling 50-70 sessions with
+brokers</li>
+<li><strong>Your time:</strong> ~15-20 hours total (conducting
+interviews)</li>
+<li><strong>Best for:</strong> If you want consistent quality and deeper
+insights</li>
+</ul>
+<h4 id="option-c-hybrid-recommended">OPTION C: Hybrid (RECOMMENDED)</h4>
+<ul>
+<li><strong>Priority 1 lenders (strong relationships):</strong> You
+conduct live interviews</li>
+<li><strong>Priority 2-3 lenders (remaining):</strong> Brokers
+self-record</li>
+<li><strong>Your time:</strong> ~8-10 hours total</li>
+</ul>
+<h3 id="how-to-decide">How to Decide</h3>
+<p><strong>Step 1: Schedule Priority 1 live interviews FIRST</strong>
+(mandatory)</p>
+<p><strong>Step 2: Ask the brokers about remaining lenders:</strong></p>
+<pre><code>&quot;For your Priority 1 lenders (top 10), I&#39;ll schedule live interviews with you.
+
+For the remaining lenders, would you prefer to record Zoom clips yourself (talking through the questions at your own pace), or should I schedule live interviews for those as well?&quot;</code></pre>
+<p><strong>If they prefer self-recording (Priority 2-3 only):</strong>
+Follow Tasks 7-8 below (self-recorded approach) <strong>If they prefer
+all live interviews:</strong> Skip to “Live Interview Approach” section
+below</p>
+<hr />
+<h2 id="task-7-set-up-recording-folder-structure">TASK 7: Set Up
+Recording Folder Structure</h2>
+<p><strong>Time:</strong> 10 minutes</p>
+<p><strong>Applies to:</strong> Both self-recorded AND live interview
+approaches</p>
+<h3 id="step-1-create-shared-drive-folder">Step 1: Create Shared Drive
+Folder</h3>
+<ol type="1">
+<li><p>Create a new folder in your shared drive:
+<code>Lender Knowledge Capture - Zoom Recordings</code></p></li>
+<li><p>Inside, create subfolders:</p>
+<pre><code>📁 Lender Knowledge Capture - Zoom Recordings
+   📁 Nwabisa
+      📁 Completed
+      📁 Needs Review
+   📁 Dextter
+      📁 Completed
+      📁 Needs Review</code></pre></li>
+</ol>
+<h3 id="step-2-set-permissions">Step 2: Set Permissions</h3>
+<ul>
+<li>Share folder with Nwabisa &amp; Dextter (Editor access)</li>
+<li>Share folder with project lead (Viewer access)</li>
+</ul>
+<h3 id="step-3-create-naming-convention-document">Step 3: Create Naming
+Convention Document</h3>
+<p>Create a simple Google Doc:
+<code>Zoom Recording Naming Convention</code></p>
+<p><strong>Content:</strong></p>
+<pre><code>NAMING CONVENTION FOR ZOOM CLIPS
+
+Format: [Broker]_[LenderName]_[Date].mp4
+
+Examples:
+- Nwabisa_Barclays_2026-01-25.mp4
+- Dextter_HSBC_2026-01-26.mp4
+
+RULES:
+✅ No spaces in lender name (use underscores or CamelCase)
+✅ Always include date
+✅ Always include your name
+
+UPLOAD TO:
+- Your folder (Nwabisa or Dextter)
+- Move to &quot;Completed&quot; subfolder after upload
+
+FILE SIZE:
+- If file is &gt;100MB, compress before uploading
+- Use Zoom&#39;s built-in compression (should be ~20-50MB per 10-min clip)</code></pre>
+<p>Share this doc with brokers.</p>
+<hr />
+<h2 id="task-8a-self-recorded-approach---send-instructions">TASK 8A:
+Self-Recorded Approach - Send Instructions</h2>
+<p><strong>Time:</strong> 10 minutes</p>
+<p><strong>Use this if:</strong> Brokers are recording themselves</p>
+<h3 id="email-template">Email Template</h3>
+<p><strong>Subject:</strong> Week 2 Task: Zoom Clip Recordings (8-10
+mins each)</p>
+<p><strong>Body:</strong></p>
+<pre><code>Hi [Nwabisa/Dextter],
+
+Week 2 task: Record Zoom clips for each lender where you walk through 33 tribal knowledge questions.
+
+📹 WHAT TO RECORD:
+- You talking through the questions in LENDER_INTERVIEW_SCRIPT_STREAMLINED.md
+- NO ONE else needs to be on the call - just you recording yourself
+- 8-10 minutes per lender
+- Reference your contact detail form responses as needed
+
+📋 SCRIPT TO FOLLOW:
+[Attach LENDER_INTERVIEW_SCRIPT_STREAMLINED.md]
+
+🎬 HOW TO RECORD:
+
+1. Open Zoom
+2. Click &quot;New Meeting&quot;
+3. Click &quot;Record&quot; (record to local computer, NOT cloud)
+4. Open the script document (so you can read Q1-Q33)
+5. Say the lender name, then walk through questions:
+   - &quot;Q1: Preferred contact method? Phone.&quot;
+   - &quot;Q2: What annoys them? They hate incomplete docs...&quot;
+   - [Continue through Q33]
+6. Click &quot;End Meeting&quot; when done
+7. Zoom will auto-save the recording to your computer
+8. Upload to shared drive folder: [Link]
+
+📛 FILE NAMING:
+[Broker]_[LenderName]_[Date].mp4
+Example: Nwabisa_Barclays_2026-01-25.mp4
+
+⚠️ IMPORTANT - FIRST 3 RECORDINGS:
+Record 3 lenders first, then STOP.
+I&#39;ll review them to make sure you&#39;re giving enough detail.
+Once approved, continue with the rest.
+
+Priority order (do these 3 first):
+1. [Top lender from their list]
+2. [Second top lender]
+3. [Third top lender]
+
+TIPS:
+- Don&#39;t overthink it - just talk naturally
+- If you mess up, pause and re-record that section (no need to start over)
+- Reference your contact form if you forget details
+- War stories section (Q26-29) is most important - give examples
+
+DEADLINE:
+- First 3 recordings: By Wednesday (I&#39;ll review Thu/Fri)
+- Remaining recordings: By end of Week 2
+
+Questions? Let me know.
+
+Thanks,
+Tara</code></pre>
+<hr />
+<h2 id="task-8b-self-recorded-approach---qa-first-3">TASK 8B:
+Self-Recorded Approach - QA First 3</h2>
+<p><strong>Time:</strong> 30 minutes per broker (1 hour total)</p>
+<p><strong>Use this if:</strong> Brokers are recording themselves</p>
+<p><strong>When:</strong> After each broker submits their first 3
+recordings</p>
+<h3 id="qa-checklist-watch-each-recording">QA Checklist (Watch Each
+Recording)</h3>
+<p>For each recording, check:</p>
+<p>✅ <strong>Audio quality:</strong> Can you hear them clearly? ✅
+<strong>Completeness:</strong> Did they answer all 33 questions? ✅
+<strong>Detail level:</strong> Are they giving specific
+examples/numbers, or just saying “they’re fine”? ✅ <strong>War
+stories:</strong> Did they tell actual stories in Q26-29, or skip them?
+✅ <strong>Length:</strong> Is it 8-10 mins, or are they rushing through
+in 3 mins?</p>
+<h3 id="feedback-categories">Feedback Categories</h3>
+<p><strong>PASS (Approve to continue):</strong> - All questions answered
+- Sufficient detail (gives numbers, thresholds, examples) - War stories
+included - 8-10 min length</p>
+<p><strong>NEEDS IMPROVEMENT (Give feedback):</strong> - Too vague
+(e.g., “they’re OK” without specifics) - Skipping war stories - Rushing
+through (5 mins or less) - Missing questions</p>
+<h3 id="feedback-email-template-if-improvements-needed">Feedback Email
+Template (if improvements needed)</h3>
+<p><strong>Subject:</strong> Zoom Recording Feedback - Please Re-record
+First 3</p>
+<p><strong>Body:</strong></p>
+<pre><code>Hi [Broker],
+
+I&#39;ve reviewed your first 3 recordings. Great start, but I need you to re-record them with a bit more detail before continuing.
+
+WHAT TO IMPROVE:
+
+❌ Issue: Answers too vague
+✅ Fix: Give specific numbers/thresholds
+Example: Instead of &quot;they&#39;re OK with adverse credit&quot;, say &quot;Max 2 CCJs, under £500 each, older than 3 years&quot;
+
+❌ Issue: War stories section too brief
+✅ Fix: Tell actual case stories (1-2 mins for Q26-29)
+Example: &quot;Best case story - we had a self-employed client with only 1 year trading, but strong accountant letter. They approved because...&quot;
+
+❌ Issue: Recording too short (5 mins)
+✅ Fix: Aim for 8-10 mins. Don&#39;t rush - give context.
+
+NEXT STEPS:
+- Re-record the first 3 lenders with more detail
+- Send me the updated recordings
+- Once approved, continue with remaining lenders
+
+Questions? Let me know. This is just about getting the right level of detail - you&#39;re on the right track!
+
+Thanks,
+Tara</code></pre>
+<h3 id="approval-email-template">Approval Email Template</h3>
+<p><strong>Subject:</strong> ✅ Recordings Approved - Continue with
+Remaining Lenders</p>
+<p><strong>Body:</strong></p>
+<pre><code>Hi [Broker],
+
+Perfect! Your first 3 recordings are exactly what we need.
+
+✅ You&#39;re approved to continue with the remaining [X] lenders.
+
+Keep doing what you&#39;re doing:
+- Same level of detail
+- War stories with examples
+- 8-10 mins per lender
+
+Upload to the same shared folder as you go. No need to wait for me to review each one.
+
+Target: Complete all recordings by end of Week 2 (Friday).
+
+Thanks,
+Tara</code></pre>
+<hr />
+<hr />
+<h2 id="task-8c-live-interview-approach---conduct-interviews">TASK 8C:
+Live Interview Approach - Conduct Interviews</h2>
+<p><strong>Time:</strong> 10-15 minutes per lender interview</p>
+<p><strong>Use this if:</strong> You’re conducting live interviews with
+brokers</p>
+<h3 id="scheduling-strategy">Scheduling Strategy</h3>
+<p><strong>PRIORITY ORDER (CRITICAL):</strong> 1. <strong>Priority 1
+lenders FIRST</strong> (strong relationships, top 10) - These MUST be
+live interviews - Schedule these before anything else - Best quality
+insights come from these</p>
+<ol start="2" type="1">
+<li><strong>Priority 2-3 lenders</strong> (if doing live interviews for
+these too)
+<ul>
+<li>Schedule after Priority 1 is complete</li>
+</ul></li>
+</ol>
+<p><strong>Don’t schedule all 50-70 interviews upfront.</strong> Use a
+rolling schedule:</p>
+<ol type="1">
+<li><p><strong>Week 1:</strong> Schedule Priority 1 interviews first</p>
+<ul>
+<li>Focus on their top 10 lenders (strong relationships)</li>
+<li>Book 1-hour blocks (allows 3-4 interviews back-to-back with
+breaks)</li>
+<li>Example: If Nwabisa has 10 Priority 1 lenders, schedule these
+first</li>
+</ul></li>
+<li><p><strong>After Priority 1 complete:</strong> Review quality,
+adjust approach if needed</p></li>
+<li><p><strong>Week 2:</strong> Schedule Priority 2-3 interviews (if
+doing live for these)</p>
+<ul>
+<li>Aim for 5-10 lenders per day</li>
+<li>Back-to-back sessions work well once you hit your rhythm</li>
+</ul></li>
+</ol>
+<h3 id="live-interview-process">Live Interview Process</h3>
+<ol type="1">
+<li><strong>Before interview:</strong>
+<ul>
+<li>Review broker’s contact form for this lender</li>
+<li>Open lender’s website criteria page</li>
+<li>Have Notion template ready for note-taking (or just take rough
+notes)</li>
+</ul></li>
+<li><strong>During interview:</strong>
+<ul>
+<li>Start Zoom recording (cloud or local)</li>
+<li>Say lender name at start</li>
+<li>Walk through Q1-Q33 from LENDER_INTERVIEW_SCRIPT_STREAMLINED.md</li>
+<li>Let them elaborate on war stories (Q26-29) - this is the gold</li>
+</ul></li>
+<li><strong>After interview:</strong>
+<ul>
+<li>Stop recording</li>
+<li>Zoom auto-generates transcript (cloud recording) OR you save
+recording locally</li>
+<li>Move to next lender</li>
+</ul></li>
+</ol>
+<h3 id="zoom-transcript-setup-important">Zoom Transcript Setup
+(IMPORTANT)</h3>
+<p><strong>If using Zoom cloud recording:</strong> 1. Enable
+auto-transcription in Zoom settings: - Go to zoom.us &gt; Settings &gt;
+Recording - ✅ Enable “Audio transcript” - This gives you both video +
+text transcript</p>
+<p><strong>If using local recording:</strong> - Zoom saves recording to
+your computer - No auto-transcript, but you can upload to Otter.ai or
+Rev.com later (optional)</p>
+<h3 id="interview-scheduling-email-template">Interview Scheduling Email
+Template</h3>
+<p><strong>Subject:</strong> PRIORITY 1 Lender Interviews - Week 1
+Schedule</p>
+<p><strong>Body:</strong></p>
+<pre><code>Hi [Nwabisa/Dextter],
+
+I&#39;m scheduling live interviews for your PRIORITY 1 lenders (your top 10 with strong relationships). These are the most important, so we&#39;re doing these first as live sessions.
+
+WHY PRIORITY 1 FIRST?
+These are the lenders you work with most and know best - we want the highest quality insights from these.
+
+WEEK 1 SCHEDULE (Priority 1 Lenders Only):
+[Date/Time] - [Lender 1] ⭐
+[Date/Time] - [Lender 2] ⭐
+[Date/Time] - [Lender 3] ⭐
+...
+
+Each session is ~10-15 mins. I&#39;ve booked [X]-hour blocks so we can do 3-4 back-to-back with short breaks.
+
+PREP NEEDED:
+- Have your contact detail forms handy (in case you forget details)
+- Think about your best/worst case stories for these lenders
+- No other prep needed - I&#39;ll ask the questions, you answer
+
+Zoom link: [Insert recurring meeting link]
+
+WHAT&#39;S NEXT:
+After we complete Priority 1, we&#39;ll decide approach for remaining lenders (self-recorded clips OR more live interviews).
+
+Let me know if you need to reschedule any slots.
+
+Thanks,
+Tara</code></pre>
+<h3 id="tips-for-live-interviews">Tips for Live Interviews</h3>
+<p><strong>Efficiency tips:</strong> - Use a recurring Zoom link (same
+link for all sessions) - Keep sessions tight (8-10 mins) - don’t let
+them ramble - If they say “I don’t know,” move on quickly - War stories
+(Q26-29) - give them 2-3 mins to elaborate - Take minimal notes during
+interview (transcripts will capture everything)</p>
+<p><strong>Quality tips:</strong> - If answer is vague, ask: “Give me a
+specific number/example” - If they skip a question, note it and come
+back at end - Ensure audio quality is good (test in first session)</p>
+<hr />
+<h2 id="task-9-track-progress">TASK 9: Track Progress</h2>
+<p><strong>Time:</strong> 5 minutes per day</p>
+<p><strong>Applies to:</strong> Both self-recorded AND live interview
+approaches</p>
+<h3 id="create-simple-tracking-spreadsheet">Create Simple Tracking
+Spreadsheet</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 16%" />
+<col style="width: 25%" />
+<col style="width: 20%" />
+<col style="width: 9%" />
+<col style="width: 8%" />
+</colgroup>
+<thead>
+<tr>
+<th>Lender</th>
+<th>Broker</th>
+<th>Contact Form</th>
+<th>Interview/Recording</th>
+<th>Transcript Link</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Barclays</td>
+<td>Nwabisa</td>
+<td>✅</td>
+<td>✅</td>
+<td>[Link]</td>
+<td>Complete</td>
+<td></td>
+</tr>
+<tr>
+<td>HSBC</td>
+<td>Nwabisa</td>
+<td>✅</td>
+<td>🔄</td>
+<td>-</td>
+<td>In Progress</td>
+<td>Interview scheduled 26th</td>
+</tr>
+<tr>
+<td>Santander</td>
+<td>Dextter</td>
+<td>❌</td>
+<td>❌</td>
+<td>-</td>
+<td>Not Started</td>
+<td></td>
+</tr>
+<tr>
+<td>[etc.]</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Update daily:</strong> - Check Google Form responses (mark ✅
+when submitted) - Check shared drive folder OR Zoom recordings (mark ✅
+when complete) - <strong>Add transcript link</strong> (Zoom cloud
+recording link OR local file path) - Status options: Not Started | In
+Progress | Complete | Needs Review</p>
+<p><strong>Share this spreadsheet with project lead</strong> (they can
+see progress at a glance and access transcript links)</p>
+<h3 id="send-weekly-progress-email">Send Weekly Progress Email</h3>
+<p><strong>Subject:</strong> Lender Knowledge Capture - Week [1/2]
+Progress</p>
+<p><strong>Body:</strong></p>
+<pre><code>Hi [Project Lead],
+
+Progress update:
+
+WEEK 1 (Contact Forms):
+- Nwabisa: [X/55] forms completed ([%]%)
+- Dextter: [X/70] forms completed ([%]%)
+
+WEEK 2 (Zoom Recordings):
+- Nwabisa: [X/55] recordings uploaded ([%]%)
+- Dextter: [X/70] recordings uploaded ([%]%)
+
+ON TRACK / BEHIND:
+[Note if anyone is falling behind]
+
+BLOCKERS:
+[Note any issues]
+
+NEXT STEPS:
+[What&#39;s happening this week]
+
+Full tracking spreadsheet: [Link]
+
+Thanks,
+Tara</code></pre>
+<hr />
+<h2 id="common-issues-how-to-handle-them">Common Issues &amp; How to
+Handle Them</h2>
+<h3 id="issue-1-broker-doesnt-submit-forms-on-time">Issue 1: Broker
+Doesn’t Submit Forms on Time</h3>
+<p><strong>Solution:</strong> - Send reminder email on deadline day - If
+still no response, escalate to project lead</p>
+<p><strong>Reminder Email Template:</strong></p>
+<pre><code>Hi [Broker],
+
+Just a reminder - [X] contact forms are due today (Friday).
+
+I can see you&#39;ve completed [X/Y] so far. Can you finish the remaining [Z] today?
+
+If you&#39;re stuck or need help, let me know.
+
+Thanks,
+Tara</code></pre>
+<hr />
+<h3 id="issue-2-broker-submits-recording-with-poor-audio">Issue 2:
+Broker Submits Recording with Poor Audio</h3>
+<p><strong>Solution:</strong> - Ask them to re-record with better
+microphone or quieter environment</p>
+<p><strong>Email Template:</strong></p>
+<pre><code>Hi [Broker],
+
+I reviewed your recording for [Lender], but the audio quality is too low to transcribe clearly.
+
+Can you re-record in a quieter space or with your microphone closer?
+
+Thanks,
+Tara</code></pre>
+<hr />
+<h3 id="issue-3-broker-says-i-dont-know-to-many-questions">Issue 3:
+Broker Says “I Don’t Know” to Many Questions</h3>
+<p><strong>Solution:</strong> - This means they shouldn’t have checked
+that lender in Phase 0 - Move lender to “Low Priority” in spreadsheet -
+Focus their time on lenders they DO know</p>
+<p><strong>Email Template:</strong></p>
+<pre><code>Hi [Broker],
+
+I noticed you said &quot;I don&#39;t know&quot; to many questions for [Lender]. That&#39;s totally fine - it just means we should skip this one.
+
+You don&#39;t need to complete the recording for this lender. Focus on the ones you know well.
+
+I&#39;ve updated the tracking spreadsheet.
+
+Thanks,
+Tara</code></pre>
+<hr />
+<h3 id="issue-4-form-link-broken-or-not-working">Issue 4: Form Link
+Broken or Not Working</h3>
+<p><strong>Solution:</strong> - Check form sharing settings (should be
+“Anyone with the link”) - Resend link - If still broken, create new form
+and migrate responses</p>
+<hr />
+<hr />
+<h2 id="task-10-final-deliverable---share-transcript-links">TASK 10:
+Final Deliverable - Share Transcript Links</h2>
+<p><strong>Time:</strong> 10 minutes</p>
+<p><strong>When:</strong> After all interviews/recordings are
+complete</p>
+<h3 id="what-to-deliver">What to Deliver</h3>
+<p>Provide the project lead with:</p>
+<ol type="1">
+<li><strong>Tracking spreadsheet</strong> with transcript links column
+filled in</li>
+<li><strong>Access to shared folder</strong> (if using local
+recordings)</li>
+<li><strong>Zoom cloud recording links</strong> (if using cloud
+recording)</li>
+</ol>
+<h3 id="email-template-to-project-lead">Email Template to Project
+Lead</h3>
+<p><strong>Subject:</strong> Lender Knowledge Capture Complete -
+Transcript Links</p>
+<p><strong>Body:</strong></p>
+<pre><code>Hi [Project Lead],
+
+All lender interviews are complete. Here&#39;s what I&#39;m handing over:
+
+SUMMARY:
+- Total lenders covered: [X]
+- Nwabisa: [X] lenders
+- Dextter: [X] lenders
+- Interview format: [Self-recorded clips / Live interviews / Hybrid]
+
+DELIVERABLES:
+1. Tracking spreadsheet with transcript links: [Link to spreadsheet]
+2. Recordings folder: [Link to shared drive folder]
+3. Zoom cloud recordings: [Link to Zoom cloud folder, if applicable]
+
+TRANSCRIPT FORMATS:
+- [X] recordings have auto-generated Zoom transcripts (cloud recordings)
+- [X] recordings are video-only (local recordings, no transcript)
+
+NEXT STEPS:
+You&#39;ll filter the transcripts and enter key insights into Notion.
+
+Let me know if you need anything else!
+
+Thanks,
+Tara</code></pre>
+<hr />
+<h2 id="handover-complete---what-happens-next">Handover Complete - What
+Happens Next?</h2>
+<p>Once all interviews/recordings are submitted:</p>
+<ol type="1">
+<li><strong>You’re done!</strong> You’ve delivered the transcript
+links.</li>
+<li>Project lead will:
+<ul>
+<li>Review all recordings/transcripts</li>
+<li>Filter key insights</li>
+<li>Enter data into Notion database</li>
+<li>Extract Base44 decision rules</li>
+</ul></li>
+<li>You may be asked to:
+<ul>
+<li>Send reminder emails to brokers (if follow-ups needed)</li>
+<li>Update tracking spreadsheet (as more lenders are added)</li>
+<li>Conduct follow-up interviews (if gaps identified)</li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="files-youll-need">Files You’ll Need</h2>
+<p>All files are in the project folder:</p>
+<ul>
+<li><code>LENDER_FAMILIARITY_CHECKLIST.md</code> - Full lender list +
+instructions</li>
+<li><code>LENDER_PRE_INTERVIEW_FORM.md</code> - Contact details form
+structure</li>
+<li><code>LENDER_INTERVIEW_SCRIPT_STREAMLINED.md</code> - Q1-Q33 script
+for recordings</li>
+<li>This handover document (you’re reading it!)</li>
+</ul>
+<hr />
+<h2 id="timeline-summary">Timeline Summary</h2>
+<h3 id="if-self-recorded-approach">If Self-Recorded Approach:</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Week</th>
+<th>Task</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Day 1</strong></td>
+<td>Create Phase 0 forms + send to brokers</td>
+<td>1 hour</td>
+</tr>
+<tr>
+<td><strong>Day 2</strong></td>
+<td>Brokers complete Phase 0 (you wait)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>Day 3</strong></td>
+<td>Review responses + create priority spreadsheet</td>
+<td>30 mins</td>
+</tr>
+<tr>
+<td><strong>Day 3-4</strong></td>
+<td>Create Phase 1 forms (contact details)</td>
+<td>2 hours</td>
+</tr>
+<tr>
+<td><strong>Day 5</strong></td>
+<td>Send Phase 1 forms to brokers</td>
+<td>15 mins</td>
+</tr>
+<tr>
+<td><strong>Week 1</strong></td>
+<td>Brokers complete contact forms (you wait)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>Day 8</strong></td>
+<td>Decide approach + set up folder + send instructions</td>
+<td>30 mins</td>
+</tr>
+<tr>
+<td><strong>Day 10</strong></td>
+<td>QA first 3 recordings from each broker</td>
+<td>1 hour</td>
+</tr>
+<tr>
+<td><strong>Day 11-14</strong></td>
+<td>Brokers record remaining lenders (you track progress)</td>
+<td>5 mins/day</td>
+</tr>
+<tr>
+<td><strong>Day 15</strong></td>
+<td>Share transcript links with project lead</td>
+<td>10 mins</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Your total time:</strong> ~3-4 hours over 2 weeks</p>
+<hr />
+<h3 id="if-live-interview-approach">If Live Interview Approach:</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Week</th>
+<th>Task</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Day 1</strong></td>
+<td>Create Phase 0 forms + send to brokers</td>
+<td>1 hour</td>
+</tr>
+<tr>
+<td><strong>Day 2</strong></td>
+<td>Brokers complete Phase 0 (you wait)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>Day 3</strong></td>
+<td>Review responses + create priority spreadsheet</td>
+<td>30 mins</td>
+</tr>
+<tr>
+<td><strong>Day 3-4</strong></td>
+<td>Create Phase 1 forms (contact details)</td>
+<td>2 hours</td>
+</tr>
+<tr>
+<td><strong>Day 5</strong></td>
+<td>Send Phase 1 forms to brokers</td>
+<td>15 mins</td>
+</tr>
+<tr>
+<td><strong>Week 1</strong></td>
+<td>Brokers complete contact forms (you wait)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>Day 8</strong></td>
+<td>Decide approach + set up folder + schedule interviews</td>
+<td>1 hour</td>
+</tr>
+<tr>
+<td><strong>Day 8-14</strong></td>
+<td>Conduct live interviews (5-10 per day)</td>
+<td>10-15 hours total</td>
+</tr>
+<tr>
+<td><strong>Day 15</strong></td>
+<td>Share transcript links with project lead</td>
+<td>10 mins</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Your total time:</strong> ~15-20 hours over 2 weeks (mostly
+conducting interviews)</p>
+<hr />
+<h2 id="questions">Questions?</h2>
+<p>If you get stuck or have questions: 1. Check this handover doc first
+2. Check the reference files (LENDER_FAMILIARITY_CHECKLIST.md, etc.) 3.
+Contact project lead</p>
+<p>Good luck! This is a straightforward admin project - you’ve got
+this.</p>
+</body>
+</html>
