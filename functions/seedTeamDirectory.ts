@@ -13,6 +13,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    const user = await base44.auth.me();
+
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
     console.log('[SEED] Starting TeamDirectory seed...');
 
     const teams = [
@@ -47,7 +53,7 @@ Deno.serve(async (req) => {
 
     for (const team of teams) {
       // Check if team already exists
-      const existing = await base44.entities.TeamDirectory.findOne({
+      const existing = await base44.asServiceRole.entities.TeamDirectory.findOne({
         team_name: team.team_name
       });
 
@@ -58,7 +64,7 @@ Deno.serve(async (req) => {
       }
 
       // Create team
-      const created = await base44.entities.TeamDirectory.create(team);
+      const created = await base44.asServiceRole.entities.TeamDirectory.create(team);
       console.log(`[SEED] Created team: ${team.team_name}`);
       results.push({ status: 'created', team: team.team_name, id: created.id });
     }
@@ -73,9 +79,6 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('[SEED] TeamDirectory seed failed:', error);
-    return Response.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });

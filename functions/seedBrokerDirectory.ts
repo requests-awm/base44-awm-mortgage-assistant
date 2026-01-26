@@ -13,6 +13,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    const user = await base44.auth.me();
+
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
     console.log('[SEED] Starting BrokerDirectory seed...');
 
     const brokers = [
@@ -32,7 +38,7 @@ Deno.serve(async (req) => {
 
     for (const broker of brokers) {
       // Check if broker already exists
-      const existing = await base44.entities.BrokerDirectory.findOne({
+      const existing = await base44.asServiceRole.entities.BrokerDirectory.findOne({
         broker_email: broker.broker_email
       });
 
@@ -43,7 +49,7 @@ Deno.serve(async (req) => {
       }
 
       // Create broker
-      const created = await base44.entities.BrokerDirectory.create(broker);
+      const created = await base44.asServiceRole.entities.BrokerDirectory.create(broker);
       console.log(`[SEED] Created broker: ${broker.display_name}`);
       results.push({ status: 'created', broker: broker.display_name, id: created.id });
     }
@@ -58,9 +64,6 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('[SEED] BrokerDirectory seed failed:', error);
-    return Response.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });

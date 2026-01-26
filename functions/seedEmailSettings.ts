@@ -12,6 +12,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    }
 
     console.log('[SEED] Starting EmailSettings seed...');
 
@@ -27,14 +32,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create default settings
-    const settings = await base44.entities.EmailSettings.create({
+    // Create default settings using asServiceRole
+    const settings = await base44.asServiceRole.entities.EmailSettings.create({
       batch_send_time: '16:00', // 4 PM UK time (default)
       batch_send_timezone: 'Europe/London',
       batch_send_enabled: true,
       instant_send_enabled: true,
       sender_email: 'requests@ascotwm.com',
-      max_batch_size: 50, // Max emails per batch
+      max_batch_size: 50,
       retry_failed_sends: true,
       retry_max_attempts: 3,
       updated_at: new Date().toISOString()
@@ -50,9 +55,6 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('[SEED] EmailSettings seed failed:', error);
-    return Response.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
