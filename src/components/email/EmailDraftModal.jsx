@@ -25,7 +25,8 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   const [isDirty, setIsDirty] = useState(false);
   const [saveStatus, setSaveStatus] = useState(''); // 'saving', 'saved', ''
   const [isGenerating, setIsGenerating] = useState(false);
-  const [sendMode, setSendMode] = useState('manual'); // 'manual' or 'scheduled'
+  const [sendMode, setSendMode] = useState('manual'); // 'manual', 'batch', or 'scheduled'
+  const [batchSendTime, setBatchSendTime] = useState('16:00'); // Default 4 PM
   const [scheduledDateTime, setScheduledDateTime] = useState(() => {
     const tomorrow9am = addDays(new Date(), 1);
     tomorrow9am.setHours(9, 0, 0, 0);
@@ -33,6 +34,24 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   });
   const autoSaveTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
+
+  // Fetch batch send time from settings
+  useEffect(() => {
+    const fetchBatchTime = async () => {
+      try {
+        const response = await base44.functions.invoke('getEmailSettings');
+        if (response.data.success && response.data.settings) {
+          setBatchSendTime(response.data.settings.batch_send_time || '16:00');
+        }
+      } catch (error) {
+        console.warn('[MODAL] Could not fetch batch send time:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchBatchTime();
+    }
+  }, [isOpen]);
 
   const isScheduled = caseData?.email_status === 'scheduled';
 
@@ -202,6 +221,72 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
     }
   });
 
+  const scheduleBatchMutation = useMutation({
+    mutationFn: async () => {
+      if (!subject || !body) {
+        throw new Error('Email must have subject and body');
+      }
+
+      const user = await base44.auth.me();
+
+      // Parse batch send time (format: "HH:MM")
+      const [hours, minutes] = batchSendTime.split(':').map(Number);
+      const today = new Date();
+      const batchTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes, 0);
+
+      // If batch time has already passed today, schedule for tomorrow
+      if (batchTime <= new Date()) {
+        batchTime.setDate(batchTime.getDate() + 1);
+      }
+
+      // Lookup broker display name for Gmail masking
+      let brokerName = null;
+      if (caseData.mortgage_broker_appointed) {
+        try {
+          const brokerLookup = await base44.functions.invoke('lookupBrokerName', {
+            broker_email: caseData.mortgage_broker_appointed
+          });
+          if (brokerLookup.data.success) {
+            brokerName = brokerLookup.data.broker_name;
+          }
+        } catch (error) {
+          console.warn('[BATCH] Could not lookup broker name:', error);
+        }
+      }
+
+      await base44.entities.MortgageCase.update(caseData.id, {
+        email_subject: subject,
+        email_draft: body,
+        email_scheduled_send_time: batchTime.toISOString(),
+        email_status: 'scheduled',
+        zapier_trigger_pending: true,
+        assigned_mortgage_broker_name: brokerName,
+        email_sent_by: user.email,
+        last_activity_by: user.full_name || user.email
+      });
+
+      await base44.entities.AuditLog.create({
+        case_id: caseData.id,
+        action: `Email scheduled for batch send at ${format(batchTime, 'dd MMM yyyy HH:mm')}`,
+        action_category: 'delivery',
+        actor: 'user',
+        actor_email: user.email,
+        timestamp: new Date().toISOString()
+      });
+
+      return batchTime;
+    },
+    onSuccess: (batchTime) => {
+      queryClient.invalidateQueries(['mortgageCase', caseData.id]);
+      queryClient.invalidateQueries(['mortgageCases']);
+      toast.success(`✅ Email scheduled for batch send at ${format(batchTime, 'EEEE, dd MMM \'at\' HH:mm')}`);
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
+
   const scheduleEmailMutation = useMutation({
     mutationFn: async () => {
       const scheduledTime = new Date(scheduledDateTime);
@@ -217,12 +302,30 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
       }
 
       const user = await base44.auth.me();
+
+      // Lookup broker display name for Gmail masking
+      let brokerName = null;
+      if (caseData.mortgage_broker_appointed) {
+        try {
+          const brokerLookup = await base44.functions.invoke('lookupBrokerName', {
+            broker_email: caseData.mortgage_broker_appointed
+          });
+          if (brokerLookup.data.success) {
+            brokerName = brokerLookup.data.broker_name;
+          }
+        } catch (error) {
+          console.warn('[SCHEDULE] Could not lookup broker name:', error);
+        }
+      }
+
       await base44.entities.MortgageCase.update(caseData.id, {
         email_subject: subject,
         email_draft: body,
         email_scheduled_send_time: scheduledTime.toISOString(),
         email_status: 'scheduled',
         zapier_trigger_pending: true,
+        assigned_mortgage_broker_name: brokerName,
+        email_sent_by: user.email,
         last_activity_by: user.full_name || user.email
       });
 
@@ -387,7 +490,26 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                 </div>
               </label>
 
-              {/* Scheduled Send Option */}
+              {/* Batch Send Option (Recommended) */}
+              <label className="flex items-start gap-3 p-4 border-2 border-blue-200 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
+                <input
+                  type="radio"
+                  name="sendMode"
+                  value="batch"
+                  checked={sendMode === 'batch'}
+                  onChange={(e) => setSendMode(e.target.value)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-slate-900">Batch Send at {batchSendTime}</p>
+                    <Badge variant="secondary" className="text-xs">Recommended</Badge>
+                  </div>
+                  <p className="text-sm text-slate-600">All emails sent together in daily batch (UK time)</p>
+                </div>
+              </label>
+
+              {/* Custom Scheduled Send Option */}
               <label className="flex items-start gap-3 p-4 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                 <input
                   type="radio"
@@ -398,8 +520,8 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                   className="mt-0.5"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-slate-900">Schedule Send via Zapier</p>
-                  <p className="text-sm text-slate-500 mb-3">Automatically send at scheduled time</p>
+                  <p className="font-medium text-slate-900">Custom Schedule</p>
+                  <p className="text-sm text-slate-500 mb-3">Choose specific date and time</p>
                   
                   {sendMode === 'scheduled' && (
                     <div className="space-y-2">
@@ -553,6 +675,24 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                   <>
                     <Send className="w-4 h-4 mr-2" />
                     Mark as Sent
+                  </>
+                )}
+              </Button>
+            ) : sendMode === 'batch' ? (
+              <Button
+                className="h-10 text-[15px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                onClick={() => scheduleBatchMutation.mutate()}
+                disabled={scheduleBatchMutation.isPending || isGenerating || !body || !subject}
+              >
+                {scheduleBatchMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Scheduling...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Schedule for {batchSendTime} →
                   </>
                 )}
               </Button>
