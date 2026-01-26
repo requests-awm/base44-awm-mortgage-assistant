@@ -16,10 +16,10 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { broker_email } = await req.json();
 
-    console.log('[LOOKUP] Finding broker display name for:', broker_email);
+    console.log('[BROKER_LOOKUP] Finding display name for:', broker_email);
 
     if (!broker_email) {
-      console.log('[LOOKUP] No broker email provided');
+      console.log('[BROKER_LOOKUP] ERROR: No broker email provided');
       return Response.json({
         success: false,
         broker_name: null,
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     const broker = brokerResults && brokerResults.length > 0 ? brokerResults[0] : null;
 
     if (!broker) {
-      console.log('[LOOKUP] Broker not found in directory:', broker_email);
+      console.log('[BROKER_LOOKUP] Broker not found in directory:', broker_email);
       return Response.json({
         success: false,
         broker_name: null,
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('[LOOKUP] Found broker:', broker.display_name);
+    console.log('[BROKER_LOOKUP] Found broker display name:', broker.display_name);
 
     return Response.json({
       success: true,
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[LOOKUP] Broker lookup failed:', error);
+    console.error('[BROKER_LOOKUP] Lookup failed:', error);
     return Response.json({
       success: false,
       broker_name: null,

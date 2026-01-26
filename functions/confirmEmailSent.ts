@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       sent_at
     } = await req.json();
 
-    console.log('[CONFIRM] Confirming email sent for case:', case_id);
+    console.log('[EMAIL_CONFIRM] Confirming email delivery for case:', case_id);
 
     if (!case_id) {
       throw new Error('case_id is required');
