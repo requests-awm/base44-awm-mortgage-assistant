@@ -19,6 +19,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
+  const requestId = `REQ-${Date.now()}`;
+
   try {
     const base44 = createClientFromRequest(req);
     const {
@@ -28,18 +30,24 @@ Deno.serve(async (req) => {
       sent_at
     } = await req.json();
 
-    console.log('[EMAIL_CONFIRM] Confirming email delivery for case:', case_id);
+    console.log(`[EMAIL_CONFIRM][${requestId}] Starting confirmation for case:`, case_id);
 
     if (!case_id) {
+      console.error(`[EMAIL_CONFIRM][${requestId}] ERROR: No case_id provided`);
       throw new Error('case_id is required');
     }
 
-    // Fetch case
-    const caseData = await base44.entities.MortgageCase.findById(case_id);
+    // Fetch case using filter (Base44 pattern)
+    console.log(`[EMAIL_CONFIRM][${requestId}] Fetching case from MortgageCase...`);
+    const caseResults = await base44.entities.MortgageCase.filter({ id: case_id });
+    const caseData = caseResults && caseResults.length > 0 ? caseResults[0] : null;
 
     if (!caseData) {
+      console.error(`[EMAIL_CONFIRM][${requestId}] ERROR: Case not found:`, case_id);
       throw new Error(`Case not found: ${case_id}`);
     }
+
+    console.log(`[EMAIL_CONFIRM][${requestId}] Case found, preparing update...`);
 
     // Update case
     const updateData: any = {
@@ -63,12 +71,13 @@ Deno.serve(async (req) => {
       updateData.email_sent_at = new Date().toISOString();
     }
 
-    await base44.entities.MortgageCase.update(case_id, updateData);
+    await base44.asServiceRole.entities.MortgageCase.update(case_id, updateData);
 
-    console.log('[CONFIRM] Case updated successfully');
+    console.log(`[EMAIL_CONFIRM][${requestId}] Case updated successfully`);
 
     // Create audit log entry
-    await base44.entities.AuditLog.create({
+    console.log(`[EMAIL_CONFIRM][${requestId}] Creating audit log...`);
+    await base44.asServiceRole.entities.AuditLog.create({
       case_id: case_id,
       action: 'Email sent via Zapier',
       action_category: 'delivery',
@@ -83,7 +92,7 @@ Deno.serve(async (req) => {
       }
     });
 
-    console.log('[CONFIRM] Audit log created');
+    console.log(`[EMAIL_CONFIRM][${requestId}] SUCCESS - Audit log created`);
 
     return Response.json({
       success: true,
@@ -96,7 +105,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[CONFIRM] Failed to confirm email sent:', error);
+    console.error(`[EMAIL_CONFIRM][${requestId}] EXCEPTION:`, error);
     return Response.json({
       success: false,
       error: error.message,
@@ -104,4 +113,3 @@ Deno.serve(async (req) => {
     }, { status: 500 });
   }
 });
-// Deploy: 2026-01-26-16-13-41
