@@ -25,7 +25,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   const [isDirty, setIsDirty] = useState(false);
   const [saveStatus, setSaveStatus] = useState(''); // 'saving', 'saved', ''
   const [isGenerating, setIsGenerating] = useState(false);
-  const [sendMode, setSendMode] = useState('manual'); // 'manual', 'batch', or 'scheduled'
+  const [sendMode, setSendMode] = useState('manual'); // 'manual', 'instant', 'batch', or 'scheduled'
   const [batchSendTime, setBatchSendTime] = useState('16:00'); // Default 4 PM
   const [scheduledDateTime, setScheduledDateTime] = useState(() => {
     const tomorrow9am = addDays(new Date(), 1);
@@ -34,6 +34,9 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   });
   const autoSaveTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
+
+  // Zapier webhook URL for instant send
+  const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/25927525/uqlxaap/';
 
   // Fetch batch send time from settings
   useEffect(() => {
@@ -381,6 +384,113 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
     }
   });
 
+  // Helper function: Lookup broker display name from directory
+  const getBrokerDisplayName = async (brokerEmail) => {
+    if (!brokerEmail) return 'Ascot Wealth Management';
+
+    try {
+      const brokers = await base44.entities.BrokerDirectory.filter({
+        broker_email: brokerEmail,
+        active: true
+      });
+
+      return brokers && brokers.length > 0
+        ? brokers[0].display_name
+        : 'Ascot Wealth Management';
+    } catch (error) {
+      console.error('[MODAL] Broker lookup failed:', error);
+      return 'Ascot Wealth Management';
+    }
+  };
+
+  // Instant Send Mutation - Triggers Zapier webhook immediately
+  const sendNowMutation = useMutation({
+    mutationFn: async () => {
+      if (!subject || !body) {
+        throw new Error('Email must have subject and body');
+      }
+
+      const user = await base44.auth.me();
+
+      // Lookup broker display name for Gmail masking
+      const brokerName = await getBrokerDisplayName(caseData.mortgage_broker_appointed);
+
+      // Prepare webhook payload
+      const payload = {
+        // Case identification
+        case_id: caseData.id,
+        case_reference: caseData.case_reference || `AWM-${caseData.id}`,
+
+        // Recipient
+        client_name: caseData.client_name,
+        client_email: caseData.client_email,
+
+        // Email content
+        email_subject: subject,
+        email_draft: body,
+
+        // Sender (broker name from local lookup)
+        broker_display_name: brokerName,
+        broker_email: caseData.mortgage_broker_appointed || 'requests@ascotwm.com',
+
+        // Team (Zapier will look this up from Base44!)
+        referring_team: caseData.referring_team || 'Team Solo',
+
+        // Asana
+        asana_task_gid: caseData.asana_task_gid || ''
+      };
+
+      console.log('[INSTANT SEND] Triggering Zapier webhook with payload:', payload);
+
+      // Trigger Zapier webhook
+      const response = await fetch(ZAPIER_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Zapier webhook failed: ${response.status} ${response.statusText}`);
+      }
+
+      console.log('[INSTANT SEND] Zapier webhook triggered successfully');
+
+      // Update Base44 case status
+      await base44.entities.MortgageCase.update(caseData.id, {
+        email_subject: subject,
+        email_draft: body,
+        email_status: 'sent',
+        email_sent_at: new Date().toISOString(),
+        email_sent_by: user.email,
+        assigned_mortgage_broker_name: brokerName,
+        zapier_sent_confirmation: false, // Will be set to true by callback later
+        last_activity_by: user.full_name || user.email
+      });
+
+      // Create audit log
+      await base44.entities.AuditLog.create({
+        case_id: caseData.id,
+        action: `Email sent instantly via Zapier to ${caseData.client_email}`,
+        action_category: 'delivery',
+        actor: 'user',
+        actor_email: user.email,
+        timestamp: new Date().toISOString()
+      });
+
+      return brokerName;
+    },
+    onSuccess: (brokerName) => {
+      queryClient.invalidateQueries(['mortgageCase', caseData.id]);
+      queryClient.invalidateQueries(['mortgageCases']);
+      toast.success(`✅ Email sent instantly! From: ${brokerName}`);
+      onClose();
+    },
+    onError: (error) => {
+      console.error('[INSTANT SEND] Error:', error);
+      toast.error(`Failed to send: ${error.message}`);
+    }
+  });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[98vw] max-w-[1400px] max-h-[92vh] overflow-y-auto overflow-x-hidden p-10">
@@ -472,8 +582,27 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
           {/* Send Options Section */}
           <div className="pt-6 border-t border-slate-200 space-y-4">
             <h3 className="text-sm font-semibold text-slate-700">Send Options</h3>
-            
+
             <div className="space-y-3">
+              {/* Instant Send Option (NEW - Zapier) */}
+              <label className="flex items-start gap-3 p-4 border-2 border-emerald-200 bg-emerald-50 rounded-lg cursor-pointer hover:bg-emerald-100 transition-colors">
+                <input
+                  type="radio"
+                  name="sendMode"
+                  value="instant"
+                  checked={sendMode === 'instant'}
+                  onChange={(e) => setSendMode(e.target.value)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-slate-900">Send Now (Instant)</p>
+                    <Badge variant="secondary" className="text-xs bg-emerald-600 text-white">New!</Badge>
+                  </div>
+                  <p className="text-sm text-slate-600">Send immediately via Zapier with broker name masking</p>
+                </div>
+              </label>
+
               {/* Manual Send Option */}
               <label className="flex items-start gap-3 p-4 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                 <input
@@ -490,8 +619,8 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                 </div>
               </label>
 
-              {/* Batch Send Option (Recommended) */}
-              <label className="flex items-start gap-3 p-4 border-2 border-blue-200 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
+              {/* Batch Send Option */}
+              <label className="flex items-start gap-3 p-4 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                 <input
                   type="radio"
                   name="sendMode"
@@ -501,11 +630,8 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                   className="mt-0.5"
                 />
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-slate-900">Batch Send at {batchSendTime}</p>
-                    <Badge variant="secondary" className="text-xs">Recommended</Badge>
-                  </div>
-                  <p className="text-sm text-slate-600">All emails sent together in daily batch (UK time)</p>
+                  <p className="font-medium text-slate-900">Batch Send at {batchSendTime}</p>
+                  <p className="text-sm text-slate-500">All emails sent together in daily batch (UK time)</p>
                 </div>
               </label>
 
@@ -522,7 +648,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                 <div className="flex-1">
                   <p className="font-medium text-slate-900">Custom Schedule</p>
                   <p className="text-sm text-slate-500 mb-3">Choose specific date and time</p>
-                  
+
                   {sendMode === 'scheduled' && (
                     <div className="space-y-2">
                       <Label htmlFor="scheduledDateTime" className="text-sm">Schedule for:</Label>
@@ -660,7 +786,25 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
               )}
             </Button>
 
-            {sendMode === 'manual' ? (
+            {sendMode === 'instant' ? (
+              <Button
+                className="h-10 text-[15px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                onClick={() => sendNowMutation.mutate()}
+                disabled={sendNowMutation.isPending || isGenerating || !body || !subject}
+              >
+                {sendNowMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Now →
+                  </>
+                )}
+              </Button>
+            ) : sendMode === 'manual' ? (
               <Button
                 className="h-10 text-[15px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-6"
                 onClick={() => markSentMutation.mutate()}
