@@ -35,9 +35,6 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
   const autoSaveTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Zapier webhook URL for instant send
-  const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/25927525/uqlxaap/';
-
   // Fetch batch send time from settings
   useEffect(() => {
     const fetchBatchTime = async () => {
@@ -440,20 +437,16 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
         asana_task_gid: caseData.asana_task_gid || ''
       };
 
-      console.log('[INSTANT SEND] Triggering Zapier webhook with payload:', payload);
+      console.log('[INSTANT SEND] Triggering Zapier webhook via Base44 proxy with payload:', payload);
 
-      // Trigger Zapier webhook
-      const response = await fetch(ZAPIER_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      // Trigger Zapier webhook via Base44 proxy (avoids CORS)
+      const response = await base44.functions.invoke('sendInstantEmail', payload);
 
-      if (!response.ok) {
-        throw new Error(`Zapier webhook failed: ${response.status} ${response.statusText}`);
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to send email');
       }
 
-      console.log('[INSTANT SEND] Zapier webhook triggered successfully');
+      console.log('[INSTANT SEND] Zapier webhook triggered successfully via proxy');
 
       // Update Base44 case status
       await base44.entities.MortgageCase.update(caseData.id, {
