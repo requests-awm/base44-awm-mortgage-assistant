@@ -25,17 +25,17 @@ Deno.serve(async (req) => {
     const teams = [
       {
         team_name: 'Team Solo',
-        team_email: 'teamsolo@ascotwm.com',
+        team_email: 'solo@ascotwm.com',
         active: true
       },
       {
         team_name: 'Team Royal',
-        team_email: 'teamroyal@ascotwm.com',
+        team_email: 'royal@ascotwm.com',
         active: true
       },
       {
         team_name: 'Team Blue',
-        team_email: 'teamblue@ascotwm.com',
+        team_email: 'blue@ascotwm.com',
         active: true
       },
       {
@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       },
       {
         team_name: 'Team Quest',
-        team_email: 'teamquest@ascotwm.com',
+        team_email: 'quest@ascotwm.com',
         active: true
       },
       {
