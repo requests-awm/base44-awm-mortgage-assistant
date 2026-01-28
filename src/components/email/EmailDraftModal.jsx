@@ -410,7 +410,9 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
       const user = await base44.auth.me();
 
       // Lookup broker display name for Gmail masking
-      const brokerName = await getBrokerDisplayName(caseData.mortgage_broker_appointed);
+      // Priority: 1. Assigned broker, 2. Logged-in user, 3. Fallback
+      const brokerEmail = caseData.mortgage_broker_appointed || user.email;
+      const brokerName = await getBrokerDisplayName(brokerEmail);
 
       // Prepare webhook payload
       const payload = {
@@ -428,7 +430,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
 
         // Sender (broker name from local lookup)
         broker_display_name: brokerName,
-        broker_email: caseData.mortgage_broker_appointed || 'requests@ascotwm.com',
+        broker_email: brokerEmail,
 
         // Team (Zapier will look this up from Base44!)
         referring_team: caseData.referring_team || 'Team Solo',
