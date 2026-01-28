@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const teams = [
       {
         team_name: 'Team Solo',
-        team_email: 'solo@ascotwm.com',
+        team_email: 'markokruger1125@gmail.com', // TEST EMAIL - change back to solo@ascotwm.com after testing
         active: true
       },
       {
