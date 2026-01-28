@@ -580,7 +580,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
 
             <div className="space-y-3">
               {/* Instant Send Option (NEW - Zapier) */}
-              <label className="flex items-start gap-3 p-4 border-2 border-emerald-200 bg-emerald-50 rounded-lg cursor-pointer hover:bg-emerald-100 transition-colors">
+              <label className="flex items-start gap-3 p-4 border-2 border-emerald-200 bg-emerald-50 rounded-lg cursor-pointer">
                 <input
                   type="radio"
                   name="sendMode"
@@ -591,7 +591,7 @@ export default function EmailDraftModal({ isOpen, onClose, caseData }) {
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-slate-900">Send Now (Instant)</p>
+                    <p className="font-medium text-slate-900">Now</p>
                     <Badge variant="secondary" className="text-xs bg-emerald-600 text-white">New!</Badge>
                   </div>
                   <p className="text-sm text-slate-600">Send immediately via Zapier with broker name masking</p>
